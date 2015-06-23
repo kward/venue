@@ -22,7 +22,8 @@ func TestCar(t *testing.T) {
 }
 func TestCarInt(t *testing.T) {
 	tests := []struct {
-		addr, first int
+		addr  string
+		first int
 	}{
 		{"/2/4", 2},
 		{"/4", 4},
