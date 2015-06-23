@@ -1,3 +1,6 @@
+/*
+The Venue package exposes the Avid™ VENUE VNC interface as a programmatic API.
+*/
 package venue
 
 import (
@@ -23,6 +26,7 @@ var (
 	timeoutFlag = flag.Duration("timeout", 10*time.Second, "timeout for Venue connection.")
 )
 
+// Venue holds information representing the state of the VENUE backend.
 type Venue struct {
 	host      string
 	port      uint
@@ -36,11 +40,13 @@ type Venue struct {
 	Pages map[int]*Page
 }
 
+// NewVenue returns a populated Venue struct.
 func NewVenue(host string, port uint, passwd string) *Venue {
 	cfg := vnc.NewClientConfig(passwd)
 	return &Venue{host: host, port: port, cfg: cfg}
 }
 
+// Connect to a VENUE console.
 func (v *Venue) Connect() error {
 	if v.conn != nil {
 		return fmt.Errorf("%v Already connected.", errPrefix)
@@ -60,10 +66,12 @@ func (v *Venue) Connect() error {
 	return nil
 }
 
+// Close a connection to a VENUE console.
 func (v *Venue) Close() error {
 	return v.conn.Close()
 }
 
+// Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() {
 	// Create image to apply framebuffer updates to.
 	v.fb = NewFramebuffer(int(v.conn.FramebufferWidth), int(v.conn.FramebufferHeight))
@@ -87,6 +95,7 @@ func (v *Venue) Initialize() {
 	v.MouseMove(image.Point{0, 0})
 }
 
+// HandleServer handles a VNC server message.
 func (v *Venue) HandleServer() {
 	for {
 		msg := <-v.cfg.ServerMessageCh
@@ -109,6 +118,7 @@ func (v *Venue) HandleServer() {
 	}
 }
 
+// FramebufferRefresh refreshes the local framebuffer image of the VNC server.
 func (v *Venue) FramebufferRefresh() {
 	//screen := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width, v.fb.Height}}
 	for {
@@ -117,6 +127,7 @@ func (v *Venue) FramebufferRefresh() {
 	}
 }
 
+// Snapshot requests updated image info from the VNC server.
 func (v *Venue) Snapshot(r image.Rectangle) error {
 	log.Printf("Snapshot(%v)\n", r)
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
