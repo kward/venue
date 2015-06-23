@@ -1,5 +1,7 @@
 # venue
-Golang API and TouchOSC layouts for controlling Avid™ VENUE software
+Golang API and server for TouchOSC to control Avid™ VENUE software
+https://www.avid.com/US/products/venue-software
+http://hexler.net/software/touchosc
 
 This software package is designed to enable audio engineers to control an Avid™
 VENUE system using a mobile device. The initial version is focused on the
