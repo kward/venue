@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/howeyc/gopass"
-	"github.com/hypebeast/go-osc/osc"
+	osc "github.com/kward/go-osc"
 	vnc "github.com/kward/go-vnc"
 	"github.com/kward/venue"
 )
