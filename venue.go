@@ -101,12 +101,12 @@ func (v *Venue) HandleServer() {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnc.FramebufferUpdate:
-			log.Println("HandleServer() FramebufferUpdateMsg")
-			for i := uint16(0); i < msg.(*vnc.FramebufferUpdateMsg).NumRect; i++ {
+			log.Println("HandleServer() FramebufferUpdateMessage")
+			for i := uint16(0); i < msg.(*vnc.FramebufferUpdateMessage).NumRect; i++ {
 				var colors []vnc.Color
-				rect := msg.(*vnc.FramebufferUpdateMsg).Rects[i]
+				rect := msg.(*vnc.FramebufferUpdateMessage).Rects[i]
 				switch rect.Enc.Type() {
-				case vnc.RawEnc:
+				case vnc.Raw:
 					colors = rect.Enc.(*vnc.RawEncoding).Colors
 				}
 				v.fb.Paint(v, rect, colors)
