@@ -35,7 +35,7 @@ type UIElement interface {
 	Update(*Venue) error
 }
 
-// Page selects the requested page.
+// Page selects the requested page for interaction.
 func (v *Venue) Page(page int) error {
 	log.Println("page:", page)
 	if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
@@ -46,6 +46,7 @@ func (v *Venue) Page(page int) error {
 	return nil
 }
 
+// Input selects the requested input for interaction.
 func (v *Venue) Input(input int) error {
 	if input < 1 || input > numInputs {
 		err := fmt.Errorf("invalid input: %v", input)
@@ -71,14 +72,17 @@ func (v *Venue) Input(input int) error {
 	return nil
 }
 
+// Output selects the specified output for interaction.
 func (v *Venue) Output(output int) error {
 	return nil
 }
 
+// Page holds the UI elements of a VENUE page.
 type Page struct {
 	Elements map[string]UIElement
 }
 
+// NewInputsPage returns a populated Inputs page.
 func NewInputsPage() *Page {
 	const (
 		auxOddX = 316
@@ -112,6 +116,7 @@ func NewInputsPage() *Page {
 	}
 }
 
+// NewOutputsPage returns a populated Outputs page.
 func NewOutputsPage() *Page {
 	const (
 		soloY = 573
