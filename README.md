@@ -30,7 +30,7 @@ Software was tested on the following:
   server), running on OS X Yosemitte.
 
 ## Installation
-This code is written in Golang <http://golang.org/>.
+This code is written in Golang (<http://golang.org/>).
 
 1. Install Golang. Follow the instructions at <http://golang.org/doc/install>.
 2. Setup environment. (Examples are for OS X or Linux.)
