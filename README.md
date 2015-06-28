@@ -33,7 +33,7 @@ Software was tested on the following:
 
 - An [Avid VENUE | Profile][Profile] System.
 - Windows 7, running on [VMware Fusion][Fusion] (which provides a built-in VNC
-  server), running on OS X Yosemitte.
+  server), running on OS X Yosemite.
 
 ## Setup
 ### Installation
