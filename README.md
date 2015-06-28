@@ -29,11 +29,14 @@ Software was tested on the following:
 - Windows 7, running on [VMware Fusion][Fusion] (which provides a built-in VNC
   server), running on OS X Yosemitte.
 
-## Installation
+## Setup
+### Installation
 This code is written in Golang (<http://golang.org/>).
 
 1. Install Golang. Follow the instructions at <http://golang.org/doc/install>.
-2. Setup environment. (Examples are for OS X or Linux.)
+2. Setup environment. Note, the exports must either be run each time the
+   sofware will be used, or they can be added to your `~/.bashrc` file.
+   (Examples are for OS X or Linux.)
 
     ```
     $ mkdir -p "${HOME}/opt/go/bin"
@@ -52,11 +55,11 @@ This code is written in Golang (<http://golang.org/>).
     $ go get github.com/kward/venue
     ```
 
-4. Test the client software. The default VNC port is 5900.
+4. Test the client software.
 
     ```
     $ cd "${GOPATH}/src/github.com/kward/venue"
-    $ go run client/venue_cli.go --host <hostname/IP> --port 5900 --passwd <passwd>
+    $ go run client/venue_cli.go --host <hostname/IP> --passwd <passwd>
     Press CTRL-C to exit.
     ```
 
@@ -66,15 +69,25 @@ This code is written in Golang (<http://golang.org/>).
    of your machine (not the host running VENUE).
 
    ```
-   $ go run server/venue_osc.go --venue_host <hostname/IP> --venue_port 5900 --venue_passwd <passwd> --osc_server_port 8000
+   $ go run server/venue_osc.go --venue_host <hostname/IP> --venue_passwd <passwd>
    ```
 
 Notes:
 
-- If you are using the default VNC port of 5900, the `--port` or `--venue_port`
-  options may be left off.
-- If you are using the default TouchOSC port of 8000, the `--osc_server_port`
-  option may be left off.
+- If you are not using the default VNC port of 5900, the `--port` or
+  `--venue_port` option should be added.
+- If you are not using the default TouchOSC port of 8000, the
+  `--osc_server_port` option should be added for `server/venue_osc.go`.
+
+### Updates
+To update the software, repeat Installation step 3, with slight modifications.
+Here's a simple script to do the updates.
+
+```
+$ for pkg in howeyc/gopass kward/{go-osc,go-vnc,venue}; do
+  go get -u github.com/${pkg}
+done
+```
 
 ## Journal
 
