@@ -13,6 +13,7 @@ import (
 	"time"
 
 	vnc "github.com/kward/go-vnc"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -22,8 +23,8 @@ const (
 )
 
 var (
-	refreshFlag = flag.Duration("refresh", 1000*time.Millisecond, "framebuffer refresh period.")
-	timeoutFlag = flag.Duration("timeout", 10*time.Second, "timeout for Venue connection.")
+	refresh = flag.Duration("venue_refresh", 1000*time.Millisecond, "framebuffer refresh period.")
+	timeout = flag.Duration("venue_timeout", 10*time.Second, "timeout for Venue connection.")
 )
 
 // Venue holds information representing the state of the VENUE backend.
@@ -47,18 +48,26 @@ func NewVenue(host string, port uint, passwd string) *Venue {
 }
 
 // Connect to a VENUE console.
-func (v *Venue) Connect() error {
+func (v *Venue) Connect(ctx context.Context) error {
 	if v.conn != nil {
 		return fmt.Errorf("%v Already connected.", errPrefix)
 	}
 
 	addr := v.host + ":" + strconv.FormatUint(uint64(v.port), 10)
-	netConn, err := net.DialTimeout("tcp", addr, *timeoutFlag)
+	netConn, err := net.DialTimeout("tcp", addr, *timeout)
 	if err != nil {
 		return fmt.Errorf("%v Error connecting to host. %v", errPrefix, err)
 	}
 
-	vncConn, err := vnc.Client(netConn, v.cfg)
+	var cancel context.CancelFunc
+	if _, ok := ctx.Deadline(); ok {
+		ctx, cancel = context.WithCancel(ctx)
+	} else {
+		ctx, cancel = context.WithTimeout(ctx, *timeout)
+	}
+	defer cancel()
+
+	vncConn, err := vnc.Connect(ctx, netConn, v.cfg)
 	if err != nil {
 		return fmt.Errorf("%v Could not establish session. %v", errPrefix, err)
 	}
@@ -95,13 +104,14 @@ func (v *Venue) Initialize() {
 	v.MouseMove(image.Point{0, 0})
 }
 
-// HandleServer handles a VNC server message.
-func (v *Venue) HandleServer() {
+// ListenAndHandle VNC server messages.
+func (v *Venue) ListenAndHandle() {
+	go v.conn.ListenAndHandle()
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnc.FramebufferUpdate:
-			log.Println("HandleServer() FramebufferUpdateMessage")
+			log.Println("ListenAndHandle() FramebufferUpdateMessage")
 			for i := uint16(0); i < msg.(*vnc.FramebufferUpdateMessage).NumRect; i++ {
 				var colors []vnc.Color
 				rect := msg.(*vnc.FramebufferUpdateMessage).Rects[i]
@@ -113,17 +123,17 @@ func (v *Venue) HandleServer() {
 			}
 
 		default:
-			log.Printf("HandleServer() unknown message type:%v msg:%v\n", msg.Type(), msg)
+			log.Printf("ListenAndHandle() unknown message type:%v msg:%v\n", msg.Type(), msg)
 		}
 	}
 }
 
 // FramebufferRefresh refreshes the local framebuffer image of the VNC server.
 func (v *Venue) FramebufferRefresh() {
-	//screen := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width, v.fb.Height}}
+	screen := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width, v.fb.Height}}
 	for {
-		//v.Snapshot(screen)
-		time.Sleep(*refreshFlag)
+		v.Snapshot(screen)
+		time.Sleep(*refresh)
 	}
 }
 

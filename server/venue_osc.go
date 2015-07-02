@@ -13,6 +13,7 @@ import (
 	osc "github.com/kward/go-osc"
 	vnc "github.com/kward/go-vnc"
 	"github.com/kward/venue"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -283,14 +284,14 @@ func main() {
 	}
 
 	v := venue.NewVenue(venueHost, venuePort, venuePasswd)
-	if err := v.Connect(); err != nil {
+	if err := v.Connect(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
 	v.Initialize()
-	go v.HandleServer()
+	go v.ListenAndHandle()
 	go v.FramebufferRefresh()
 
 	server := &osc.Server{}
