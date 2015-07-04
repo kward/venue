@@ -111,7 +111,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				break
 			}
 
-			x, y := carInt(addr), carInt(cdr(addr))
+			x, y := toInt(car(addr)), toInt(cadr(addr))
 			ch := x + (y-1)*dxInput
 			input := ch + s.inputBank*dxInput*dyInput
 			fmt.Printf("x:%v y:%v input:%v\n", x, y, input)
@@ -162,7 +162,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				break
 			}
 
-			x, y := carInt(addr), carInt(cdr(addr))
+			x, y := toInt(car(addr)), toInt(cadr(addr))
 			ch := x
 			output := (ch+s.outputBank*dxOutput)*2 - 1
 			fmt.Printf("x:%v y:%v output:%v\n", x, y, output)
@@ -214,7 +214,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				break
 			}
 
-			x := carInt(addr)
+			x := toInt(car(addr))
 			ch := x
 			output := (ch+s.outputBank*dxOutput)*2 - 1
 			fmt.Printf("x:%v output:%v\n", x, output)
@@ -240,6 +240,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	}
 }
 
+// abs returns the absolute value of an int.
 func abs(x int) int {
 	switch {
 	case x < 0:
@@ -250,6 +251,7 @@ func abs(x int) int {
 	return x
 }
 
+// car returns the first element of an OSC address.
 func car(s string) string {
 	sp := strings.SplitN(s, "/", 3)
 	if len(sp) > 1 {
@@ -258,21 +260,27 @@ func car(s string) string {
 	return ""
 }
 
-func carInt(s string) int {
-	s = car(s)
-	i, err := strconv.ParseInt(s, 10, 0)
-	if err != nil {
-		return -1
-	}
-	return int(i)
+// cadr is equivalent to car(cdr(s)).
+func cadr(s string) string {
+	return car(cdr(s))
 }
 
+// cdr returns an OSC address sans the first element.
 func cdr(s string) string {
 	sp := strings.SplitN(s, "/", 3)
 	if len(sp) > 2 {
 		return "/" + sp[2]
 	}
 	return ""
+}
+
+// toInt converts a string to an int.
+func toInt(s string) int {
+	i, err := strconv.ParseInt(s, 10, 0)
+	if err != nil {
+		return -1
+	}
+	return int(i)
 }
 
 func main() {

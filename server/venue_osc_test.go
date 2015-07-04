@@ -4,6 +4,22 @@ import (
 	"testing"
 )
 
+func TestAbs(t *testing.T) {
+	tests := []struct {
+		val, abs int
+	}{
+		{1, 1},
+		{0, 0},
+		{-1, 1},
+	}
+
+	for _, tt := range tests {
+		if got, want := abs(tt.val), tt.abs; got != want {
+			t.Errorf("abs(): got = %v, want = %v", got, want)
+		}
+	}
+}
+
 func TestCar(t *testing.T) {
 	tests := []struct {
 		addr, first string
@@ -20,22 +36,7 @@ func TestCar(t *testing.T) {
 		}
 	}
 }
-func TestCarInt(t *testing.T) {
-	tests := []struct {
-		addr  string
-		first int
-	}{
-		{"/2/4", 2},
-		{"/4", 4},
-		{"", -1},
-	}
 
-	for _, tt := range tests {
-		if got, want := carInt(tt.addr), tt.first; got != want {
-			t.Errorf("car() failed; got = %v, want = %v", got, want)
-		}
-	}
-}
 func TestCdr(t *testing.T) {
 	tests := []struct {
 		addr, first string
@@ -49,6 +50,24 @@ func TestCdr(t *testing.T) {
 	for _, tt := range tests {
 		if got, want := cdr(tt.addr), tt.first; got != want {
 			t.Errorf("cdr() failed; got = %v, want = %v", got, want)
+		}
+	}
+}
+
+func TestToInt(t *testing.T) {
+	tests := []struct {
+		s string
+		i int
+	}{
+		{"1", 1},
+		{"0", 0},
+		{"-1", -1},
+		{"foo", -1},
+	}
+
+	for _, tt := range tests {
+		if got, want := toInt(tt.s), tt.i; got != want {
+			t.Errorf("toInt() failed; got = %v, want = %v", got, want)
 		}
 	}
 }
