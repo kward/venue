@@ -3,10 +3,10 @@ package venue
 import "image"
 
 // Switch size examples:
-// - Large: Channel solo or mute
-// - Medium: 48V, Pad, Guess
-// - Small: Encoder ON
-// - Tiny: Channel solo or mute on bank
+// - Tiny: Channel solo or mute on bank (13x13 px)
+// - Small: Encoder ON (18x14 px)
+// - Medium: 48V, Pad, Guess (26x16 px)
+// - Large: Channel solo or mute (32x18)
 const (
 	tinySwitch = iota
 	smallSwitch
@@ -16,31 +16,27 @@ const (
 
 // Switch is a UIElement representing a switch.
 type Switch struct {
-	rect   image.Rectangle // Rectangle representing the UI element.
-	toggle bool            // Toggle switch? true = toggle, false = hold-to-enable
-	// state  bool            // Current state; true = on (pressed)
-	// def    bool            // Default value; true = on
-	size   int // tiny..large
-	center image.Point
+	pos    image.Point // Position of UI element.
+	size   int         // tiny..large
+	toggle bool        // Toggle switch? true = toggle, false = hold-to-enable
+	def    bool        // Default value; true = on
+	state  bool        // Current state; true = on (pressed)
 }
 
-func newSwitch(x, y int, size int, toggle, def bool) *Switch {
-	var (
-		dx, dy int
-		center image.Point
-	)
-	switch size {
-	case tinySwitch:
-		dx, dy = 13, 13
-		center = image.Point{x + 7, y + 7}
-	}
+func newPushButton(x, y int, size int) *Switch {
 	return &Switch{
-		rect:   image.Rect(x, y, x+dx, y+dy),
-		toggle: toggle,
-		// state:  def,
-		// def:    def,
+		pos:  image.Point{x, y},
+		size: size,
+	}
+}
+
+func newToggle(x, y int, size int, def bool) *Switch {
+	return &Switch{
+		pos:    image.Point{x, y},
 		size:   size,
-		center: center,
+		toggle: true,
+		def:    def,
+		state:  def,
 	}
 }
 
@@ -48,11 +44,28 @@ func (e *Switch) Read(v *Venue) error {
 	return nil
 }
 
-func (e *Switch) Select(v *Venue) {
+func (e *Switch) Update(v *Venue) error {
 	// Move mouse pointer to switch.
-	v.MouseLeftClick(e.center)
+	v.MouseLeftClick(e.clickOffset())
+
+	// Update local state.
+	if e.toggle {
+		e.state = !e.state
+	}
+
+	return nil
 }
 
-func (e *Switch) Update(v *Venue) error {
-	return nil
+func (e *Switch) clickOffset() image.Point {
+	switch e.size {
+	case tinySwitch:
+		return e.pos.Add(image.Point{7, 7})
+	case smallSwitch:
+		return e.pos.Add(image.Point{9, 7})
+	case mediumSwitch:
+		return e.pos.Add(image.Point{13, 8})
+	case largeSwitch:
+		return e.pos.Add(image.Point{16, 9})
+	}
+	return e.pos
 }

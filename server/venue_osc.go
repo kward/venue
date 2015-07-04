@@ -53,7 +53,9 @@ type state struct {
 
 func NewState() *state {
 	return &state{
-		input: 1,
+		input:      1,
+		inputBank:  1,
+		outputBank: 1,
 	}
 }
 
@@ -65,26 +67,40 @@ func (s *state) handleBundle(b *osc.Bundle) {
 }
 
 func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
+	const (
+		vertical = iota
+		horizontal
+	)
 	var (
+		// The dx and dy vars are always based on a vertical orientation.
 		dxInput, dyInput int
 		dxOutput         int
+		orientation      int
 	)
 
+	// The address is expected to be in this format:
+	// /version/layout/page/control[/mod][/num][/label]
 	addr := msg.Address
 	log.Printf("OSC Message: %v", addr)
 
-	// Strip version
 	version, addr := car(addr), cdr(addr)
-	if version == "/ping" {
+	if version != "0.0" {
+		log.Printf("Unsupported message.")
 		return
 	}
+	log.Printf("Version: %v", version)
 
 	layout, addr := car(addr), cdr(addr)
 	switch layout {
 	case "pv":
-		dxInput, dyInput = 8, 3
-		dxOutput = 4
+		dxInput, dyInput = 8, 4
+		dxOutput = 6
+	case "th":
+		dxInput, dyInput = 12, 4
+		dxOutput = 12
+		orientation = horizontal
 	}
+	log.Printf("Layout: %v", layout)
 
 	page, addr := car(addr), cdr(addr)
 	log.Printf("Page: %v", page)
@@ -93,27 +109,30 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	log.Printf("Control: %v", control)
 	switch control {
 	case "input":
-		action := car(addr)
-		switch action {
-		case "bank":
+		mod := car(addr)
+		switch mod {
+		case "bank": // Only present on the phone layout.
 			bank := car(cdr(addr))
 			log.Printf("Input bank %v selected.", bank)
 			switch bank {
 			case "a":
-				s.inputBank = 0
-			case "b":
 				s.inputBank = 1
+			case "b":
+				s.inputBank = 2
 			}
 
 		default:
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
+				fmt.Println("Ignoring release.")
 				break
 			}
 
 			x, y := toInt(car(addr)), toInt(cadr(addr))
-			ch := x + (y-1)*dxInput
-			input := ch + s.inputBank*dxInput*dyInput
+			if orientation == horizontal {
+				x, y = multiRotate(x, y, dyInput)
+			}
+			input := multiPosition(x, y, dxInput, dyInput, s.inputBank)
 			fmt.Printf("x:%v y:%v input:%v\n", x, y, input)
 
 			const (
@@ -141,30 +160,33 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 		}
 
 	case "output":
-		action, addr := car(addr), cdr(addr)
-		switch action {
-		case "bank":
+		mod, addr := car(addr), cdr(addr)
+		switch mod {
+		case "bank": // Only present on the phone layout.
 			bank := car(addr)
 			log.Printf("Output bank %v selected.", bank)
 			switch bank {
 			case "a":
-				s.outputBank = 0
+				s.outputBank = 1
 			case "b":
-				s.outputBank = 1
+				s.outputBank = 2
 			case "c":
-				s.outputBank = 1
+				s.outputBank = 3
 			}
 
 		case "level":
 			log.Println("Output level.")
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
+				fmt.Println("Ignoring release.")
 				break
 			}
 
 			x, y := toInt(car(addr)), toInt(cadr(addr))
-			ch := x
-			output := (ch+s.outputBank*dxOutput)*2 - 1
+			if orientation == horizontal {
+				x, y = multiRotate(x, y, 4) // TODO(kward): 4 should be a constant.
+			}
+			output := x*2 - 1
 			fmt.Printf("x:%v y:%v output:%v\n", x, y, output)
 
 			var (
@@ -191,12 +213,23 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			// Solo output if needed.
 			if s.output != output {
-				v.Page(venue.OutputsPage)
+				prevPage := v.Page()
+				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
-				e := vp.Elements[name+"solo"]
-				fmt.Printf("output:%v name:%v element:%v\n", output, name, e)
-				e.(*venue.Switch).Select(v)
-				v.Page(venue.InputsPage)
+
+				// Clear solo.
+				fmt.Println("Clearing solo.")
+				e := vp.Elements["solo_clear"]
+				fmt.Printf("output:%v name:%v element:%v\n", output, "solo_clear", e)
+				e.(*venue.Switch).Update(v)
+
+				// Solo output.
+				solo := name + "solo"
+				e = vp.Elements[solo]
+				fmt.Printf("output:%v name:%v element:%v\n", output, solo, e)
+				e.(*venue.Switch).Update(v)
+
+				v.SetPage(prevPage)
 			}
 
 			// Adjust output.
@@ -214,10 +247,14 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				break
 			}
 
-			x := toInt(car(addr))
-			ch := x
-			output := (ch+s.outputBank*dxOutput)*2 - 1
-			fmt.Printf("x:%v output:%v\n", x, output)
+			x, y := toInt(car(addr)), toInt(cadr(addr))
+			fmt.Printf("x:%v y:%v\n", x, y)
+			if orientation == horizontal {
+				x, y = multiRotate(x, y, 1) // TODO(kward): 1 should be a constant.
+			}
+			fmt.Printf("x:%v y:%v\n", x, y)
+			output := multiPosition(x, y, dxOutput, 1, s.outputBank)*2 - 1
+			fmt.Printf("x:%v y:%v output:%v\n", x, y, output)
 
 			// Select output.
 			var name string
@@ -229,15 +266,54 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			// Solo output if needed.
 			if s.output != output {
-				v.Page(venue.OutputsPage)
+				prevPage := v.Page()
+				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
-				e := vp.Elements[name+"solo"]
-				fmt.Printf("output:%v name:%v element:%v\n", output, name, e)
-				e.(*venue.Switch).Select(v)
-				v.Page(venue.InputsPage)
+
+				// Clear solo.
+				fmt.Println("Clearing solo.")
+				e := vp.Elements["solo_clear"]
+				fmt.Printf("output:%v name:%v element:%v\n", output, "solo_clear", e)
+				e.(*venue.Switch).Update(v)
+
+				// Solo output.
+				fmt.Println("Soloing output.")
+				solo := name + "solo"
+				e = vp.Elements[solo]
+				fmt.Printf("output:%v name:%v element:%v\n", output, solo, e)
+				e.(*venue.Switch).Update(v)
+
+				v.SetPage(prevPage)
 			}
 		}
 	}
+}
+
+// The multi* UI controls report their x and y position as /X/Y, with x and y
+// corresponding to the top-left of the control, with x increasing to the right
+// and y increasing downwards, on a vertical orientation. When the layout
+// orientation is changed to horizontal, the x and y correspond to the
+// bottom-left corner, with x increasing vertically, and y increasing to the
+// right.
+//
+// Vertical: 1, 1 is top-left, X inc right, Y inc down
+// | 1 2 3 |
+// | 2 2 3 |
+// | 3 3 3 |
+//
+// Horizontal: 1, 1 is bottom-left, X inc up, Y inc right
+// | 3 3 3 |
+// | 2 2 3 |
+// | 1 2 3 |
+
+// multiPosition returns the absolute position on a multi UI control.
+func multiPosition(x, y, dx, dy, bank int) int {
+	return x + (y-1)*dx + dx*dy*(bank-1)
+}
+
+// multiRotate returns rotated x and y values for a multi UI control.
+func multiRotate(x, y, dy int) (int, int) {
+	return y, dy - x + 1
 }
 
 // abs returns the absolute value of an int.

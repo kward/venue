@@ -22,7 +22,10 @@ const (
 const (
 	bankX  = 8   // X position of 1st bank.
 	bankDX = 131 // dX between banks.
-	chanDX = 15  // dX between channels in a bank.
+	chanDX = 20  // dX between channels in a bank.
+
+	// Time to allow UI to settle.
+	uiSettle = 15 * time.Millisecond
 )
 
 // The VenueUI interface is the conventional interface for interacting with a
@@ -35,13 +38,29 @@ type UIElement interface {
 	Update(*Venue) error
 }
 
-// Page selects the requested page for interaction.
-func (v *Venue) Page(page int) error {
-	log.Println("page:", page)
+// Page returns the current page.
+func (v *Venue) Page() int {
+	return v.currPage
+}
+
+// SetPage selects the requested page for interaction.
+func (v *Venue) SetPage(page int) error {
+	pageNames := map[int]string{
+		InputsPage:    "INPUTS",
+		OutputsPage:   "OUTPUTS",
+		FilingPage:    "FILING",
+		SnapshotsPage: "SNAPSHOTS",
+		PatchbayPage:  "PATCHBAY",
+		PluginsPage:   "PLUG-INS",
+		OptionsPage:   "OPTIONS",
+	}
+
+	log.Println("page:", pageNames[page])
 	if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
 		log.Println("Page() error:", err)
 		return err
 	}
+	v.currPage = page
 	time.Sleep(uiSettle)
 	return nil
 }
@@ -85,9 +104,16 @@ type Page struct {
 // NewInputsPage returns a populated Inputs page.
 func NewInputsPage() *Page {
 	const (
-		auxOddX = 316
-		//aux_even_x :=
-		auxPanX = 473
+		auxOddX  = 316
+		auxPanX  = 473
+		aux12Y   = 95
+		aux34Y   = 146
+		aux56Y   = 197
+		aux78Y   = 248
+		aux910Y  = 299
+		aux1112Y = 350
+		aux1314Y = 401
+		aux1516Y = 452
 	)
 
 	return &Page{
@@ -96,22 +122,31 @@ func NewInputsPage() *Page {
 			"delay":      &Encoder{image.Point{168, 387}, EncoderBL, false},
 			"hpf":        &Encoder{image.Point{168, 454}, EncoderBL, true},
 			"pan":        &Encoder{image.Point{239, 443}, EncoderBC, false},
-			"aux1":       &Encoder{image.Point{auxOddX, 95}, EncoderTR, true},
-			"aux12pan":   &Encoder{image.Point{auxPanX, 95}, EncoderTL, false},
-			"aux3":       &Encoder{image.Point{auxOddX, 146}, EncoderTR, true},
-			"aux34pan":   &Encoder{image.Point{auxPanX, 146}, EncoderTL, false},
-			"aux5":       &Encoder{image.Point{auxOddX, 197}, EncoderTR, true},
-			"aux56pan":   &Encoder{image.Point{auxPanX, 197}, EncoderTL, false},
-			"aux7":       &Encoder{image.Point{auxOddX, 248}, EncoderTR, true},
-			"aux78pan":   &Encoder{image.Point{auxPanX, 248}, EncoderTL, false},
-			"aux9":       &Encoder{image.Point{auxOddX, 299}, EncoderTR, true},
-			"aux910pan":  &Encoder{image.Point{auxPanX, 299}, EncoderTL, false},
-			"aux11":      &Encoder{image.Point{auxOddX, 350}, EncoderTR, true},
-			"aux1112pan": &Encoder{image.Point{auxPanX, 350}, EncoderTL, false},
-			"aux13":      &Encoder{image.Point{auxOddX, 401}, EncoderTR, true},
-			"aux1314pan": &Encoder{image.Point{auxPanX, 401}, EncoderTL, false},
-			"aux15":      &Encoder{image.Point{auxOddX, 452}, EncoderTR, true},
-			"aux1516pan": &Encoder{image.Point{auxPanX, 452}, EncoderTL, false},
+			"aux1":       &Encoder{image.Point{auxOddX, aux12Y}, EncoderTR, true},
+			"aux12pan":   &Encoder{image.Point{auxPanX, aux12Y}, EncoderTL, false},
+			"aux3":       &Encoder{image.Point{auxOddX, aux34Y}, EncoderTR, true},
+			"aux34pan":   &Encoder{image.Point{auxPanX, aux34Y}, EncoderTL, false},
+			"aux5":       &Encoder{image.Point{auxOddX, aux56Y}, EncoderTR, true},
+			"aux56pan":   &Encoder{image.Point{auxPanX, aux56Y}, EncoderTL, false},
+			"aux7":       &Encoder{image.Point{auxOddX, aux78Y}, EncoderTR, true},
+			"aux78pan":   &Encoder{image.Point{auxPanX, aux78Y}, EncoderTL, false},
+			"aux9":       &Encoder{image.Point{auxOddX, aux910Y}, EncoderTR, true},
+			"aux910pan":  &Encoder{image.Point{auxPanX, aux910Y}, EncoderTL, false},
+			"aux11":      &Encoder{image.Point{auxOddX, aux1112Y}, EncoderTR, true},
+			"aux1112pan": &Encoder{image.Point{auxPanX, aux1112Y}, EncoderTL, false},
+			"aux13":      &Encoder{image.Point{auxOddX, aux1314Y}, EncoderTR, true},
+			"aux1314pan": &Encoder{image.Point{auxPanX, aux1314Y}, EncoderTL, false},
+			"aux15":      &Encoder{image.Point{auxOddX, aux1516Y}, EncoderTR, true},
+			"aux1516pan": &Encoder{image.Point{auxPanX, aux1516Y}, EncoderTL, false},
+			"grp1":       &Encoder{image.Point{auxOddX, aux12Y}, EncoderTR, true},
+			"grp12pan":   &Encoder{image.Point{auxPanX, aux12Y}, EncoderTL, false},
+			"grp3":       &Encoder{image.Point{auxOddX, aux34Y}, EncoderTR, true},
+			"grp34pan":   &Encoder{image.Point{auxPanX, aux34Y}, EncoderTL, false},
+			"grp5":       &Encoder{image.Point{auxOddX, aux56Y}, EncoderTR, true},
+			"grp56pan":   &Encoder{image.Point{auxPanX, aux56Y}, EncoderTL, false},
+			"grp7":       &Encoder{image.Point{auxOddX, aux78Y}, EncoderTR, true},
+			"grp78pan":   &Encoder{image.Point{auxPanX, aux78Y}, EncoderTL, false},
+			"solo_clear": newPushButton(980, 490, mediumSwitch),
 		},
 	}
 }
@@ -123,21 +158,23 @@ func NewOutputsPage() *Page {
 	)
 
 	var b int // Bank
-	elements := map[string]UIElement{}
+	elements := map[string]UIElement{
+		"solo_clear": newPushButton(980, 490, mediumSwitch),
+	}
 
 	// Auxes
 	pre, post := "aux", "solo"
 	for b = 1; b <= 2; b++ { // bank
 		for c := 1; c <= 8; c++ { // channel
 			n := fmt.Sprintf("%v%v%v", pre, (b-1)*8+c, post)
-			elements[n] = newSwitch(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false, false)
+			elements[n] = newToggle(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false)
 		}
 	}
 	// Groups
 	b, pre, post = 5, "grp", "solo"
 	for c := 1; c <= 8; c++ { // channel (only 1 bank)
 		n := fmt.Sprintf("%v%v%v", pre, c, post)
-		elements[n] = newSwitch(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false, false)
+		elements[n] = newToggle(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false)
 	}
 
 	return &Page{Elements: elements}

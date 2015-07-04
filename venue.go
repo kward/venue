@@ -19,7 +19,6 @@ import (
 const (
 	errPrefix = "Venue error."
 	numInputs = 48
-	uiSettle  = 10 * time.Millisecond // Time to allow UI to settle.
 )
 
 var (
@@ -36,7 +35,7 @@ type Venue struct {
 	fb        *Framebuffer
 	inputs    [numInputs]*Input
 	currInput Input
-	currPage  Page
+	currPage  int
 
 	Pages map[int]*Page
 }
@@ -98,8 +97,8 @@ func (v *Venue) Initialize() {
 		v.inputs[ch] = input
 	}
 
-	v.Page(OptionsPage) // Ensure Inputs page shows first bank when selected.
-	v.Page(InputsPage)
+	v.SetPage(OptionsPage) // Ensure Inputs page shows first bank when selected.
+	v.SetPage(InputsPage)
 	v.Input(1)
 	v.MouseMove(image.Point{0, 0})
 }

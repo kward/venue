@@ -40,8 +40,7 @@ func (e *Encoder) Update(v *Venue) error {
 	// TODO(kward): select Inputs page
 
 	// Give window focus.
-	p := e.clickOffset()
-	v.MouseLeftClick(p)
+	v.MouseLeftClick(e.clickOffset())
 
 	// Move mouse pointer center of Encoder.
 	v.MouseMove(e.center)
