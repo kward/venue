@@ -44,7 +44,7 @@ This code is written in Golang (<http://golang.org/>).
    sofware will be used, or they can be added to your `~/.bashrc` file.
    (Examples are for OS X or Linux.)
 
-    ```
+    ```sh
     $ mkdir -p "${HOME}/opt/go/bin"
     $ export GOROOT="/usr/local/go"
     $ export GOPATH="${HOME}/opt/go"
@@ -54,7 +54,7 @@ This code is written in Golang (<http://golang.org/>).
 
 3. Download software.
 
-    ```
+    ```sh
     $ go get github.com/howeyc/gopass
     $ go get github.com/kward/go-osc
     $ go get github.com/kward/go-vnc
@@ -63,7 +63,7 @@ This code is written in Golang (<http://golang.org/>).
 
 4. Test the client software.
 
-    ```
+    ```sh
     $ cd "${GOPATH}/src/github.com/kward/venue"
     $ go run client/venue_cli.go --host <hostname/IP> --passwd <passwd>
     Press CTRL-C to exit.
@@ -74,7 +74,7 @@ This code is written in Golang (<http://golang.org/>).
 6. Test the server software. Configure TouchOSC to connect to the hostname/IP
    of your machine (not the host running VENUE).
 
-   ```
+   ```sh
    $ go run server/venue_osc.go --venue_host <hostname/IP> --venue_passwd <passwd>
    ```
 
@@ -89,7 +89,7 @@ Notes:
 To update the software, repeat Installation step 3, with slight modifications.
 Here's a simple script to do the updates.
 
-```
+```sh
 $ for pkg in howeyc/gopass kward/{go-osc,go-vnc,venue}; do
   go get -u github.com/${pkg}
 done
