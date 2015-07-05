@@ -37,8 +37,10 @@ type Venue struct {
 	currInput Input
 	currPage  int
 
-	Pages map[int]*Page
+	Pages VenuePages
 }
+
+type VenuePages map[int]*Page
 
 // NewVenue returns a populated Venue struct.
 func NewVenue(host string, port uint, passwd string) *Venue {
@@ -88,7 +90,7 @@ func (v *Venue) Initialize() {
 	v.cfg.ServerMessageCh = make(chan vnc.ServerMessage)
 
 	// Initialize pages.
-	v.Pages = map[int]*Page{}
+	v.Pages = VenuePages{}
 	v.Pages[InputsPage] = NewInputsPage()
 	v.Pages[OutputsPage] = NewOutputsPage()
 	// Initialize inputs.
@@ -110,7 +112,7 @@ func (v *Venue) ListenAndHandle() {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnc.FramebufferUpdate:
-			log.Println("ListenAndHandle() FramebufferUpdateMessage")
+			//log.Println("ListenAndHandle() FramebufferUpdateMessage")
 			for i := uint16(0); i < msg.(*vnc.FramebufferUpdateMessage).NumRect; i++ {
 				var colors []vnc.Color
 				rect := msg.(*vnc.FramebufferUpdateMessage).Rects[i]
@@ -138,7 +140,7 @@ func (v *Venue) FramebufferRefresh() {
 
 // Snapshot requests updated image info from the VNC server.
 func (v *Venue) Snapshot(r image.Rectangle) error {
-	log.Printf("Snapshot(%v)\n", r)
+	//log.Printf("Snapshot(%v)\n", r)
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
 		vnc.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {

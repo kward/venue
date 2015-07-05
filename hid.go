@@ -10,7 +10,7 @@ import (
 
 // KeyPress presses a key on the VENUE console.
 func (v *Venue) KeyPress(key uint32) error {
-	log.Printf("KeyPress key=0x%x\n", key)
+	log.Printf("Pressing key: 0x%x\n", key)
 	if err := v.conn.KeyEvent(key, true); err != nil {
 		return err
 	}

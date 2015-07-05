@@ -79,12 +79,16 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	)
 
 	// The address is expected to be in this format:
-	// /version/layout/page/control[/mod][/num][/label]
+	// /version/layout/page/control[/command][/num][/label]
 	addr := msg.Address
 	log.Printf("OSC Message: %v", addr)
 
 	version, addr := car(addr), cdr(addr)
-	if version != "0.0" {
+	switch version {
+	case "0.0":
+	case "ping":
+		return
+	default:
 		log.Printf("Unsupported message.")
 		return
 	}
@@ -109,8 +113,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	log.Printf("Control: %v", control)
 	switch control {
 	case "input":
-		mod := car(addr)
-		switch mod {
+		command := car(addr)
+		log.Printf("Command: %v", command)
+		switch command {
 		case "bank": // Only present on the phone layout.
 			bank := car(cdr(addr))
 			log.Printf("Input bank %v selected.", bank)
@@ -124,7 +129,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 		default:
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
-				fmt.Println("Ignoring release.")
+				log.Println("Ignoring release.")
 				break
 			}
 
@@ -133,7 +138,6 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				x, y = multiRotate(x, y, dyInput)
 			}
 			input := multiPosition(x, y, dxInput, dyInput, s.inputBank)
-			fmt.Printf("x:%v y:%v input:%v\n", x, y, input)
 
 			const (
 				left  = false
@@ -160,8 +164,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 		}
 
 	case "output":
-		mod, addr := car(addr), cdr(addr)
-		switch mod {
+		command, addr := car(addr), cdr(addr)
+		log.Printf("Command: %v", command)
+		switch command {
 		case "bank": // Only present on the phone layout.
 			bank := car(addr)
 			log.Printf("Output bank %v selected.", bank)
@@ -175,23 +180,28 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			}
 
 		case "level":
-			log.Println("Output level.")
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
-				fmt.Println("Ignoring release.")
+				log.Println("Ignoring release.")
 				break
 			}
 
+			// Determine output number and UI control name.
 			x, y := toInt(car(addr)), toInt(cadr(addr))
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, 4) // TODO(kward): 4 should be a constant.
 			}
 			output := x*2 - 1
-			fmt.Printf("x:%v y:%v output:%v\n", x, y, output)
 
-			var (
-				clicks int
-			)
+			var name string
+			if output < 16 {
+				name = fmt.Sprintf("aux%d", output) // TOOD(kward): replace aux with constant.
+			} else {
+				name = fmt.Sprintf("grp%d", output-16)
+			}
+			log.Printf("Setting %v output level.", name)
+
+			var clicks int
 			switch y {
 			case 1:
 				clicks = 6 // +4.1 dB
@@ -203,87 +213,71 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				clicks = -6 // ~-4.1 dB
 			}
 
-			// Select output.
-			var name string
-			if output < 16 {
-				name = fmt.Sprintf("aux%d", output) // TOOD(kward): replace aux with constant.
-			} else {
-				name = fmt.Sprintf("grp%d", output-16)
-			}
-
 			// Solo output if needed.
 			if s.output != output {
-				prevPage := v.Page()
 				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
 
 				// Clear solo.
-				fmt.Println("Clearing solo.")
+				log.Println("Clearing solo.")
 				e := vp.Elements["solo_clear"]
-				fmt.Printf("output:%v name:%v element:%v\n", output, "solo_clear", e)
 				e.(*venue.Switch).Update(v)
 
 				// Solo output.
+				log.Printf("Soloing %v output.", name)
 				solo := name + "solo"
 				e = vp.Elements[solo]
-				fmt.Printf("output:%v name:%v element:%v\n", output, solo, e)
 				e.(*venue.Switch).Update(v)
-
-				v.SetPage(prevPage)
 			}
 
-			// Adjust output.
+			// Adjust output value of input send.
+			v.SetPage(venue.InputsPage)
 			vp := v.Pages[venue.InputsPage]
 			e := vp.Elements[name]
-			fmt.Printf("output:%v name:%v element:%v\n", output, name, e)
+
+			log.Printf("Adjusting %v output value of input by %v clicks.", name, clicks)
 			e.(*venue.Encoder).Adjust(v, clicks)
 
 			s.output = output
 
 		case "select":
-			log.Println("Output select.")
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
 				break
 			}
 
+			// Determine output number and UI control name.
 			x, y := toInt(car(addr)), toInt(cadr(addr))
-			fmt.Printf("x:%v y:%v\n", x, y)
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, 1) // TODO(kward): 1 should be a constant.
 			}
-			fmt.Printf("x:%v y:%v\n", x, y)
 			output := multiPosition(x, y, dxOutput, 1, s.outputBank)*2 - 1
-			fmt.Printf("x:%v y:%v output:%v\n", x, y, output)
 
-			// Select output.
 			var name string
 			if output < 16 {
 				name = fmt.Sprintf("aux%d", output) // TOOD(kward): replace aux with constant.
 			} else {
 				name = fmt.Sprintf("grp%d", output-16)
 			}
+			log.Printf("Selecting %v output.", name)
 
 			// Solo output if needed.
 			if s.output != output {
-				prevPage := v.Page()
 				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
 
 				// Clear solo.
-				fmt.Println("Clearing solo.")
+				log.Println("Clearing solo.")
 				e := vp.Elements["solo_clear"]
-				fmt.Printf("output:%v name:%v element:%v\n", output, "solo_clear", e)
 				e.(*venue.Switch).Update(v)
 
 				// Solo output.
-				fmt.Println("Soloing output.")
+				log.Printf("Soloing %v output.", name)
 				solo := name + "solo"
 				e = vp.Elements[solo]
-				fmt.Printf("output:%v name:%v element:%v\n", output, solo, e)
 				e.(*venue.Switch).Update(v)
 
-				v.SetPage(prevPage)
+				v.SetPage(venue.InputsPage)
 			}
 		}
 	}
@@ -362,6 +356,8 @@ func toInt(s string) int {
 func main() {
 	flagInit()
 
+	log.SetFlags(log.Flags() | log.Lshortfile)
+
 	if venuePasswd == "" {
 		fmt.Printf("Password: ")
 		venuePasswd = string(gopass.GetPasswdMasked())
@@ -378,7 +374,7 @@ func main() {
 	go v.ListenAndHandle()
 	go v.FramebufferRefresh()
 
-	server := &osc.Server{}
+	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", oscServerHost, oscServerPort))
 	if err != nil {
 		log.Fatal("Error starting OSC server:", err)
@@ -390,7 +386,7 @@ func main() {
 		s := NewState()
 
 		for {
-			p, err := server.ReceivePacket(conn)
+			p, err := o.ReceivePacket(context.Background(), conn)
 			if err != nil {
 				log.Fatalf("OSC error: %v", err)
 			}

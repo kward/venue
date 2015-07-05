@@ -55,7 +55,7 @@ func (v *Venue) SetPage(page int) error {
 		OptionsPage:   "OPTIONS",
 	}
 
-	log.Println("page:", pageNames[page])
+	log.Printf("Changing to %v page.", pageNames[page])
 	if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
 		log.Println("Page() error:", err)
 		return err
@@ -68,7 +68,7 @@ func (v *Venue) SetPage(page int) error {
 // Input selects the requested input for interaction.
 func (v *Venue) Input(input int) error {
 	if input < 1 || input > numInputs {
-		err := fmt.Errorf("invalid input: %v", input)
+		err := fmt.Errorf("Input() invalid input: %v", input)
 		log.Println(err)
 		return err
 	}
