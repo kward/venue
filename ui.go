@@ -22,10 +22,7 @@ const (
 const (
 	bankX  = 8   // X position of 1st bank.
 	bankDX = 131 // dX between banks.
-	chanDX = 20  // dX between channels in a bank.
-
-	// Time to allow UI to settle.
-	uiSettle = 15 * time.Millisecond
+	chanDX = 15  // dX between channels in a bank.
 )
 
 // The VenueUI interface is the conventional interface for interacting with a
@@ -61,19 +58,18 @@ func (v *Venue) SetPage(page int) error {
 		return err
 	}
 	v.currPage = page
-	time.Sleep(uiSettle)
 	return nil
 }
 
 // Input selects the requested input for interaction.
-func (v *Venue) Input(input int) error {
+func (v *Venue) SetInput(input int) error {
 	if input < 1 || input > numInputs {
 		err := fmt.Errorf("Input() invalid input: %v", input)
 		log.Println(err)
 		return err
 	}
 
-	log.Println("input:", input)
+	log.Printf("Selecting input #%v.", input)
 	digit, _ := math.Modf(float64(input) / 10)
 	if err := v.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
 		log.Println("Input() error on 1st key press:", err)
@@ -92,7 +88,7 @@ func (v *Venue) Input(input int) error {
 }
 
 // Output selects the specified output for interaction.
-func (v *Venue) Output(output int) error {
+func (v *Venue) SetOutput(output int) error {
 	return nil
 }
 

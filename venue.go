@@ -101,7 +101,7 @@ func (v *Venue) Initialize() {
 
 	v.SetPage(OptionsPage) // Ensure Inputs page shows first bank when selected.
 	v.SetPage(InputsPage)
-	v.Input(1)
+	v.SetInput(1)
 	v.MouseMove(image.Point{0, 0})
 }
 

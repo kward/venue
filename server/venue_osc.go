@@ -158,7 +158,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 					}
 				}
 			} else {
-				v.Input(input)
+				v.SetInput(input)
 			}
 			s.input = input
 		}
@@ -215,6 +215,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			// Solo output if needed.
 			if s.output != output {
+				s.output = output
 				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
 
@@ -237,8 +238,6 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			log.Printf("Adjusting %v output value of input by %v clicks.", name, clicks)
 			e.(*venue.Encoder).Adjust(v, clicks)
-
-			s.output = output
 
 		case "select":
 			val := msg.Arguments[0].(float32)
@@ -263,6 +262,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			// Solo output if needed.
 			if s.output != output {
+				s.output = output
 				v.SetPage(venue.OutputsPage)
 				vp := v.Pages[venue.OutputsPage]
 
@@ -276,8 +276,6 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				solo := name + "solo"
 				e = vp.Elements[solo]
 				e.(*venue.Switch).Update(v)
-
-				v.SetPage(venue.InputsPage)
 			}
 		}
 	}
@@ -356,7 +354,7 @@ func toInt(s string) int {
 func main() {
 	flagInit()
 
-	log.SetFlags(log.Flags() | log.Lshortfile)
+	log.SetFlags(log.Flags() | log.Lmicroseconds | log.Lshortfile)
 
 	if venuePasswd == "" {
 		fmt.Printf("Password: ")
