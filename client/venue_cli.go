@@ -51,7 +51,7 @@ func main() {
 	// Randomly adjust an input.
 	for {
 		i := rand.Intn(48)
-		v.Input(i)
+		v.SetInput(i)
 		time.Sleep(1 * time.Second)
 	}
 }

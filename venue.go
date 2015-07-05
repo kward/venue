@@ -84,7 +84,7 @@ func (v *Venue) Close() error {
 // Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() {
 	// Create image to apply framebuffer updates to.
-	v.fb = NewFramebuffer(int(v.conn.FramebufferWidth), int(v.conn.FramebufferHeight))
+	v.fb = NewFramebuffer(int(v.conn.FramebufferHeight()), int(v.conn.FramebufferHeight()))
 
 	// Setup channel to listen to server messages.
 	v.cfg.ServerMessageCh = make(chan vnc.ServerMessage)
