@@ -378,7 +378,7 @@ func main() {
 	go v.ListenAndHandle()
 	go v.FramebufferRefresh()
 
-	server := &osc.Server{}
+	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", oscServerHost, oscServerPort))
 	if err != nil {
 		log.Fatal("Error starting OSC server:", err)
@@ -390,7 +390,7 @@ func main() {
 		s := NewState()
 
 		for {
-			p, err := server.ReceivePacket(conn)
+			p, err := o.ReceivePacket(context.Background(), conn)
 			if err != nil {
 				log.Fatalf("OSC error: %v", err)
 			}
