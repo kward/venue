@@ -20,9 +20,10 @@ const (
 	OptionsPage
 )
 const (
-	bankX  = 8   // X position of 1st bank.
-	bankDX = 131 // dX between banks.
-	chanDX = 15  // dX between channels in a bank.
+	bankX        = 8   // X position of 1st bank.
+	bankDX       = 131 // dX between banks.
+	chanDX       = 15  // dX between channels in a bank.
+	maxArrowKeys = 17  // Max number of consecutive arrow key presses.
 )
 
 // The VenueUI interface is the conventional interface for interacting with a
@@ -52,12 +53,14 @@ func (v *Venue) SetPage(page int) error {
 		OptionsPage:   "OPTIONS",
 	}
 
-	log.Printf("Changing to %v page.", pageNames[page])
-	if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
-		log.Println("Page() error:", err)
-		return err
+	if v.currPage != page {
+		log.Printf("Changing to %v page.", pageNames[page])
+		if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
+			log.Println("Page() error:", err)
+			return err
+		}
+		v.currPage = page
 	}
-	v.currPage = page
 	return nil
 }
 
@@ -68,8 +71,50 @@ func (v *Venue) SetInput(input int) error {
 		log.Println(err)
 		return err
 	}
-
 	log.Printf("Selecting input #%v.", input)
+
+	v.SetPage(InputsPage)
+
+	if v.currInput == nil {
+		v.selectInput(1)
+		v.currInput = v.inputs[0]
+	}
+	if input == v.currInput.ch {
+		return nil
+	}
+
+	const (
+		left  = false
+		right = true
+	)
+
+	dist := input - v.currInput.ch
+	kp := abs(dist)
+	if kp <= maxArrowKeys {
+		// Move with the keyboard.
+		dir := left
+		if dist > 0 {
+			dir = right
+		}
+		for i := 0; i < kp; i++ {
+			if dir == left {
+				v.KeyPress(vnc.KeyLeft)
+			} else {
+				v.KeyPress(vnc.KeyRight)
+			}
+		}
+	} else {
+		if err := v.selectInput(input); err != nil {
+			return err
+		}
+	}
+
+	v.currInput = v.inputs[input-1]
+	return nil
+}
+
+// selectInput select an input directly.
+func (v *Venue) selectInput(input int) error {
 	digit, _ := math.Modf(float64(input) / 10)
 	if err := v.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
 		log.Println("Input() error on 1st key press:", err)
@@ -80,6 +125,7 @@ func (v *Venue) SetInput(input int) error {
 		log.Println("Input() error on 2nd key press:", err)
 		return err
 	}
+
 	// TODO(kward): This may slow a user down. maybe only delay once the "search"
 	// has completed?
 	time.Sleep(1750 * time.Millisecond)
@@ -87,7 +133,7 @@ func (v *Venue) SetInput(input int) error {
 	return nil
 }
 
-// Output selects the specified output for interaction.
+// SetOutput selects the specified output for interaction.
 func (v *Venue) SetOutput(output int) error {
 	return nil
 }

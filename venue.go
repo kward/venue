@@ -34,7 +34,7 @@ type Venue struct {
 	conn      *vnc.ClientConn
 	fb        *Framebuffer
 	inputs    [numInputs]*Input
-	currInput Input
+	currInput *Input
 	currPage  int
 
 	Pages VenuePages
@@ -99,10 +99,16 @@ func (v *Venue) Initialize() {
 		v.inputs[ch] = input
 	}
 
-	v.SetPage(OptionsPage) // Ensure Inputs page shows first bank when selected.
-	v.SetPage(InputsPage)
+	// Choose something besides input page, so that later when the Inputs page is
+	// selected, it shows first bank of channels.
+	v.SetPage(OptionsPage)
 	v.SetInput(1)
-	v.MouseMove(image.Point{0, 0})
+
+	// Clear solo.
+	log.Println("Clearing solo.")
+	vp := v.Pages[InputsPage]
+	e := vp.Elements["solo_clear"]
+	e.(*Switch).Update(v)
 }
 
 // ListenAndHandle VNC server messages.
@@ -148,4 +154,15 @@ func (v *Venue) Snapshot(r image.Rectangle) error {
 		return err
 	}
 	return nil
+}
+
+// abs returns the absolute value of an int.
+func abs(x int) int {
+	switch {
+	case x < 0:
+		return -x
+	case x == 0:
+		return 0
+	}
+	return x
 }

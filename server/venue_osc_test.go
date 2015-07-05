@@ -63,22 +63,6 @@ func TestMultiRotate(t *testing.T) {
 	}
 }
 
-func TestAbs(t *testing.T) {
-	tests := []struct {
-		val, abs int
-	}{
-		{1, 1},
-		{0, 0},
-		{-1, 1},
-	}
-
-	for _, tt := range tests {
-		if got, want := abs(tt.val), tt.abs; got != want {
-			t.Errorf("abs(): got = %v, want = %v", got, want)
-		}
-	}
-}
-
 func TestCar(t *testing.T) {
 	tests := []struct {
 		addr, first string

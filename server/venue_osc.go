@@ -11,7 +11,6 @@ import (
 
 	"github.com/howeyc/gopass"
 	osc "github.com/kward/go-osc"
-	vnc "github.com/kward/go-vnc"
 	"github.com/kward/venue"
 	"golang.org/x/net/context"
 )
@@ -24,10 +23,6 @@ var (
 	venueHost     string
 	venuePort     uint
 	venuePasswd   string
-)
-
-const (
-	maxArrowKeys = 8
 )
 
 func flagInit() {
@@ -139,27 +134,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			}
 			input := multiPosition(x, y, dxInput, dyInput, s.inputBank)
 
-			const (
-				left  = false
-				right = true
-			)
-
-			kp := abs(input - s.input)
-			if kp <= maxArrowKeys {
-				var dir bool
-				if input-s.input > 0 {
-					dir = right
-				}
-				for i := 0; i < kp; i++ {
-					if dir == left {
-						v.KeyPress(vnc.KeyLeft)
-					} else {
-						v.KeyPress(vnc.KeyRight)
-					}
-				}
-			} else {
-				v.SetInput(input)
-			}
+			v.SetInput(input)
 			s.input = input
 		}
 
@@ -306,17 +281,6 @@ func multiPosition(x, y, dx, dy, bank int) int {
 // multiRotate returns rotated x and y values for a multi UI control.
 func multiRotate(x, y, dy int) (int, int) {
 	return y, dy - x + 1
-}
-
-// abs returns the absolute value of an int.
-func abs(x int) int {
-	switch {
-	case x < 0:
-		return -x
-	case x == 0:
-		return 0
-	}
-	return x
 }
 
 // car returns the first element of an OSC address.

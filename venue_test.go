@@ -1,9 +1,9 @@
 package venue
 
-import (
+import "testing"
+
 // "image"
 // "testing"
-)
 
 // func TestOverlay(t *testing.T) {
 // 	tests := []struct {
@@ -41,7 +41,23 @@ import (
 // 	}
 // }
 
-func EqualSlices(x, y interface{}) bool {
+func TestAbs(t *testing.T) {
+	tests := []struct {
+		val, abs int
+	}{
+		{1, 1},
+		{0, 0},
+		{-1, 1},
+	}
+
+	for _, tt := range tests {
+		if got, want := abs(tt.val), tt.abs; got != want {
+			t.Errorf("abs(): got = %v, want = %v", got, want)
+		}
+	}
+}
+
+func equalSlices(x, y interface{}) bool {
 	// Special cases.
 	switch {
 	case x == nil && y == nil:
