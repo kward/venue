@@ -28,19 +28,21 @@ var (
 
 // Venue holds information representing the state of the VENUE backend.
 type Venue struct {
-	host      string
-	port      uint
-	cfg       *vnc.ClientConfig
-	conn      *vnc.ClientConn
-	fb        *Framebuffer
+	host string
+	port uint
+	cfg  *vnc.ClientConfig
+	conn *vnc.ClientConn
+	fb   *Framebuffer
+
 	inputs    [numInputs]*Input
 	currInput *Input
-	currPage  int
 
-	Pages VenuePages
+	outputs    map[string]*Output
+	currOutput *Output
+
+	Pages    VenuePages
+	currPage int
 }
-
-type VenuePages map[int]*Page
 
 // NewVenue returns a populated Venue struct.
 func NewVenue(host string, port uint, passwd string) *Venue {
@@ -95,7 +97,7 @@ func (v *Venue) Initialize() {
 	v.Pages[OutputsPage] = NewOutputsPage()
 	// Initialize inputs.
 	for ch := 0; ch < numInputs; ch++ {
-		input := NewInput(v, ch+1)
+		input := NewInput(v, ch+1, Ichannel)
 		v.inputs[ch] = input
 	}
 

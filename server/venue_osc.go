@@ -188,22 +188,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				clicks = -6 // ~-4.1 dB
 			}
 
-			// Solo output if needed.
 			if s.output != output {
+				v.SetOutput(name)
 				s.output = output
-				v.SetPage(venue.OutputsPage)
-				vp := v.Pages[venue.OutputsPage]
-
-				// Clear solo.
-				log.Println("Clearing solo.")
-				e := vp.Elements["solo_clear"]
-				e.(*venue.Switch).Update(v)
-
-				// Solo output.
-				log.Printf("Soloing %v output.", name)
-				solo := name + "solo"
-				e = vp.Elements[solo]
-				e.(*venue.Switch).Update(v)
 			}
 
 			// Adjust output value of input send.
@@ -235,22 +222,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			}
 			log.Printf("Selecting %v output.", name)
 
-			// Solo output if needed.
 			if s.output != output {
+				v.SetOutput(name)
 				s.output = output
-				v.SetPage(venue.OutputsPage)
-				vp := v.Pages[venue.OutputsPage]
-
-				// Clear solo.
-				log.Println("Clearing solo.")
-				e := vp.Elements["solo_clear"]
-				e.(*venue.Switch).Update(v)
-
-				// Solo output.
-				log.Printf("Soloing %v output.", name)
-				solo := name + "solo"
-				e = vp.Elements[solo]
-				e.(*venue.Switch).Update(v)
 			}
 		}
 	}
