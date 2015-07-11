@@ -18,8 +18,7 @@ const (
 	PatchbayPage
 	PluginsPage
 	OptionsPage
-)
-const (
+
 	bankX        = 8   // X position of 1st bank.
 	bankDX       = 131 // dX between banks.
 	chanDX       = 15  // dX between channels in a bank.
@@ -35,6 +34,8 @@ type UIElement interface {
 	// Update updates the state of a UI element.
 	Update(*Venue) error
 }
+
+type VenuePages map[int]*Page
 
 // Page returns the current page.
 func (v *Venue) Page() int {
@@ -134,7 +135,22 @@ func (v *Venue) selectInput(input int) error {
 }
 
 // SetOutput selects the specified output for interaction.
-func (v *Venue) SetOutput(output int) error {
+func (v *Venue) SetOutput(name string) error {
+	v.SetPage(OutputsPage)
+	vp := v.Pages[OutputsPage]
+
+	// Clear solo.
+	log.Println("Clearing solo.")
+	e := vp.Elements["solo_clear"]
+	e.(*Switch).Update(v)
+
+	// Solo output.
+	log.Printf("Soloing %v output.", name)
+	solo := name + "solo"
+	e = vp.Elements[solo]
+	e.(*Switch).Update(v)
+
+	v.currOutput = v.outputs[name]
 	return nil
 }
 

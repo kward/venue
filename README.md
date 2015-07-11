@@ -33,7 +33,7 @@ Software was tested on the following:
 
 - An [Avid VENUE | Profile][Profile] System.
 - Windows 7, running on [VMware Fusion][Fusion] (which provides a built-in VNC
-  server), running on OS X Yosemite.
+  server) on OS X Yosemite.
 
 ## Setup
 ### Installation
@@ -59,9 +59,12 @@ This code is written in Golang (<http://golang.org/>).
     $ go get github.com/kward/go-osc
     $ go get github.com/kward/go-vnc
     $ go get github.com/kward/venue
+    $ go get golang.org/x/net/context
     ```
 
-4. Test the client software.
+4. Test the client software. This will "randomly" select an input channel every
+   few seconds. It is simply to test that a connection can be made and that the
+   console can be controlled.
 
     ```sh
     $ cd "${GOPATH}/src/github.com/kward/venue"
@@ -90,8 +93,12 @@ To update the software, repeat Installation step 3, with slight modifications.
 Here's a simple script to do the updates.
 
 ```sh
-$ for pkg in howeyc/gopass kward/{go-osc,go-vnc,venue}; do
-  go get -u github.com/${pkg}
+$ for pkg in \
+  github.com/howeyc/gopass \
+  github.com/kward/{go-osc,go-vnc,venue}
+  golang.org/x/net/context
+do
+  go get -u ${pkg}
 done
 ```
 
