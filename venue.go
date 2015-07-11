@@ -54,6 +54,7 @@ func (v *Venue) Connect(ctx context.Context) error {
 		return fmt.Errorf("%v Already connected.", errPrefix)
 	}
 
+	log.Println("Connecting...")
 	addr := v.host + ":" + strconv.FormatUint(uint64(v.port), 10)
 	netConn, err := net.DialTimeout("tcp", addr, *timeout)
 	if err != nil {
@@ -68,6 +69,7 @@ func (v *Venue) Connect(ctx context.Context) error {
 	}
 	defer cancel()
 
+	log.Println("Establishing...")
 	vncConn, err := vnc.Connect(ctx, netConn, v.cfg)
 	if err != nil {
 		return fmt.Errorf("%v Could not establish session. %v", errPrefix, err)
