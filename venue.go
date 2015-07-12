@@ -24,6 +24,7 @@ const (
 var (
 	refresh = flag.Duration("venue_refresh", 1000*time.Millisecond, "framebuffer refresh period.")
 	timeout = flag.Duration("venue_timeout", 10*time.Second, "timeout for Venue connection.")
+	debug   = flag.Bool("venue_debug", false, "enable debugging output")
 )
 
 // Venue holds information representing the state of the VENUE backend.
@@ -72,6 +73,7 @@ func (v *Venue) Connect(ctx context.Context) error {
 	defer cancel()
 
 	log.Println("Establishing...")
+	ctx = context.WithValue(ctx, "debug", *debug)
 	vncConn, err := vnc.Connect(ctx, netConn, v.cfg)
 	if err != nil {
 		return fmt.Errorf("%v Could not establish session. %v", errPrefix, err)
