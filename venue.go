@@ -123,11 +123,11 @@ func (v *Venue) ListenAndHandle() {
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
-		case vnc.FramebufferUpdate:
+		case vnc.FramebufferUpdateMsg:
 			//log.Println("ListenAndHandle() FramebufferUpdateMessage")
-			for i := uint16(0); i < msg.(*vnc.FramebufferUpdateMessage).NumRect; i++ {
+			for i := uint16(0); i < msg.(*vnc.FramebufferUpdate).NumRect; i++ {
 				var colors []vnc.Color
-				rect := msg.(*vnc.FramebufferUpdateMessage).Rects[i]
+				rect := msg.(*vnc.FramebufferUpdate).Rects[i]
 				switch rect.Enc.Type() {
 				case vnc.Raw:
 					colors = rect.Enc.(*vnc.RawEncoding).Colors
@@ -145,7 +145,9 @@ func (v *Venue) ListenAndHandle() {
 func (v *Venue) FramebufferRefresh() {
 	screen := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width, v.fb.Height}}
 	for {
-		v.Snapshot(screen)
+		if err := v.Snapshot(screen); err != nil {
+			log.Fatal(err)
+		}
 		time.Sleep(*refresh)
 	}
 }
@@ -156,7 +158,7 @@ func (v *Venue) Snapshot(r image.Rectangle) error {
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
 		vnc.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
-		log.Println("Snapshot() error; ", err)
+		log.Println("Snapshot() error:", err)
 		return err
 	}
 	return nil
