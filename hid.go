@@ -8,10 +8,10 @@ import (
 
 // KeyPress presses a key on the VENUE console.
 func (v *Venue) KeyPress(key uint32) error {
-	if err := v.conn.KeyEvent(key, true); err != nil {
+	if err := v.conn.KeyEvent(key, vnc.PressKey); err != nil {
 		return err
 	}
-	if err := v.conn.KeyEvent(key, false); err != nil {
+	if err := v.conn.KeyEvent(key, vnc.ReleaseKey); err != nil {
 		return err
 	}
 	return nil
