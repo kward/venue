@@ -176,21 +176,21 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			}
 			log.Printf("Setting %v output level.", name)
 
-			var clicks int
-			switch y {
-			case 1:
-				clicks = 6 // +4.1 dB
-			case 2:
-				clicks = 1 // ~+0.7 dB
-			case 3:
-				clicks = -1 // ~-0.7 dB
-			case 4:
-				clicks = -6 // ~-4.1 dB
-			}
-
 			if s.output != output {
 				v.SetOutput(name)
 				s.output = output
+			}
+
+			var clicks int
+			switch y {
+			case 1:
+				clicks = 5 // +5 dB
+			case 2:
+				clicks = 1 // +1 dB
+			case 3:
+				clicks = -1 // -1 dB
+			case 4:
+				clicks = -5 // -5 dB
 			}
 
 			// Adjust output value of input send.

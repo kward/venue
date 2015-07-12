@@ -57,7 +57,15 @@ func (e *Encoder) Update(v *Venue) error {
 }
 
 func (e *Encoder) Adjust(v *Venue, c int) {
-	v.MouseDrag(e.center, image.Point{0, -c})
+	v.MouseLeftClick(e.clickOffset())
+	for i := 0; i < abs(c); i++ {
+		if c > 0 {
+			v.KeyPress(vnc.KeyUp)
+		} else {
+			v.KeyPress(vnc.KeyDown)
+		}
+	}
+	v.KeyPress(vnc.KeyReturn)
 }
 
 func (e *Encoder) Increment(v *Venue) {
