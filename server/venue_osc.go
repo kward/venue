@@ -35,6 +35,7 @@ func flagInit() {
 	flag.StringVar(&venueHost, "venue_host", "localhost", "Venue VNC host/IP.")
 	flag.UintVar(&venuePort, "venue_port", 5900, "Venue VNC port.")
 	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue VNC password.")
+	flag.BoolVar(&venueFbRefresh, "enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
 
 	flag.Parse()
 }
@@ -306,9 +307,13 @@ func main() {
 	defer v.Close()
 	log.Println("Venue connection established.")
 
-	v.Initialize()
 	go v.ListenAndHandle()
-	go v.FramebufferRefresh()
+	if venueFbRefresh {
+		go v.FramebufferRefresh()
+	}
+
+	time.Sleep(1 * time.Second)
+	v.Initialize()
 
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", oscServerHost, oscServerPort))
