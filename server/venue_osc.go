@@ -16,13 +16,14 @@ import (
 )
 
 var (
-	oscClientHost string
-	oscClientPort uint
-	oscServerHost string
-	oscServerPort uint
-	venueHost     string
-	venuePort     uint
-	venuePasswd   string
+	oscClientHost  string
+	oscClientPort  uint
+	oscServerHost  string
+	oscServerPort  uint
+	venueHost      string
+	venuePort      uint
+	venuePasswd    string
+	venueFbRefresh bool
 )
 
 func flagInit() {
@@ -307,13 +308,13 @@ func main() {
 	defer v.Close()
 	log.Println("Venue connection established.")
 
+	v.Initialize()
+	time.Sleep(1 * time.Second)
+
 	go v.ListenAndHandle()
 	if venueFbRefresh {
 		go v.FramebufferRefresh()
 	}
-
-	time.Sleep(1 * time.Second)
-	v.Initialize()
 
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", oscServerHost, oscServerPort))
