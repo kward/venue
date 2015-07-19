@@ -90,7 +90,7 @@ func (v *Venue) Close() error {
 // Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() {
 	// Create image to apply framebuffer updates to.
-	v.fb = NewFramebuffer(int(v.conn.FramebufferHeight()), int(v.conn.FramebufferHeight()))
+	v.fb = NewFramebuffer(int(v.conn.FramebufferWidth()), int(v.conn.FramebufferHeight()))
 
 	// Setup channel to listen to server messages.
 	v.cfg.ServerMessageCh = make(chan vnc.ServerMessage)
@@ -119,12 +119,13 @@ func (v *Venue) Initialize() {
 
 // ListenAndHandle VNC server messages.
 func (v *Venue) ListenAndHandle() {
+	log.Println("ListenAndHandle()")
 	go v.conn.ListenAndHandle()
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnc.FramebufferUpdateMsg:
-			//log.Println("ListenAndHandle() FramebufferUpdateMessage")
+			log.Println("ListenAndHandle() FramebufferUpdateMessage")
 			for i := uint16(0); i < msg.(*vnc.FramebufferUpdate).NumRect; i++ {
 				var colors []vnc.Color
 				rect := msg.(*vnc.FramebufferUpdate).Rects[i]
@@ -154,7 +155,7 @@ func (v *Venue) FramebufferRefresh() {
 
 // Snapshot requests updated image info from the VNC server.
 func (v *Venue) Snapshot(r image.Rectangle) error {
-	//log.Printf("Snapshot(%v)\n", r)
+	log.Printf("Snapshot(%v)\n", r)
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
 		vnc.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
