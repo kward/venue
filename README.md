@@ -68,7 +68,7 @@ This code is written in Golang (<http://golang.org/>).
 
     ```sh
     $ cd "${GOPATH}/src/github.com/kward/venue"
-    $ go run client/venue_cli.go --host <hostname/IP> --passwd <passwd>
+    $ go run client/venue_cli.go --venue_host <hostname/IP> --venue_passwd <passwd>
     Press CTRL-C to exit.
     ```
 
