@@ -13,17 +13,19 @@ import (
 )
 
 var (
-	host       string
-	port       uint
-	passwd     string
-	timeout    time.Duration
-	havePasswd bool
+	host            string
+	port            uint
+	passwd          string
+	timeout         time.Duration
+	havePasswd      bool
+	maxProtoVersion string
 )
 
 func flagInit() {
-	flag.StringVar(&host, "host", "localhost", "Venue host.")
-	flag.UintVar(&port, "port", 5900, "Venue port.")
-	flag.StringVar(&passwd, "passwd", "", "Venue password.")
+	flag.StringVar(&host, "venue_host", "localhost", "Venue host.")
+	flag.UintVar(&port, "venue_port", 5900, "Venue port.")
+	flag.StringVar(&passwd, "venue_passwd", "", "Venue password.")
+	flag.StringVar(&maxProtoVersion, "vnc_max_proto_version", "", "VNC max protocol version")
 
 	flag.Parse()
 }
@@ -37,6 +39,10 @@ func main() {
 	}
 
 	ctx := context.Background()
+	if maxProtoVersion != "" {
+		ctx = context.WithValue(ctx, "vnc_max_proto_version", maxProtoVersion)
+	}
+
 	v := venue.NewVenue(host, port, passwd)
 	if err := v.Connect(ctx); err != nil {
 		log.Fatal(err)
