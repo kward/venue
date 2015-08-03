@@ -55,9 +55,10 @@ func main() {
 	go v.FramebufferRefresh()
 
 	// Randomly adjust an input.
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		i := rand.Intn(48)
+		i := r.Intn(48)
 		v.SetInput(i)
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 }
