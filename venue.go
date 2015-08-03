@@ -105,9 +105,9 @@ func (v *Venue) Initialize() {
 		v.inputs[ch] = input
 	}
 
-	// Choose something besides input page, so that later when the Inputs page is
-	// selected, it shows first bank of channels.
-	v.SetPage(OptionsPage)
+	// Choose output before input so that later when the Inputs page is selected,
+	// it shows first bank of channels.
+	v.SetOutput("aux1")
 	v.SetInput(1)
 
 	// Clear solo.
