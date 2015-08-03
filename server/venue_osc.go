@@ -112,10 +112,12 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 	control, addr := car(addr), cdr(addr)
 	log.Printf("Control: %v", control)
+
 	switch control {
 	case "input":
 		command, addr := car(addr), cdr(addr)
 		log.Printf("Command: %v", command)
+
 		switch command {
 		case "bank": // Only present on the phone layout.
 			bank := car(addr)
@@ -187,6 +189,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	case "output":
 		command, addr := car(addr), cdr(addr)
 		log.Printf("Command: %v", command)
+
 		switch command {
 		case "bank": // Only present on the phone layout.
 			bank := car(addr)
@@ -254,11 +257,11 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			}
 
 			// Determine output number and UI control name.
-			x, y := toInt(car(addr)), toInt(cadr(addr))
+			x, y, dy := toInt(car(addr)), toInt(cadr(addr)), 1
 			if orientation == horizontal {
-				x, y = multiRotate(x, y, 1) // TODO(kward): 1 should be a constant.
+				x, y = multiRotate(x, y, dy)
 			}
-			output := multiPosition(x, y, dxOutput, 1, s.outputBank)*2 - 1
+			output := multiPosition(x, y, dxOutput, dy, s.outputBank)*2 - 1
 
 			var name string
 			if output < 16 {
@@ -271,12 +274,41 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			if s.output != output {
 				v.SetOutput(name)
 				s.output = output
+
+				// TODO(kward): Do following only in "input follows solo" mode.
+				// Click output meter to update selected channel.
+				vp := v.Pages[venue.OutputsPage]
+				e := vp.Elements[name+"meter"]
+				e.(*venue.Meter).Select(v)
 			}
 			v.SetPage(venue.InputsPage)
 
 		case "pan":
-			log.Println("Unimplemented")
-			return
+			val := int(msg.Arguments[0].(float32))
+
+			output := s.output
+			if output == 0 {
+				log.Print("Output not selected yet. Doing nothing.")
+				return
+			}
+			var name string
+			if output < 16 {
+				name = fmt.Sprintf("aux%d", output) // TOOD(kward): replace aux with constant.
+			} else {
+				name = fmt.Sprintf("grp%d", output-16)
+			}
+			log.Printf("Setting %v pan position to %v.", name, val)
+
+			// Adjust pan value of output.
+			v.SetPage(venue.InputsPage)
+			vp := v.Pages[venue.InputsPage]
+			eName := name + "pan"
+			e, ok := vp.Elements[eName]
+			if !ok {
+				log.Printf("Couldn't find input element %v; vp = %v", eName, vp)
+				break
+			}
+			e.(*venue.Encoder).Set(v, val)
 
 		default:
 			log.Printf("Unrecognized command: %v", command)
