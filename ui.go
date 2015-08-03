@@ -29,10 +29,13 @@ const (
 // Venue UI element.
 type UIElement interface {
 	// Read reads the current state of a UI element.
-	Read(*Venue) error
+	Read(v *Venue) error
+
+	// Set value of UI element.
+	Set(v *Venue, val int)
 
 	// Update updates the state of a UI element.
-	Update(*Venue) error
+	Update(v *Venue) error
 }
 
 type VenuePages map[int]*Page

@@ -44,6 +44,8 @@ func (e *Switch) Read(v *Venue) error {
 	return nil
 }
 
+func (e *Switch) Set(v *Venue, val int) {}
+
 func (e *Switch) Update(v *Venue) error {
 	// Move mouse pointer to switch.
 	v.MouseLeftClick(e.clickOffset())

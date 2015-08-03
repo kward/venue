@@ -1,6 +1,7 @@
 package venue
 
 import (
+	"fmt"
 	"image"
 
 	vnc "github.com/kward/go-vnc"
@@ -68,6 +69,14 @@ func (e *Encoder) Adjust(v *Venue, c int) {
 	v.KeyPress(vnc.KeyReturn)
 }
 
+func (e *Encoder) Set(v *Venue, val int) {
+	v.MouseLeftClick(e.clickOffset())
+	for _, key := range intToKeys(val) {
+		v.KeyPress(key)
+	}
+	v.KeyPress(vnc.KeyReturn)
+}
+
 func (e *Encoder) Increment(v *Venue) {
 	e.Adjust(v, 1)
 }
@@ -100,4 +109,26 @@ func (e *Encoder) clickOffset() image.Point {
 	}
 
 	return e.center.Add(image.Point{dx, dy})
+}
+
+func intToKeys(v int) []uint32 {
+	keys := map[rune]uint32{
+		'-': vnc.KeyMinus,
+		'0': vnc.Key0,
+		'1': vnc.Key1,
+		'2': vnc.Key2,
+		'3': vnc.Key3,
+		'4': vnc.Key4,
+		'5': vnc.Key5,
+		'6': vnc.Key6,
+		'7': vnc.Key7,
+		'8': vnc.Key8,
+		'9': vnc.Key9,
+	}
+	k := []uint32{}
+	s := fmt.Sprintf("%d", v)
+	for _, c := range s {
+		k = append(k, keys[c])
+	}
+	return k
 }
