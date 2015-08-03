@@ -16,8 +16,6 @@ var (
 	host            string
 	port            uint
 	passwd          string
-	timeout         time.Duration
-	havePasswd      bool
 	maxProtoVersion string
 )
 
