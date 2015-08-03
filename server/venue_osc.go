@@ -82,9 +82,13 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 	version, addr := car(addr), cdr(addr)
 	switch version {
-	case "0.0":
 	case "ping":
+		v.Ping()
 		return
+	case "0.0":
+		log.Printf("Unsupported version.")
+		return
+	case "0.1":
 	default:
 		log.Printf("Unsupported message.")
 		return
@@ -110,11 +114,11 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	log.Printf("Control: %v", control)
 	switch control {
 	case "input":
-		command := car(addr)
+		command, addr := car(addr), cdr(addr)
 		log.Printf("Command: %v", command)
 		switch command {
 		case "bank": // Only present on the phone layout.
-			bank := car(cdr(addr))
+			bank := car(addr)
 			log.Printf("Input bank %v selected.", bank)
 			switch bank {
 			case "a":
@@ -123,7 +127,44 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				s.inputBank = 2
 			}
 
-		default:
+		case "gain":
+			val := msg.Arguments[0].(float32)
+			if val == 0 { // Only handle presses, not releases.
+				log.Println("Ignoring release.")
+				break
+			}
+
+			log.Printf("addr:%v", addr)
+			x, y, dx, dy, bank := toInt(car(addr)), toInt(cadr(addr)), 1, 4, 1
+			log.Printf("x:%v y:%v dx:%v dy:%v bank:%v", x, y, dx, dy, bank)
+			if orientation == horizontal {
+				x, y = multiRotate(x, y, dy)
+			}
+			pos := multiPosition(x, y, dx, dy, bank)
+			log.Printf("pos: %v", pos)
+
+			var clicks int
+			switch pos {
+			case 1:
+				clicks = 5 // +5 dB
+			case 2:
+				clicks = 1 // +1 dB
+			case 3:
+				clicks = -1 // -1 dB
+			case 4:
+				clicks = -5 // -5 dB
+			}
+			name := "gain"
+
+			// Adjust gain value of input.
+			v.SetPage(venue.InputsPage)
+			vp := v.Pages[venue.InputsPage]
+			e := vp.Elements[name]
+
+			log.Printf("Adjusting %v value of input by %v clicks.", name, clicks)
+			e.(*venue.Encoder).Adjust(v, clicks)
+
+		case "select":
 			val := msg.Arguments[0].(float32)
 			if val == 0 { // Only handle presses, not releases.
 				log.Println("Ignoring release.")
@@ -138,6 +179,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 
 			v.SetInput(input)
 			s.input = input
+
+		default:
+			log.Printf("Unrecognized command: %v", command)
 		}
 
 	case "output":
@@ -228,6 +272,14 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 				v.SetOutput(name)
 				s.output = output
 			}
+			v.SetPage(venue.InputsPage)
+
+		case "pan":
+			log.Println("Unimplemented")
+			return
+
+		default:
+			log.Printf("Unrecognized command: %v", command)
 		}
 	}
 }
@@ -254,7 +306,7 @@ func multiPosition(x, y, dx, dy, bank int) int {
 	return x + (y-1)*dx + dx*dy*(bank-1)
 }
 
-// multiRotate returns rotated x and y values for a multi UI control.
+// multiRotate returns rotated x and y values for a dy sized multi UI control.
 func multiRotate(x, y, dy int) (int, int) {
 	return y, dy - x + 1
 }
