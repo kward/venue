@@ -1,6 +1,10 @@
 package venue
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"testing"
+)
 
 // "image"
 // "testing"
@@ -76,6 +80,17 @@ func equalSlices(x, y interface{}) bool {
 				return false
 			}
 		}
+	case []uint32:
+		if len(x.([]uint32)) != len(y.([]uint32)) {
+			return false
+		}
+		for i, v := range x.([]uint32) {
+			if v != y.([]uint32)[i] {
+				return false
+			}
+		}
+	default:
+		panic(fmt.Sprintf("unrecognized type %v", reflect.TypeOf(x)))
 	}
 	return true
 }
