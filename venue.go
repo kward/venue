@@ -165,6 +165,11 @@ func (v *Venue) Snapshot(r image.Rectangle) error {
 	return nil
 }
 
+// Ping can be called whenever an OSC ping is received.
+func (v *Venue) Ping() {
+	v.conn.DebugMetrics()
+}
+
 // abs returns the absolute value of an int.
 func abs(x int) int {
 	switch {
