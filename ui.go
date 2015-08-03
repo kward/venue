@@ -31,6 +31,9 @@ type UIElement interface {
 	// Read reads the current state of a UI element.
 	Read(v *Venue) error
 
+	// Select the UI element.
+	Select(v *Venue)
+
 	// Set value of UI element.
 	Set(v *Venue, val int)
 
@@ -177,65 +180,74 @@ func NewInputsPage() *Page {
 		aux1516Y = 452
 	)
 
-	return &Page{
-		Elements: map[string]UIElement{
-			"gain":       &Encoder{image.Point{167, 279}, EncoderBL, true},
-			"delay":      &Encoder{image.Point{168, 387}, EncoderBL, false},
-			"hpf":        &Encoder{image.Point{168, 454}, EncoderBL, true},
-			"pan":        &Encoder{image.Point{239, 443}, EncoderBC, false},
-			"aux1":       &Encoder{image.Point{auxOddX, aux12Y}, EncoderTR, true},
-			"aux12pan":   &Encoder{image.Point{auxPanX, aux12Y}, EncoderTL, false},
-			"aux3":       &Encoder{image.Point{auxOddX, aux34Y}, EncoderTR, true},
-			"aux34pan":   &Encoder{image.Point{auxPanX, aux34Y}, EncoderTL, false},
-			"aux5":       &Encoder{image.Point{auxOddX, aux56Y}, EncoderTR, true},
-			"aux56pan":   &Encoder{image.Point{auxPanX, aux56Y}, EncoderTL, false},
-			"aux7":       &Encoder{image.Point{auxOddX, aux78Y}, EncoderTR, true},
-			"aux78pan":   &Encoder{image.Point{auxPanX, aux78Y}, EncoderTL, false},
-			"aux9":       &Encoder{image.Point{auxOddX, aux910Y}, EncoderTR, true},
-			"aux910pan":  &Encoder{image.Point{auxPanX, aux910Y}, EncoderTL, false},
-			"aux11":      &Encoder{image.Point{auxOddX, aux1112Y}, EncoderTR, true},
-			"aux1112pan": &Encoder{image.Point{auxPanX, aux1112Y}, EncoderTL, false},
-			"aux13":      &Encoder{image.Point{auxOddX, aux1314Y}, EncoderTR, true},
-			"aux1314pan": &Encoder{image.Point{auxPanX, aux1314Y}, EncoderTL, false},
-			"aux15":      &Encoder{image.Point{auxOddX, aux1516Y}, EncoderTR, true},
-			"aux1516pan": &Encoder{image.Point{auxPanX, aux1516Y}, EncoderTL, false},
-			"grp1":       &Encoder{image.Point{auxOddX, aux12Y}, EncoderTR, true},
-			"grp12pan":   &Encoder{image.Point{auxPanX, aux12Y}, EncoderTL, false},
-			"grp3":       &Encoder{image.Point{auxOddX, aux34Y}, EncoderTR, true},
-			"grp34pan":   &Encoder{image.Point{auxPanX, aux34Y}, EncoderTL, false},
-			"grp5":       &Encoder{image.Point{auxOddX, aux56Y}, EncoderTR, true},
-			"grp56pan":   &Encoder{image.Point{auxPanX, aux56Y}, EncoderTL, false},
-			"grp7":       &Encoder{image.Point{auxOddX, aux78Y}, EncoderTR, true},
-			"grp78pan":   &Encoder{image.Point{auxPanX, aux78Y}, EncoderTL, false},
-			"solo_clear": newPushButton(980, 490, mediumSwitch),
-		},
+	elements := map[string]UIElement{
+		"gain":       &Encoder{image.Point{167, 279}, encoderBL, true},
+		"delay":      &Encoder{image.Point{168, 387}, encoderBL, false},
+		"hpf":        &Encoder{image.Point{168, 454}, encoderBL, true},
+		"pan":        &Encoder{image.Point{239, 443}, encoderBC, false},
+		"aux1":       &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
+		"aux1pan":    &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
+		"aux3":       &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
+		"aux3pan":    &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
+		"aux5":       &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
+		"aux5pan":    &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
+		"aux7":       &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
+		"aux7pan":    &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
+		"aux9":       &Encoder{image.Point{auxOddX, aux910Y}, encoderTR, true},
+		"aux9pan":    &Encoder{image.Point{auxPanX, aux910Y}, encoderTL, false},
+		"aux11":      &Encoder{image.Point{auxOddX, aux1112Y}, encoderTR, true},
+		"aux11pan":   &Encoder{image.Point{auxPanX, aux1112Y}, encoderTL, false},
+		"aux13":      &Encoder{image.Point{auxOddX, aux1314Y}, encoderTR, true},
+		"aux13pan":   &Encoder{image.Point{auxPanX, aux1314Y}, encoderTL, false},
+		"aux15":      &Encoder{image.Point{auxOddX, aux1516Y}, encoderTR, true},
+		"aux15pan":   &Encoder{image.Point{auxPanX, aux1516Y}, encoderTL, false},
+		"grp1":       &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
+		"grp1pan":    &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
+		"grp3":       &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
+		"grp3pan":    &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
+		"grp5":       &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
+		"grp5pan":    &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
+		"grp7":       &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
+		"grp7pan":    &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
+		"solo_clear": newPushButton(980, 490, mediumSwitch),
 	}
+
+	return &Page{Elements: elements}
 }
 
 // NewOutputsPage returns a populated Outputs page.
 func NewOutputsPage() *Page {
 	const (
-		soloY = 573
+		meterY = 512
+		muteY  = 588
+		soloY  = 573
 	)
 
-	var b int // Bank
 	elements := map[string]UIElement{
 		"solo_clear": newPushButton(980, 490, mediumSwitch),
 	}
 
-	// Auxes
-	pre, post := "aux", "solo"
-	for b = 1; b <= 2; b++ { // bank
-		for c := 1; c <= 8; c++ { // channel
-			n := fmt.Sprintf("%v%v%v", pre, (b-1)*8+c, post)
-			elements[n] = newToggle(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false)
+	// Auxes & Groups
+	for _, b := range []int{1, 2, 5} { // bank
+		var pre string
+		switch b {
+		case 5:
+			pre = "grp"
+		default:
+			pre = "aux"
 		}
-	}
-	// Groups
-	b, pre, post = 5, "grp", "solo"
-	for c := 1; c <= 8; c++ { // channel (only 1 bank)
-		n := fmt.Sprintf("%v%v%v", pre, c, post)
-		elements[n] = newToggle(bankX+(b-1)*bankDX+(c-1)*chanDX, soloY, tinySwitch, false)
+		for c := 1; c <= 8; c++ { // channel
+			ch, x := (b-1)*8+c, bankX+(b-1)*bankDX+(c-1)*chanDX
+
+			n := fmt.Sprintf("%v%vsolo", pre, ch)
+			elements[n] = newToggle(x, soloY, tinySwitch, false)
+
+			n = fmt.Sprintf("%v%vmeter", pre, ch)
+			elements[n] = &Meter{
+				pos:  image.Point{x, meterY},
+				size: smallVMeter,
+			}
+		}
 	}
 
 	return &Page{Elements: elements}

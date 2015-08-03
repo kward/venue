@@ -40,21 +40,15 @@ func newToggle(x, y int, size int, def bool) *Switch {
 	}
 }
 
-func (e *Switch) Read(v *Venue) error {
-	return nil
-}
-
+func (e *Switch) Read(v *Venue) error   { return nil }
+func (e *Switch) Select(v *Venue)       { v.MouseLeftClick(e.clickOffset()) }
 func (e *Switch) Set(v *Venue, val int) {}
 
 func (e *Switch) Update(v *Venue) error {
-	// Move mouse pointer to switch.
-	v.MouseLeftClick(e.clickOffset())
-
-	// Update local state.
+	e.Select(v)
 	if e.toggle {
 		e.state = !e.state
 	}
-
 	return nil
 }
 

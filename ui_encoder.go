@@ -7,55 +7,34 @@ import (
 	vnc "github.com/kward/go-vnc"
 )
 
-type EncoderWindow int
-
 const (
-	EncoderTL EncoderWindow = iota // Top left
-	EncoderML                      // Middle left
-	EncoderBL                      // Bottom left
-	EncoderBC                      // Bottom center
-	EncoderTR                      // Top right
-	EncoderMR                      // Middle right
-	EncoderBR                      // Bottom right
+	encoderTL = iota // Top left
+	encoderML        // Middle left
+	encoderBL        // Bottom left
+	encoderBC        // Bottom center
+	encoderTR        // Top right
+	encoderMR        // Middle right
+	encoderBR        // Bottom right
 )
 
 type Encoder struct {
 	center   image.Point
-	window   EncoderWindow // Position of value window
-	hasOnOff bool          // Has an on/off switch
+	window   int  // Position of value window
+	hasOnOff bool // Has an on/off switch
 }
 
-func (e *Encoder) Read(v *Venue) error {
-	// TODO(kward): select Inputs page
+func (e *Encoder) Read(v *Venue) error { return nil }
+func (e *Encoder) Select(v *Venue)     { v.MouseLeftClick(e.clickOffset()) }
 
-	// Give the window focus.
-	p := e.clickOffset()
-	v.MouseLeftClick(p)
-
-	// Cut the selected text.
-
-	return nil
-}
-
-func (e *Encoder) Update(v *Venue) error {
-	// TODO(kward): select Inputs page
-
-	// Give window focus.
-	v.MouseLeftClick(e.clickOffset())
-
-	// Move mouse pointer center of Encoder.
-	v.MouseMove(e.center)
-
-	// Update
-	v.KeyPress(vnc.Key3)
-	v.KeyPress(vnc.Key4)
-	v.KeyPress(vnc.KeyReturn)
-	for i := 0; i < 5; i++ {
-		e.Increment(v)
+func (e *Encoder) Set(v *Venue, val int) {
+	e.Select(v)
+	for _, key := range intToKeys(val) {
+		v.KeyPress(key)
 	}
-
-	return nil
+	v.KeyPress(vnc.KeyReturn)
 }
+
+func (e *Encoder) Update(v *Venue) error { return nil }
 
 func (e *Encoder) Adjust(v *Venue, c int) {
 	v.MouseLeftClick(e.clickOffset())
@@ -65,14 +44,6 @@ func (e *Encoder) Adjust(v *Venue, c int) {
 		} else {
 			v.KeyPress(vnc.KeyDown)
 		}
-	}
-	v.KeyPress(vnc.KeyReturn)
-}
-
-func (e *Encoder) Set(v *Venue, val int) {
-	v.MouseLeftClick(e.clickOffset())
-	for _, key := range intToKeys(val) {
-		v.KeyPress(key)
 	}
 	v.KeyPress(vnc.KeyReturn)
 }
@@ -90,19 +61,19 @@ func (e *Encoder) Refresh(v *Venue) {}
 func (e *Encoder) clickOffset() image.Point {
 	var dx, dy int
 
-	if e.window == EncoderTL || e.window == EncoderML || e.window == EncoderBL { // Left
+	if e.window == encoderTL || e.window == encoderML || e.window == encoderBL { // Left
 		dx = -38
-	} else if e.window == EncoderTR || e.window == EncoderMR || e.window == EncoderBR { // Right
+	} else if e.window == encoderTR || e.window == encoderMR || e.window == encoderBR { // Right
 		dx = 38
 	} else { // Middle
 		dx = 0
 	}
 
-	if e.window == EncoderTL || e.window == EncoderTR { // Top
+	if e.window == encoderTL || e.window == encoderTR { // Top
 		dy = -8
-	} else if e.window == EncoderML || e.window == EncoderMR { // Middle
+	} else if e.window == encoderML || e.window == encoderMR { // Middle
 		dy = 0
-	} else if e.window == EncoderBL || e.window == EncoderBR { // Bottom
+	} else if e.window == encoderBL || e.window == encoderBR { // Bottom
 		dy = 8
 	} else { // Center
 		dy = 28
