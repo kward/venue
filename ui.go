@@ -19,10 +19,13 @@ const (
 	PluginsPage
 	OptionsPage
 
-	bankX        = 8   // X position of 1st bank.
-	bankDX       = 131 // dX between banks.
-	chanDX       = 15  // dX between channels in a bank.
-	maxArrowKeys = 17  // Max number of consecutive arrow key presses.
+	bankX  = 8   // X position of 1st bank.
+	bankDX = 131 // dX between banks.
+	chanDX = 15  // dX between channels in a bank.
+
+	// Max number of consecutive arrow key presses.
+	// WiFi connections have enough latency to not need more.
+	maxArrowKeys = 4
 )
 
 // The VenueUI interface is the conventional interface for interacting with a
@@ -227,26 +230,40 @@ func NewOutputsPage() *Page {
 		"solo_clear": newPushButton(980, 490, mediumSwitch),
 	}
 
-	// Auxes & Groups
-	for _, b := range []int{1, 2, 5} { // bank
-		var pre string
-		switch b {
-		case 5:
-			pre = "grp"
-		default:
-			pre = "aux"
-		}
-		for c := 1; c <= 8; c++ { // channel
+	// Auxes
+	for _, b := range []int{1, 2} { // bank
+		pre := "aux"
+		for c := 1; c <= 8; c++ { // bank channel
 			ch, x := (b-1)*8+c, bankX+(b-1)*bankDX+(c-1)*chanDX
 
 			n := fmt.Sprintf("%v%vsolo", pre, ch)
+			log.Println("NewOutput() element[%v]:", n)
 			elements[n] = newToggle(x, soloY, tinySwitch, false)
 
 			n = fmt.Sprintf("%v%vmeter", pre, ch)
+			log.Println("NewOutput() element[%v]:", n)
 			elements[n] = &Meter{
 				pos:  image.Point{x, meterY},
 				size: smallVMeter,
 			}
+		}
+	}
+
+	// Groups
+	b := 5 // bank
+	pre := "grp"
+	for c := 1; c <= 8; c++ { // bank channel
+		ch, x := c, bankX+(b-1)*bankDX+(c-1)*chanDX
+
+		n := fmt.Sprintf("%v%vsolo", pre, ch)
+		log.Println("NewOutput() element[%v]:", n)
+		elements[n] = newToggle(x, soloY, tinySwitch, false)
+
+		n = fmt.Sprintf("%v%vmeter", pre, ch)
+		log.Println("NewOutput() element[%v]:", n)
+		elements[n] = &Meter{
+			pos:  image.Point{x, meterY},
+			size: smallVMeter,
 		}
 	}
 
