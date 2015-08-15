@@ -56,14 +56,14 @@ func NewState() *state {
 	}
 }
 
-func (s *state) handleBundle(b *osc.Bundle) {
-	log.Print("OSC Bundle:")
+func (s *state) handleBundle(b *osc.Bundle, remote net.Addr) {
+	log.Printf("OSC Bundle from %v:", remote)
 	for i, msg := range b.Messages {
 		log.Printf("OSC Message #%d: ", i+1, msg.Address)
 	}
 }
 
-func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
+func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr) {
 	const (
 		vertical = iota
 		horizontal
@@ -78,17 +78,17 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 	// The address is expected to be in this format:
 	// /version/layout/page/control[/command][/num][/label]
 	addr := msg.Address
-	log.Printf("OSC Message: %v", addr)
+	log.Printf("OSC Message from %v: %v", remote, addr)
 
 	version, addr := car(addr), cdr(addr)
 	switch version {
 	case "ping":
 		v.Ping()
 		return
+	case "0.1":
 	case "0.0":
 		log.Printf("Unsupported version.")
 		return
-	case "0.1":
 	default:
 		log.Printf("Unsupported message.")
 		return
@@ -284,6 +284,9 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 			v.SetPage(venue.InputsPage)
 
 		case "pan":
+			log.Printf("Pan unimplemented.")
+			return
+
 			val := int(msg.Arguments[0].(float32))
 
 			output := s.output
@@ -412,7 +415,7 @@ func main() {
 		s := NewState()
 
 		for {
-			p, err := o.ReceivePacket(context.Background(), conn)
+			p, remote, err := o.ReceivePacket(context.Background(), conn)
 			if err != nil {
 				log.Fatalf("OSC error: %v", err)
 			}
@@ -422,9 +425,9 @@ func main() {
 
 			switch p.(type) {
 			case *osc.Bundle:
-				s.handleBundle(p.(*osc.Bundle))
+				s.handleBundle(p.(*osc.Bundle), remote)
 			case *osc.Message:
-				s.handleMessage(v, p.(*osc.Message))
+				s.handleMessage(v, p.(*osc.Message), remote)
 			default:
 				log.Println("Error: Unrecognized packet type.")
 			}
