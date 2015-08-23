@@ -76,7 +76,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 	)
 
 	// The address is expected to be in this format:
-	// /version/layout/page/control[/command][/num][/label]
+	// /version/layout/page/control/command[/num1][/num2][/label]
 	addr := msg.Address
 	log.Printf("OSC Message from %v: %v", remote, addr)
 
