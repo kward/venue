@@ -28,7 +28,7 @@ func TestMultiPosition(t *testing.T) {
 
 	for tnum, tt := range tests {
 		if got, want := multiPosition(tt.x, tt.y, tt.dx, tt.dy, tt.bank), tt.pos; got != want {
-			t.Errorf("multiPosition(%v): got = %v, want = %v", tnum, got, want)
+			t.Errorf("%v: multiPosition() = %v, want = %v", tnum, got, want)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func TestMultiRotate(t *testing.T) {
 	for tnum, tt := range tests {
 		xx, yy := multiRotate(tt.x, tt.y, tt.dy)
 		if xx != tt.xx || yy != tt.yy {
-			t.Errorf("multiRotate(%v): got = x:%v y:%v, want = x:%v y:%v", tnum, xx, yy, tt.xx, tt.yy)
+			t.Errorf("%v: multiRotate(): got = x:%v y:%v, want = x:%v y:%v", tnum, xx, yy, tt.xx, tt.yy)
 		}
 	}
 }
@@ -75,7 +75,7 @@ func TestCar(t *testing.T) {
 
 	for _, tt := range tests {
 		if got, want := car(tt.addr), tt.first; got != want {
-			t.Errorf("car() failed; got = %v, want = %v", got, want)
+			t.Errorf("car(%v) = %v, want = %v", tt.addr, got, want)
 		}
 	}
 }
@@ -92,7 +92,7 @@ func TestCdr(t *testing.T) {
 
 	for _, tt := range tests {
 		if got, want := cdr(tt.addr), tt.first; got != want {
-			t.Errorf("cdr() failed; got = %v, want = %v", got, want)
+			t.Errorf("cdr(%v) %v, want = %v", tt.addr, got, want)
 		}
 	}
 }
@@ -110,7 +110,7 @@ func TestToInt(t *testing.T) {
 
 	for _, tt := range tests {
 		if got, want := toInt(tt.s), tt.i; got != want {
-			t.Errorf("toInt() failed; got = %v, want = %v", got, want)
+			t.Errorf("toInt(%v) = %v, want = %v", tt.s, got, want)
 		}
 	}
 }
