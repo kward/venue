@@ -188,6 +188,7 @@ func NewInputsPage() *Page {
 		"delay":      &Encoder{image.Point{168, 387}, encoderBL, false},
 		"hpf":        &Encoder{image.Point{168, 454}, encoderBL, true},
 		"pan":        &Encoder{image.Point{239, 443}, encoderBC, false},
+		"var_groups": newPushButton(226, 299, mediumSwitch),
 		"aux1":       &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
 		"aux1pan":    &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
 		"aux3":       &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
@@ -212,7 +213,7 @@ func NewInputsPage() *Page {
 		"grp5pan":    &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
 		"grp7":       &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
 		"grp7pan":    &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
-		"solo_clear": newPushButton(980, 490, mediumSwitch),
+		"solo_clear": newPushButton(979, 493, mediumSwitch),
 	}
 
 	return &Page{Elements: elements}
