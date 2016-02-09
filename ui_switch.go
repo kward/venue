@@ -12,6 +12,8 @@ const (
 	smallSwitch
 	mediumSwitch
 	largeSwitch
+	buttonOff = false
+	buttonOn  = true
 )
 
 // Switch is a UIElement representing a switch.
@@ -35,7 +37,7 @@ func newToggle(x, y int, size int, def bool) *Switch {
 		pos:    image.Point{x, y},
 		size:   size,
 		toggle: true,
-		def:    def,
+		def:    buttonOff,
 		state:  def,
 	}
 }
