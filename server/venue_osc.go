@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/howeyc/gopass"
 	osc "github.com/kward/go-osc"
 	"github.com/kward/venue"
+	"github.com/kward/venue/venuelib"
 	"golang.org/x/net/context"
 )
 
@@ -137,7 +136,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			}
 
 			log.Printf("addr:%v", addr)
-			x, y, dx, dy, bank := toInt(car(addr)), toInt(cadr(addr)), 1, 4, 1
+			x, y, dx, dy, bank := venuelib.ToInt(car(addr)), venuelib.ToInt(cadr(addr)), 1, 4, 1
 			log.Printf("x:%v y:%v dx:%v dy:%v bank:%v", x, y, dx, dy, bank)
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, dy)
@@ -173,7 +172,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 				break
 			}
 
-			x, y := toInt(car(addr)), toInt(cadr(addr))
+			x, y := venuelib.ToInt(car(addr)), venuelib.ToInt(cadr(addr))
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, dyInput)
 			}
@@ -211,7 +210,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			}
 
 			// Determine output number and UI control name.
-			x, y := toInt(car(addr)), toInt(cadr(addr))
+			x, y := venuelib.ToInt(car(addr)), venuelib.ToInt(cadr(addr))
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, 4) // TODO(kward): 4 should be a constant.
 			}
@@ -257,7 +256,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			}
 
 			// Determine output number and UI control name.
-			x, y, dy := toInt(car(addr)), toInt(cadr(addr)), 1
+			x, y, dy := venuelib.ToInt(car(addr)), venuelib.ToInt(cadr(addr)), 1
 			if orientation == horizontal {
 				x, y = multiRotate(x, y, dy)
 			}
@@ -369,23 +368,13 @@ func cdr(s string) string {
 	return ""
 }
 
-// toInt converts a string to an int.
-func toInt(s string) int {
-	i, err := strconv.ParseInt(s, 10, 0)
-	if err != nil {
-		return -1
-	}
-	return int(i)
-}
-
 func main() {
 	flagInit()
 
 	log.SetFlags(log.Flags() | log.Lmicroseconds | log.Lshortfile)
 
 	if venuePasswd == "" {
-		fmt.Printf("Password: ")
-		venuePasswd = string(gopass.GetPasswdMasked())
+		venuePasswd = venuelib.GetPasswd()
 	}
 
 	v := venue.NewVenue(venueHost, venuePort, venuePasswd)

@@ -96,21 +96,3 @@ func TestCdr(t *testing.T) {
 		}
 	}
 }
-
-func TestToInt(t *testing.T) {
-	tests := []struct {
-		s string
-		i int
-	}{
-		{"1", 1},
-		{"0", 0},
-		{"-1", -1},
-		{"foo", -1},
-	}
-
-	for _, tt := range tests {
-		if got, want := toInt(tt.s), tt.i; got != want {
-			t.Errorf("toInt(%v) = %v, want = %v", tt.s, got, want)
-		}
-	}
-}
