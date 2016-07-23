@@ -2,13 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
 
-	"github.com/howeyc/gopass"
 	"github.com/kward/venue"
+	"github.com/kward/venue/venuelib"
 	"golang.org/x/net/context"
 )
 
@@ -32,8 +31,7 @@ func main() {
 	flagInit()
 
 	if passwd == "" {
-		fmt.Printf("Password: ")
-		passwd = string(gopass.GetPasswdMasked())
+		passwd = venuelib.GetPasswd()
 	}
 
 	ctx := context.Background()
