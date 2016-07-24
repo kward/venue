@@ -17,8 +17,6 @@ mobile usage. This software should make that easier.
 ## Project links
 * Build Status:  [![Build Status][CIStatus]][CIProject]
 * Documentation: [![GoDoc][GoDocStatus]][GoDoc]
-* Views:         [![views][SGViews]][SGProject] [![views_24h][SGViews24h]][SGProject]
-* Users:         [![library users][SGUsers]][SGProject] [![dependents][SGDependents]][SGProject]
 
 ## Requirements
 This software requires ONE of the following:
@@ -116,9 +114,3 @@ _Avid™ is a registerd trademark of Avid, Inc._
 
 [GoDoc]: https://godoc.org/github.com/kward/venue
 [GoDocStatus]: https://godoc.org/github.com/kward/venue?status.svg
-
-[SGProject]: https://sourcegraph.com/github.com/kward/venue
-[SGDependents]: https://sourcegraph.com/api/repos/github.com/kward/venue/.badges/dependents.svg
-[SGUsers]: https://sourcegraph.com/api/repos/github.com/kward/venue/.badges/library-users.svg
-[SGViews]: https://sourcegraph.com/api/repos/github.com/kward/venue/.counters/views.svg
-[SGViews24h]: https://sourcegraph.com/api/repos/github.com/kward/venue/.counters/views-24h.svg?no-count=1
