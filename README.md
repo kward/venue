@@ -1,4 +1,5 @@
 # venue
+
 Golang API and server for TouchOSC to control Avid™ VENUE software
 
 - <https://www.avid.com/US/products/venue-software>
@@ -15,10 +16,12 @@ doing so is cumbersome due to the small UI elements and lack of design for
 mobile usage. This software should make that easier.
 
 ## Project links
-* Build Status:  [![Build Status][CIStatus]][CIProject]
-* Documentation: [![GoDoc][GoDocStatus]][GoDoc]
+
+- Build Status:  [![Build Status][CIStatus]][CIProject]
+- Documentation: [![GoDoc][GoDocStatus]][GoDoc]
 
 ## Requirements
+
 This software requires ONE of the following:
 
 - A real VENUE console, with remote access via Ethernet (e.g. via an add-on
@@ -34,29 +37,33 @@ Software was tested on the following:
   server) on OS X Yosemite.
 
 ## Setup
+
+These instructions assume no knowledge of writing software with the Go language.
+If you have  experience, feel free to follow your preferred standards.
+
 ### Installation
+
 This code is written in Golang (<http://golang.org/>).
 
 1. Install Golang. Follow the instructions at <http://golang.org/doc/install>.
 2. Setup environment. Note, the exports must either be run each time the
-   sofware will be used, or they can be added to your `~/.bashrc` file.
+   software will be used, or they can be added to your `~/.bashrc` file.
    (Examples are for OS X or Linux.)
 
     ```sh
     $ mkdir -p "${HOME}/opt/go/bin"
-    $ export GOROOT="/usr/local/go"
     $ export GOPATH="${HOME}/opt/go"
     $ export GOBIN="${GOPATH}/bin"
-    $ export PATH="${PATH}:${GOROOT}/bin:${GOBIN}"
+    $ export PATH="${PATH}:/usr/local/go/bin:${GOBIN}"
     ```
 
 3. Download software.
 
     ```sh
-    $ go get github.com/howeyc/gopass
+    $ go get github.com/kward/venue
     $ go get github.com/kward/go-osc
     $ go get github.com/kward/go-vnc
-    $ go get github.com/kward/venue
+    $ go get github.com/howeyc/gopass
     $ go get golang.org/x/net/context
     ```
 
@@ -87,6 +94,7 @@ Notes:
   `--osc_server_port` option should be added for `server/venue_osc.go`.
 
 ### Updates
+
 To update the software, repeat Installation step 3, with slight modifications.
 Here's a simple script to do the updates.
 
@@ -100,9 +108,7 @@ do
 done
 ```
 
-
-_Avid™ is a registerd trademark of Avid, Inc._
-
+_Avid™ is a registered trademark of Avid, Inc._
 
 <!--- Links -->
 [Fusion]: http://www.vmware.com/products/fusion/
