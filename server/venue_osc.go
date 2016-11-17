@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	osc "github.com/kward/go-osc"
+	"github.com/kward/go-osc/osc"
 	"github.com/kward/venue"
 	"github.com/kward/venue/venuelib"
 	"golang.org/x/net/context"

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/kward/go-osc"
+	"github.com/kward/go-osc/osc"
 )
 
 const base = "/0.1/th/soundcheck"
