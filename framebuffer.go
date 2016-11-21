@@ -8,7 +8,7 @@ import (
 	"image/png"
 	"log"
 
-	"github.com/kward/go-vnc"
+	vnc "github.com/kward/go-vnc"
 )
 
 type Framebuffer struct {
