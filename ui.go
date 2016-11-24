@@ -65,7 +65,7 @@ func (v *Venue) SetPage(page int) error {
 
 	if v.currPage != page {
 		log.Printf("Changing to %v page.", pageNames[page])
-		if err := v.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
+		if err := v.vnc.KeyPress(vnc.KeyF1 + uint32(page)); err != nil {
 			log.Println("Page() error:", err)
 			return err
 		}
@@ -108,9 +108,9 @@ func (v *Venue) SetInput(input int) error {
 		}
 		for i := 0; i < kp; i++ {
 			if dir == left {
-				v.KeyPress(vnc.KeyLeft)
+				v.vnc.KeyPress(vnc.KeyLeft)
 			} else {
-				v.KeyPress(vnc.KeyRight)
+				v.vnc.KeyPress(vnc.KeyRight)
 			}
 		}
 	} else {
@@ -126,12 +126,12 @@ func (v *Venue) SetInput(input int) error {
 // selectInput select an input directly.
 func (v *Venue) selectInput(input int) error {
 	digit, _ := math.Modf(float64(input) / 10)
-	if err := v.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
+	if err := v.vnc.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
 		log.Println("Input() error on 1st key press:", err)
 		return err
 	}
 	digit = math.Mod(float64(input), 10.0)
-	if err := v.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
+	if err := v.vnc.KeyPress(vnc.Key0 + uint32(digit)); err != nil {
 		log.Println("Input() error on 2nd key press:", err)
 		return err
 	}

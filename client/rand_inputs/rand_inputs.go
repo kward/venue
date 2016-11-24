@@ -12,18 +12,14 @@ import (
 )
 
 var (
-	host            string
-	port            uint
+	host            = flag.String("venue_host", "localhost", "Venue host.")
+	port            = flag.Uint("venue_port", 5900, "Venue port.")
 	passwd          string
-	maxProtoVersion string
+	maxProtoVersion = flag.String("vnc_max_proto_version", "", "VNC max protocol version")
 )
 
 func flagInit() {
-	flag.StringVar(&host, "venue_host", "localhost", "Venue host.")
-	flag.UintVar(&port, "venue_port", 5900, "Venue port.")
 	flag.StringVar(&passwd, "venue_passwd", "", "Venue password.")
-	flag.StringVar(&maxProtoVersion, "vnc_max_proto_version", "", "VNC max protocol version")
-
 	flag.Parse()
 }
 
@@ -34,13 +30,19 @@ func main() {
 		passwd = venuelib.GetPasswd()
 	}
 
-	ctx := context.Background()
-	if maxProtoVersion != "" {
-		ctx = context.WithValue(ctx, "vnc_max_proto_version", maxProtoVersion)
+	v, err := venue.New()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	v := venue.NewVenue(host, port, passwd)
-	if err := v.Connect(ctx); err != nil {
+	ctx := context.Background()
+	// TODO(kward:20161124) Fix how the context value is handled.
+	if *maxProtoVersion != "" {
+		ctx = context.WithValue(ctx, "vnc_max_proto_version", *maxProtoVersion)
+	}
+
+	// Establish connection with the VENUE VNC server.
+	if err := v.Connect(ctx, *host, *port, passwd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
@@ -48,7 +50,6 @@ func main() {
 
 	v.Initialize()
 	go v.ListenAndHandle()
-	go v.FramebufferRefresh()
 
 	// Randomly adjust an input.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))

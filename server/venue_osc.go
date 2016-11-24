@@ -15,28 +15,21 @@ import (
 )
 
 var (
-	oscClientHost  string
-	oscClientPort  uint
-	oscServerHost  string
-	oscServerPort  uint
-	venueHost      string
-	venuePort      uint
-	venuePasswd    string
-	venueFbRefresh bool
+	oscClientHost = flag.String("osc_client_host", "127.0.0.1", "OSC client host/IP.")
+	oscClientPort = flag.Uint("osc_client_port", 9000, "OSC client port.")
+	oscServerHost = flag.String("osc_server_host", "0.0.0.0", "OSC client host/IP.")
+	oscServerPort = flag.Uint("osc_server_port", 8000, "OSC client port.")
+
+	venueHost    = flag.String("venue_host", "localhost", "Venue VNC host/IP.")
+	venuePort    = flag.Uint("venue_port", 5900, "Venue VNC port.")
+	venuePasswd  string
+	venueTimeout = flag.Duration("venue_timeout", 15*time.Second, "Venue VNC timeout.")
+
+	venueFbRefresh = flag.Bool("enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
 )
 
 func flagInit() {
-	flag.StringVar(&oscClientHost, "osc_client_host", "127.0.0.1", "OSC client host/IP.")
-	flag.UintVar(&oscClientPort, "osc_client_port", 9000, "OSC client port.")
-
-	flag.StringVar(&oscServerHost, "osc_server_host", "0.0.0.0", "OSC client host/IP.")
-	flag.UintVar(&oscServerPort, "osc_server_port", 8000, "OSC client port.")
-
-	flag.StringVar(&venueHost, "venue_host", "localhost", "Venue VNC host/IP.")
-	flag.UintVar(&venuePort, "venue_port", 5900, "Venue VNC port.")
 	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue VNC password.")
-	flag.BoolVar(&venueFbRefresh, "enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
-
 	flag.Parse()
 }
 
@@ -377,23 +370,26 @@ func main() {
 		venuePasswd = venuelib.GetPasswd()
 	}
 
-	v := venue.NewVenue(venueHost, venuePort, venuePasswd)
-	if err := v.Connect(context.Background()); err != nil {
+	v, err := venue.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Establish connection with the VENUE VNC server.
+	ctx, cancel := context.WithTimeout(context.Background(), *venueTimeout)
+	defer cancel()
+	if err := v.Connect(ctx, *venueHost, *venuePort, venuePasswd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
 	v.Initialize()
-	time.Sleep(1 * time.Second)
-
+	// time.Sleep(1 * time.Second)
 	go v.ListenAndHandle()
-	if venueFbRefresh {
-		go v.FramebufferRefresh()
-	}
 
 	o := &osc.Server{}
-	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", oscServerHost, oscServerPort))
+	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", *oscServerHost, *oscServerPort))
 	if err != nil {
 		log.Fatal("Error starting OSC server:", err)
 	}

@@ -12,18 +12,14 @@ import (
 )
 
 var (
-	host       string
-	port       uint
-	passwd     string
-	timeout    time.Duration
-	havePasswd bool
+	host   = flag.String("host", "localhost", "Venue host.")
+	port   = flag.Uint("port", 5900, "Venue port.")
+	passwd string
+	period = flag.Duration("period", 100*time.Millisecond, "period for random adjustment")
 )
 
 func flagInit() {
-	flag.StringVar(&host, "host", "localhost", "Venue host.")
-	flag.UintVar(&port, "port", 5900, "Venue port.")
 	flag.StringVar(&passwd, "passwd", "", "Venue password.")
-
 	flag.Parse()
 }
 
@@ -34,9 +30,13 @@ func main() {
 		passwd = venuelib.GetPasswd()
 	}
 
+	v, err := venue.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
-	v := venue.NewVenue(host, port, passwd)
-	if err := v.Connect(ctx); err != nil {
+	if err := v.Connect(ctx, *host, *port, passwd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
@@ -44,12 +44,16 @@ func main() {
 
 	v.Initialize()
 	go v.ListenAndHandle()
-	go v.FramebufferRefresh()
+	//go v.FramebufferRefresh()
 
 	// Randomly adjust an input.
 	for {
 		i := rand.Intn(48)
 		v.SetInput(i)
-		time.Sleep(1 * time.Second)
+
+		if *period == 0 {
+			break
+		}
+		time.Sleep(*period)
 	}
 }
