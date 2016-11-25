@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 
-	vnc "github.com/kward/go-vnc"
+	vnclib "github.com/kward/go-vnc"
 )
 
 const (
@@ -24,28 +24,28 @@ type Encoder struct {
 }
 
 func (e *Encoder) Read(v *Venue) error { return nil }
-func (e *Encoder) Select(v *Venue)     { v.MouseLeftClick(e.clickOffset()) }
+func (e *Encoder) Select(v *Venue)     { v.vnc.MouseLeftClick(e.clickOffset()) }
 
 func (e *Encoder) Set(v *Venue, val int) {
 	e.Select(v)
 	for _, key := range intToKeys(val) {
-		v.KeyPress(key)
+		v.vnc.KeyPress(key)
 	}
-	v.KeyPress(vnc.KeyReturn)
+	v.vnc.KeyPress(vnclib.KeyReturn)
 }
 
 func (e *Encoder) Update(v *Venue) error { return nil }
 
 func (e *Encoder) Adjust(v *Venue, c int) {
-	v.MouseLeftClick(e.clickOffset())
+	v.vnc.MouseLeftClick(e.clickOffset())
 	for i := 0; i < abs(c); i++ {
 		if c > 0 {
-			v.KeyPress(vnc.KeyUp)
+			v.vnc.KeyPress(vnclib.KeyUp)
 		} else {
-			v.KeyPress(vnc.KeyDown)
+			v.vnc.KeyPress(vnclib.KeyDown)
 		}
 	}
-	v.KeyPress(vnc.KeyReturn)
+	v.vnc.KeyPress(vnclib.KeyReturn)
 }
 
 func (e *Encoder) Increment(v *Venue) {
@@ -84,17 +84,17 @@ func (e *Encoder) clickOffset() image.Point {
 
 func intToKeys(v int) []uint32 {
 	keys := map[rune]uint32{
-		'-': vnc.KeyMinus,
-		'0': vnc.Key0,
-		'1': vnc.Key1,
-		'2': vnc.Key2,
-		'3': vnc.Key3,
-		'4': vnc.Key4,
-		'5': vnc.Key5,
-		'6': vnc.Key6,
-		'7': vnc.Key7,
-		'8': vnc.Key8,
-		'9': vnc.Key9,
+		'-': vnclib.KeyMinus,
+		'0': vnclib.Key0,
+		'1': vnclib.Key1,
+		'2': vnclib.Key2,
+		'3': vnclib.Key3,
+		'4': vnclib.Key4,
+		'5': vnclib.Key5,
+		'6': vnclib.Key6,
+		'7': vnclib.Key7,
+		'8': vnclib.Key8,
+		'9': vnclib.Key9,
 	}
 	k := []uint32{}
 	s := fmt.Sprintf("%d", v)

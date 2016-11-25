@@ -1,4 +1,4 @@
-package venue
+package vnc
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"image/png"
 	"log"
 
-	"github.com/kward/go-vnc"
+	vnclib "github.com/kward/go-vnc"
 )
 
 type Framebuffer struct {
@@ -23,8 +23,9 @@ func NewFramebuffer(w, h int) *Framebuffer {
 	}
 }
 
-func (f *Framebuffer) Paint(v *Venue, r vnc.Rectangle, colors []vnc.Color) {
-	// TODO(kward): Implement triple buffering to reduce paint interference.
+func (f *Framebuffer) Paint(r vnclib.Rectangle, colors []vnclib.Color) {
+	// TODO(kward): Implement double or triple buffering to reduce paint
+	// interference.
 	for x := 0; x < int(r.Width); x++ {
 		for y := 0; y < int(r.Height); y++ {
 			c := colors[x+y*int(r.Width)]
@@ -33,7 +34,7 @@ func (f *Framebuffer) Paint(v *Venue, r vnc.Rectangle, colors []vnc.Color) {
 	}
 }
 
-// PNG converts the frambuffer into a base64 encoded PNG string.
+// PNG converts the framebuffer into a base64 encoded PNG string.
 func (f *Framebuffer) PNG() (string, error) {
 	var buf bytes.Buffer
 	err := png.Encode(&buf, f.fb)

@@ -17,7 +17,7 @@ type Meter struct {
 }
 
 func (e *Meter) Read(v *Venue) error   { return nil }
-func (e *Meter) Select(v *Venue)       { v.MouseLeftClick(e.clickOffset()) }
+func (e *Meter) Select(v *Venue)       { v.vnc.MouseLeftClick(e.clickOffset()) }
 func (e *Meter) Set(v *Venue, val int) {}
 func (e *Meter) Update(v *Venue) error { return nil }
 
