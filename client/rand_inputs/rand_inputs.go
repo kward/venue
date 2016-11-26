@@ -16,6 +16,9 @@ var (
 	port            = flag.Uint("venue_port", 5900, "Venue port.")
 	passwd          string
 	maxProtoVersion = flag.String("vnc_max_proto_version", "", "VNC max protocol version")
+
+	numInputs = flag.Uint("num_inputs", 48, "number of inputs")
+	period    = flag.Duration("period", 100*time.Millisecond, "period for random adjustment")
 )
 
 func flagInit() {
@@ -54,8 +57,11 @@ func main() {
 	// Randomly adjust an input.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		i := r.Intn(48)
-		v.SetInput(i)
-		time.Sleep(2 * time.Second)
+		v.VNC.SelectInput(uint16(r.Intn(int(*numInputs))))
+
+		if *period == 0 {
+			break
+		}
+		time.Sleep(*period)
 	}
 }

@@ -20,7 +20,7 @@ const (
 type Venue struct {
 	opts *options
 
-	vnc *vnc.VNC
+	VNC *vnc.VNC
 
 	inputs    [numInputs]*Input
 	currInput *Input
@@ -28,7 +28,6 @@ type Venue struct {
 	outputs    map[string]*Output
 	currOutput *Output
 
-	Pages    VenuePages
 	currPage int
 }
 
@@ -47,7 +46,7 @@ func New(opts ...func(*options) error) (*Venue, error) {
 
 // Close a Venue session.
 func (v *Venue) Close() error {
-	return v.vnc.Close()
+	return v.VNC.Close()
 }
 
 // Connect to a VENUE VNC server.
@@ -60,16 +59,12 @@ func (v *Venue) Connect(ctx context.Context, h string, p uint, pw string) error 
 	if err := handle.Connect(ctx); err != nil {
 		return err
 	}
-	v.vnc = handle
+	v.VNC = handle
 	return nil
 }
 
 // Initialize the in-memory state representation of a VENUE console.
-func (v *Venue) Initialize() {
-	// Initialize pages.
-	v.Pages = VenuePages{}
-	v.Pages[InputsPage] = NewInputsPage()
-	v.Pages[OutputsPage] = NewOutputsPage()
+func (v *Venue) Initialize() error {
 	// Initialize inputs.
 	for ch := 0; ch < numInputs; ch++ {
 		input := NewInput(v, ch+1, Ichannel)
@@ -78,34 +73,30 @@ func (v *Venue) Initialize() {
 
 	// Choose output before input so that later when the Inputs page is selected,
 	// it shows first bank of channels.
-	v.SetOutput("aux1")
-	v.SetInput(1)
+	if err := v.VNC.SelectOutput("aux1"); err != nil {
+		return err
+	}
+	if err := v.VNC.SelectInput(1); err != nil {
+		return err
+	}
 
 	// Clear solo.
 	log.Println("Clearing solo.")
-	vp := v.Pages[InputsPage]
-	e := vp.Elements["solo_clear"]
-	e.(*Switch).Update(v)
+	widget := v.VNC.Widget(vnc.InputsPage, "solo_clear")
+	if err := v.VNC.Update(widget, vnc.SwitchOff); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListenAndHandle connections and incoming requests.
 func (v *Venue) ListenAndHandle() {
-	go v.vnc.ListenAndHandle()
-	go v.vnc.FramebufferRefresh(v.opts.refresh)
+	go v.VNC.ListenAndHandle()
+	go v.VNC.FramebufferRefresh(v.opts.refresh)
 }
 
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
 func (v *Venue) Ping() {
-	v.vnc.DebugMetrics()
-}
-
-// abs returns the absolute value of an int.
-func abs(x int) int {
-	switch {
-	case x < 0:
-		return -x
-	case x == 0:
-		return 0
-	}
-	return x
+	v.VNC.DebugMetrics()
 }

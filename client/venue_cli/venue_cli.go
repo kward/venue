@@ -15,7 +15,9 @@ var (
 	host   = flag.String("host", "localhost", "Venue host.")
 	port   = flag.Uint("port", 5900, "Venue port.")
 	passwd string
-	period = flag.Duration("period", 100*time.Millisecond, "period for random adjustment")
+
+	numInputs = flag.Uint("num_inputs", 48, "number of inputs")
+	period    = flag.Duration("period", 100*time.Millisecond, "period for random adjustment")
 )
 
 func flagInit() {
@@ -48,8 +50,7 @@ func main() {
 
 	// Randomly adjust an input.
 	for {
-		i := rand.Intn(48)
-		v.SetInput(i)
+		v.VNC.SelectInput(uint16(rand.Intn(int(*numInputs))))
 
 		if *period == 0 {
 			break

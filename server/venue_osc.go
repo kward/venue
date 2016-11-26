@@ -11,6 +11,7 @@ import (
 	"github.com/kward/go-osc/osc"
 	"github.com/kward/venue"
 	"github.com/kward/venue/venuelib"
+	"github.com/kward/venue/vnc"
 	"golang.org/x/net/context"
 )
 
@@ -151,12 +152,11 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			name := "gain"
 
 			// Adjust gain value of input.
-			v.SetPage(venue.InputsPage)
-			vp := v.Pages[venue.InputsPage]
-			e := vp.Elements[name]
-
 			log.Printf("Adjusting %v value of input by %v clicks.", name, clicks)
-			e.(*venue.Encoder).Adjust(v, clicks)
+			widget := v.VNC.Widget(vnc.InputsPage, name)
+			if err := widget.(*vnc.Encoder).Adjust(v.VNC, clicks); err != nil {
+				// Ignoring error for now.
+			}
 
 		case "select":
 			val := msg.Arguments[0].(float32)
@@ -171,7 +171,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			}
 			input := multiPosition(x, y, dxInput, dyInput, s.inputBank)
 
-			v.SetInput(input)
+			v.VNC.SelectInput(uint16(input))
 			s.input = input
 
 		default:
@@ -218,7 +218,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			log.Printf("Setting %v output level.", name)
 
 			if s.output != output {
-				v.SetOutput(name)
+				v.VNC.SelectOutput(name)
 				s.output = output
 			}
 
@@ -235,12 +235,11 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			}
 
 			// Adjust output value of input send.
-			v.SetPage(venue.InputsPage)
-			vp := v.Pages[venue.InputsPage]
-			e := vp.Elements[name]
-
 			log.Printf("Adjusting %v output value of input by %v clicks.", name, clicks)
-			e.(*venue.Encoder).Adjust(v, clicks)
+			widget := v.VNC.Widget(vnc.InputsPage, name)
+			if err := widget.(*vnc.Encoder).Adjust(v.VNC, clicks); err != nil {
+				// Ignoring error for now.
+			}
 
 		case "select":
 			val := msg.Arguments[0].(float32)
@@ -264,16 +263,17 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			log.Printf("Selecting %v output.", name)
 
 			if s.output != output {
-				v.SetOutput(name)
+				v.VNC.SelectOutput(name)
 				s.output = output
 
-				// TODO(kward): Do following only in "input follows solo" mode.
 				// Click output meter to update selected channel.
-				vp := v.Pages[venue.OutputsPage]
-				e := vp.Elements[name+"meter"]
-				e.(*venue.Meter).Select(v)
+				// TODO(kward): Do following only in "input follows solo" mode.
+				widget := v.VNC.Widget(vnc.OutputsPage, name+"meter")
+				if err := widget.Press(v.VNC); err != nil {
+					// Ignoring error for now.
+				}
 			}
-			v.SetPage(venue.InputsPage)
+			v.VNC.SetPage(vnc.InputsPage)
 
 		case "pan":
 			log.Printf("Pan unimplemented.")
@@ -295,15 +295,10 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			log.Printf("Setting %v pan position to %v.", name, val)
 
 			// Adjust pan value of output.
-			v.SetPage(venue.InputsPage)
-			vp := v.Pages[venue.InputsPage]
-			eName := name + "pan"
-			e, ok := vp.Elements[eName]
-			if !ok {
-				log.Printf("Couldn't find input element %v; vp = %v", eName, vp)
-				break
+			widget := v.VNC.Widget(vnc.InputsPage, name+"pan")
+			if err := widget.Update(v.VNC, val); err != nil {
+				// Ignore errors for now.
 			}
-			e.(*venue.Encoder).Set(v, val)
 
 		default:
 			log.Printf("Unrecognized command: %v", command)

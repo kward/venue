@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	refresh = 1000 * time.Millisecond
-	port    = 5900
+	refresh   = 1000 * time.Millisecond
+	port      = 5900
+	maxInputs = 96 // Maximum number of signal inputs the code can handle.
 )
 
 // The VNC type contains various handles relating to a VNC connection.
@@ -22,6 +23,7 @@ type VNC struct {
 	cfg  *vnclib.ClientConfig
 	conn *vnclib.ClientConn
 	fb   *Framebuffer
+	ui   *UI
 }
 
 // New returns a populated VNC structure.
@@ -101,6 +103,76 @@ func (v *VNC) ListenAndHandle() {
 	}
 }
 
+// SetPage changes the VENUE page.
+func (v *VNC) SetPage(p int) error { return v.Press(v.ui.inputs) }
+
+// Widget returns a pointer to a widget with name `n` on a given page `p`.
+func (v *VNC) Widget(p int, n string) Widget {
+	switch p {
+	case InputsPage:
+		return v.ui.inputs.Widget(n)
+	case OutputsPage:
+		return v.ui.outputs.Widget(n)
+	}
+	return nil
+}
+
+// Outputs returns a pointer to the OUTPUTS page.
+func (v *VNC) Outputs() *Page { return v.ui.outputs }
+
+// SelectInput for interaction.
+func (v *VNC) SelectInput(input uint16) error {
+	if input > maxInputs {
+		return fmt.Errorf("input number %d exceeds maximum number of inputs %d", input, maxInputs)
+	}
+	log.Printf("Selecting input #%v.", input)
+
+	if err := v.SetPage(InputsPage); err != nil {
+		return err
+	}
+	return v.selectInput(1)
+}
+
+// selectInput directly.
+func (v *VNC) selectInput(input uint16) error {
+	if input < 10 {
+		if err := v.KeyPress(vnclib.Key0); err != nil {
+			return err
+		}
+	}
+	for _, key := range intToKeys(int(input)) {
+		if err := v.KeyPress(key); err != nil {
+			return err
+		}
+	}
+	// TODO(kward:20161126): Start a timer that expires after 1750ms. Additional
+	// key presses aren't allowed until the time expires, but mouse input is.
+	time.Sleep(1750 * time.Millisecond)
+
+	return nil
+}
+
+// SelectOutput for interaction.
+func (v *VNC) SelectOutput(output string) error {
+	v.SetPage(OutputsPage)
+
+	// Clear solo.
+	log.Printf("Clearing output solo.")
+	widget := v.ui.outputs.Widget("solo_clear")
+	if err := widget.Press(v); err != nil {
+		return err
+	}
+
+	// Solo output.
+	log.Printf("Soloing %v output.", output)
+	widget = v.ui.outputs.Widget(output + "solo")
+	if err := widget.Press(v); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FramebufferRefresh refreshes the local framebuffer image of the VNC server
 // every period `p`.
 func (v *VNC) FramebufferRefresh(p time.Duration) {
@@ -146,22 +218,56 @@ func (v *VNC) KeyPress(key uint32) error {
 }
 
 // MouseMove moves the mouse.
-func (v *VNC) MouseMove(p image.Point) {
-	v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+// TODO(kward): Don't ignore the errors!
+func (v *VNC) MouseMove(p image.Point) error {
+	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
 }
 
 // MouseLeftClick moves the mouse to a position and left clicks.
-func (v *VNC) MouseLeftClick(p image.Point) {
-	v.MouseMove(p)
-	v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y))
-	v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+func (v *VNC) MouseLeftClick(p image.Point) error {
+	if err := v.MouseMove(p); err != nil {
+		return err
+	}
+	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+		return err
+	}
+	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
 }
 
 // MouseDrag moves the mouse, clicks, and drags to a new position.
-func (v *VNC) MouseDrag(p, d image.Point) {
-	v.MouseMove(p)
-	v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y))
+func (v *VNC) MouseDrag(p, d image.Point) error {
+	if err := v.MouseMove(p); err != nil {
+		return err
+	}
+	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+		return err
+	}
 	p = p.Add(d) // Add delta.
-	v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y))
-	v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+		return err
+	}
+	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+}
+
+// TODO(kward:20161126) This should move to upstream VNC library.
+func intToKeys(v int) []uint32 {
+	keys := map[rune]uint32{
+		'-': vnclib.KeyMinus,
+		'0': vnclib.Key0,
+		'1': vnclib.Key1,
+		'2': vnclib.Key2,
+		'3': vnclib.Key3,
+		'4': vnclib.Key4,
+		'5': vnclib.Key5,
+		'6': vnclib.Key6,
+		'7': vnclib.Key7,
+		'8': vnclib.Key8,
+		'9': vnclib.Key9,
+	}
+	k := []uint32{}
+	s := fmt.Sprintf("%d", v)
+	for _, c := range s {
+		k = append(k, keys[c])
+	}
+	return k
 }
