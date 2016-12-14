@@ -26,13 +26,13 @@ This software requires ONE of the following:
 
 - A real VENUE console, with remote access via Ethernet (e.g. via an add-on
   Ethernet card).
-- A Windows machine running the free [Avid VENUE | Software][VENUE], and a VNC
+- A Windows machine running the free [Avid VENUE Software][VENUE], and a VNC
   server to export the display. The Windows instance can easily be run as a
   virtual machine so that a separate physical machine is not required.
 
 Software was tested on the following:
 
-- An [Avid VENUE | Profile][Profile] System.
+- An [Avid VENUE Profile][Profile] System.
 - Windows 7, running on [VMware Fusion][Fusion] (which provides a built-in VNC
   server) on OS X Yosemite.
 
