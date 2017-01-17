@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	oscClientHost = flag.String("osc_client_host", "127.0.0.1", "OSC client host/IP.")
+	oscClientHost = flag.String("osc_client_host", "127.0.0.1", "OSC client hostname/IP.")
 	oscClientPort = flag.Uint("osc_client_port", 9000, "OSC client port.")
-	oscServerHost = flag.String("osc_server_host", "0.0.0.0", "OSC client host/IP.")
-	oscServerPort = flag.Uint("osc_server_port", 8000, "OSC client port.")
+	oscServerHost = flag.String("osc_server_host", "0.0.0.0", "OSC server hostname/IP.")
+	oscServerPort = flag.Uint("osc_server_port", 8000, "OSC server port.")
 
 	venueHost    = flag.String("venue_host", "localhost", "Venue VNC host/IP.")
 	venuePort    = flag.Uint("venue_port", 5900, "Venue VNC port.")
