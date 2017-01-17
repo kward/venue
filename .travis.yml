@@ -11,6 +11,6 @@ go:
 install:
   # github.com/howeyc/gopass requires Go v1.3.
   - go get github.com/howeyc/gopass
-  - go get github.com/kward/go-osc
+  - go get github.com/kward/go-osc/osc
   - go get github.com/kward/go-vnc
   - go get golang.org/x/net/context
