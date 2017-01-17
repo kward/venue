@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -12,7 +13,6 @@ import (
 	"github.com/kward/venue"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
-	"golang.org/x/net/context"
 )
 
 var (
