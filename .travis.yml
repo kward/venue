@@ -19,3 +19,5 @@ install:
 
   # github.com/kward/go-vnc requires Go 1.2.
   - go get github.com/kward/go-vnc
+
+  - go get github.com/golang/glog
