@@ -49,7 +49,7 @@ func (w *Page) Update(v *VNC, val interface{}) error {
 	return nil
 }
 
-func (w *Page) Press(v *VNC) error { return nil }
+func (w *Page) Press(v *VNC) error { return fmt.Errorf("Page.Press() is unsupported") }
 
 const (
 	bankX  = 8   // X position of 1st bank.
@@ -157,6 +157,10 @@ func NewOutputsPage() *Page {
 }
 
 // Widget returns the named widget.
-func (w *Page) Widget(n string) Widget {
-	return w.widgets[n]
+func (w *Page) Widget(n string) (Widget, error) {
+	v, ok := w.widgets[n]
+	if !ok {
+		return nil, fmt.Errorf("invalid page widget %q", n)
+	}
+	return v, nil
 }

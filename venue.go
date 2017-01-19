@@ -86,6 +86,7 @@ func (v *Venue) Initialize() error {
 
 	// Clear solo.
 	glog.Info("Clearing solo.")
+	// TODO(kward:20170120) use something generated instead of solo_clear string.
 	widget := v.VNC.Widget(vnc.InputsPage, "solo_clear")
 	if err := v.VNC.Update(widget, vnc.SwitchOff); err != nil {
 		return err

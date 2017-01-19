@@ -121,7 +121,11 @@ func (v *VNC) Widget(p int, n string) Widget {
 	case OutputsPage:
 		page = v.ui.Outputs()
 	}
-	return page.Widget(n)
+	w, err := page.Widget(n)
+	if err != nil {
+		glog.Fatalf("Requested uninitialized widget; %s", n, err)
+	}
+	return w
 }
 
 // SelectInput for interaction.
@@ -163,14 +167,20 @@ func (v *VNC) SelectOutput(output string) error {
 
 	// Clear solo.
 	glog.Infof("Clearing output solo.")
-	w := p.Widget("solo_clear")
+	w, err := p.Widget("solo_clear")
+	if err != nil {
+		return err
+	}
 	if err := w.Press(v); err != nil {
 		return err
 	}
 
 	// Solo output.
 	glog.Infof("Soloing %v output.", output)
-	w = p.Widget(output + "solo")
+	w, err = p.Widget(output + "solo")
+	if err != nil {
+		return err
+	}
 	if err := w.Press(v); err != nil {
 		return err
 	}

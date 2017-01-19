@@ -72,7 +72,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 	// The address is expected to be in this format:
 	// /version/layout/page/control/command[/num1][/num2][/label]
 	addr := msg.Address
-	log.Printf("OSC Message from %v: %v", remote, addr)
+	glog.Infof("OSC Message from %v: %v", remote, addr)
 
 	version, addr := car(addr), cdr(addr)
 	switch version {
@@ -81,13 +81,13 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 		return
 	case "0.1":
 	case "0.0":
-		log.Printf("Unsupported version.")
+		glog.Errorf("Unsupported version.")
 		return
 	default:
-		log.Printf("Unsupported message.")
+		glog.Errorf("Unsupported message.")
 		return
 	}
-	log.Printf("Version: %v", version)
+	glog.Infof("Version: %v", version)
 
 	layout, addr := car(addr), cdr(addr)
 	switch layout {
@@ -99,13 +99,13 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 		dxOutput = 12
 		orientation = horizontal
 	}
-	log.Printf("Layout: %v", layout)
+	glog.Infof("Layout: %v", layout)
 
 	page, addr := car(addr), cdr(addr)
-	log.Printf("Page: %v", page)
+	glog.Infof("Page: %v", page)
 
 	control, addr := car(addr), cdr(addr)
-	log.Printf("Control: %v", control)
+	glog.Infof("Control: %v", control)
 
 	switch control {
 	case "input":
@@ -181,7 +181,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 
 	case "output":
 		command, addr := car(addr), cdr(addr)
-		log.Printf("Command: %v", command)
+		glog.Infof("Command: %v", command)
 
 		switch command {
 		case "bank": // Only present on the phone layout.
@@ -216,7 +216,7 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 			} else {
 				name = fmt.Sprintf("grp%d", output-16)
 			}
-			log.Printf("Setting %v output level.", name)
+			glog.Infof("Setting %v output level.", name)
 
 			if s.output != output {
 				v.VNC.SelectOutput(name)
