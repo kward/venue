@@ -8,6 +8,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
 )
 
@@ -36,7 +37,7 @@ func New(opts ...func(*options) error) (*VNC, error) {
 		}
 	}
 
-	return &VNC{opts: o}, nil
+	return &VNC{opts: o, ui: NewUI()}, nil
 }
 
 // Close a VNC connection.
@@ -55,14 +56,14 @@ func (v *VNC) Connect(ctx context.Context) error {
 		return fmt.Errorf("context missing deadline")
 	}
 
-	log.Println("Connecting to VENUE VNC server...")
+	glog.Infof("Connecting to VENUE VNC server...")
 	addr := fmt.Sprintf("%s:%d", v.opts.host, v.opts.port)
-	nc, err := net.DialTimeout("tcp", addr, time.Since(deadline))
+	nc, err := net.DialTimeout("tcp", addr, deadline.Sub(time.Now()))
 	if err != nil {
 		return err
 	}
 
-	log.Println("Establishing session...")
+	glog.Infof("Establishing session...")
 	v.cfg = vnclib.NewClientConfig(v.opts.passwd)
 	conn, err := vnclib.Connect(ctx, nc, v.cfg)
 	if err != nil {
@@ -80,13 +81,13 @@ func (v *VNC) Connect(ctx context.Context) error {
 
 // ListenAndHandle VNC server messages.
 func (v *VNC) ListenAndHandle() {
-	log.Println("ListenAndHandle()")
+	glog.Info("ListenAndHandle()")
 	go v.conn.ListenAndHandle()
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnclib.FramebufferUpdateMsg:
-			log.Println("ListenAndHandle() FramebufferUpdateMessage")
+			glog.Info("ListenAndHandle() FramebufferUpdateMessage")
 			for i := uint16(0); i < msg.(*vnclib.FramebufferUpdate).NumRect; i++ {
 				var colors []vnclib.Color
 				rect := msg.(*vnclib.FramebufferUpdate).Rects[i]
@@ -104,21 +105,24 @@ func (v *VNC) ListenAndHandle() {
 }
 
 // SetPage changes the VENUE page.
-func (v *VNC) SetPage(p int) error { return v.Press(v.ui.inputs) }
+func (v *VNC) SetPage(p int) error {
+	if v.ui == nil {
+		return fmt.Errorf("v.ui is nil")
+	}
+	return v.Press(v.ui.Inputs())
+}
 
 // Widget returns a pointer to a widget with name `n` on a given page `p`.
 func (v *VNC) Widget(p int, n string) Widget {
+	var page *Page
 	switch p {
 	case InputsPage:
-		return v.ui.inputs.Widget(n)
+		page = v.ui.Inputs()
 	case OutputsPage:
-		return v.ui.outputs.Widget(n)
+		page = v.ui.Outputs()
 	}
-	return nil
+	return page.Widget(n)
 }
-
-// Outputs returns a pointer to the OUTPUTS page.
-func (v *VNC) Outputs() *Page { return v.ui.outputs }
 
 // SelectInput for interaction.
 func (v *VNC) SelectInput(input uint16) error {
@@ -155,18 +159,19 @@ func (v *VNC) selectInput(input uint16) error {
 // SelectOutput for interaction.
 func (v *VNC) SelectOutput(output string) error {
 	v.SetPage(OutputsPage)
+	p := v.ui.Outputs()
 
 	// Clear solo.
-	log.Printf("Clearing output solo.")
-	widget := v.ui.outputs.Widget("solo_clear")
-	if err := widget.Press(v); err != nil {
+	glog.Infof("Clearing output solo.")
+	w := p.Widget("solo_clear")
+	if err := w.Press(v); err != nil {
 		return err
 	}
 
 	// Solo output.
-	log.Printf("Soloing %v output.", output)
-	widget = v.ui.outputs.Widget(output + "solo")
-	if err := widget.Press(v); err != nil {
+	glog.Infof("Soloing %v output.", output)
+	w = p.Widget(output + "solo")
+	if err := w.Press(v); err != nil {
 		return err
 	}
 

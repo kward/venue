@@ -1,5 +1,7 @@
 package vnc
 
+import "fmt"
+
 const (
 	// Max number of consecutive arrow key presses.
 	// WiFi connections have enough latency to not need more.
@@ -14,6 +16,9 @@ type UI struct {
 func NewUI() *UI {
 	return &UI{NewInputsPage(), NewOutputsPage()}
 }
+
+func (ui *UI) Inputs() *Page  { return ui.inputs }
+func (ui *UI) Outputs() *Page { return ui.outputs }
 
 // The Widget interface provides functionality for interacting with VNC widgets.
 type Widget interface {
@@ -32,13 +37,22 @@ type Widgets map[string]Widget
 // Note, although similar, VNC does *not* meet the Widget interface.
 
 func (v *VNC) Read(w Widget) (interface{}, error) {
+	if w == nil {
+		return nil, fmt.Errorf("Widget is nil")
+	}
 	return w.Read(v)
 }
 
 func (v *VNC) Update(w Widget, val interface{}) error {
+	if w == nil {
+		return fmt.Errorf("Widget is nil")
+	}
 	return w.Update(v, val)
 }
 
 func (v *VNC) Press(w Widget) error {
+	if w == nil {
+		return fmt.Errorf("Widget is nil")
+	}
 	return w.Press(v)
 }
