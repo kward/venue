@@ -63,8 +63,8 @@ This code is written in Golang (<http://golang.org/>).
     $ go get github.com/kward/venue
     $ go get github.com/kward/go-osc
     $ go get github.com/kward/go-vnc
+    $ go get github.com/golang/glog
     $ go get github.com/howeyc/gopass
-    $ go get golang.org/x/net/context
     ```
 
 4. Test the client software. This will "randomly" select an input channel every
@@ -88,8 +88,8 @@ This code is written in Golang (<http://golang.org/>).
 
 Notes:
 
-- If you are not using the default VNC port of 5900, the `--port` or
-  `--venue_port` option should be added.
+- If you are not using the default VNC port of 5900, the `--venue_port` option
+  should be added.
 - If you are not using the default TouchOSC port of 8000, the
   `--osc_server_port` option should be added for `server/venue_osc.go`.
 
@@ -102,7 +102,7 @@ Here's a simple script to do the updates.
 $ for pkg in \
   github.com/howeyc/gopass \
   github.com/kward/{go-osc,go-vnc,venue}
-  golang.org/x/net/context
+  github.com/golang/glog
 do
   go get -u ${pkg}
 done
