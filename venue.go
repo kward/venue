@@ -5,9 +5,9 @@ package venue
 
 import (
 	"context"
-	"log"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/kward/venue/vnc"
 )
 
@@ -65,7 +65,10 @@ func (v *Venue) Connect(ctx context.Context, h string, p uint, pw string) error 
 
 // Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() error {
+	glog.Info("Initialize()")
+
 	// Initialize inputs.
+	glog.Info("Initializing inputs.")
 	for ch := 0; ch < numInputs; ch++ {
 		input := NewInput(v, ch+1, Ichannel)
 		v.inputs[ch] = input
@@ -73,6 +76,7 @@ func (v *Venue) Initialize() error {
 
 	// Choose output before input so that later when the Inputs page is selected,
 	// it shows first bank of channels.
+	glog.Info("Selecting I/O.")
 	if err := v.VNC.SelectOutput("aux1"); err != nil {
 		return err
 	}
@@ -81,7 +85,7 @@ func (v *Venue) Initialize() error {
 	}
 
 	// Clear solo.
-	log.Println("Clearing solo.")
+	glog.Info("Clearing solo.")
 	widget := v.VNC.Widget(vnc.InputsPage, "solo_clear")
 	if err := v.VNC.Update(widget, vnc.SwitchOff); err != nil {
 		return err
