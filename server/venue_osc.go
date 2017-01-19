@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
 	"github.com/kward/venue"
 	"github.com/kward/venue/venuelib"
@@ -21,7 +22,7 @@ var (
 	oscServerHost = flag.String("osc_server_host", "0.0.0.0", "OSC server hostname/IP.")
 	oscServerPort = flag.Uint("osc_server_port", 8000, "OSC server port.")
 
-	venueHost    = flag.String("venue_host", "localhost", "Venue VNC host/IP.")
+	venueHost    = flag.String("venue_host", "", "Venue VNC host/IP.")
 	venuePort    = flag.Uint("venue_port", 5900, "Venue VNC port.")
 	venuePasswd  string
 	venueTimeout = flag.Duration("venue_timeout", 15*time.Second, "Venue VNC timeout.")
@@ -361,6 +362,9 @@ func main() {
 
 	log.SetFlags(log.Flags() | log.Lmicroseconds | log.Lshortfile)
 
+	if *venueHost == "" {
+		log.Fatal("missing --venue_host flag")
+	}
 	if venuePasswd == "" {
 		venuePasswd = venuelib.GetPasswd()
 	}
@@ -377,10 +381,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer v.Close()
-	log.Println("Venue connection established.")
+	glog.Info("Venue connection established.")
 
 	v.Initialize()
-	// time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 	go v.ListenAndHandle()
 
 	o := &osc.Server{}
