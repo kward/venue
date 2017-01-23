@@ -1,6 +1,10 @@
 package venuelib
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/golang/glog"
+)
 
 func TestToInt(t *testing.T) {
 	for _, tt := range []struct {
@@ -23,5 +27,11 @@ func TestToInt(t *testing.T) {
 func TestFnName(t *testing.T) {
 	if got, want := FnName(), "TestFnName()"; got != want {
 		t.Errorf("FnName() = %s, want %s", got, want)
+	}
+}
+
+func ExampleFnName() {
+	if glog.V(3) {
+		glog.Info(FnName())
 	}
 }

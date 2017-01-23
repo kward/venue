@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/golang/glog"
 	"github.com/howeyc/gopass"
 )
 
@@ -36,10 +35,4 @@ func FnName() string {
 	runtime.Callers(2, pc)
 	name := runtime.FuncForPC(pc[0]).Name()
 	return name[strings.LastIndex(name, ".")+1:] + "()"
-}
-
-func ExampleFnName() {
-	if glog.V(2) {
-		glog.Info(FnName())
-	}
 }
