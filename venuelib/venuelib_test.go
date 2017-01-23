@@ -15,7 +15,13 @@ func TestToInt(t *testing.T) {
 		{"abc", 0},
 	} {
 		if got, want := ToInt(tt.in), tt.want; got != want {
-			t.Errorf("ToInt(%s) = %d, want = %d", tt.in, got, want)
+			t.Errorf("ToInt(%s) = %d, want %d", tt.in, got, want)
 		}
+	}
+}
+
+func TestFnName(t *testing.T) {
+	if got, want := FnName(), "TestFnName()"; got != want {
+		t.Errorf("FnName() = %s, want %s", got, want)
 	}
 }
