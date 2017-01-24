@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"image"
-	"log"
 	"net"
 	"time"
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/venuelib"
 )
 
 const (
@@ -81,13 +81,17 @@ func (v *VNC) Connect(ctx context.Context) error {
 
 // ListenAndHandle VNC server messages.
 func (v *VNC) ListenAndHandle() {
-	glog.Info("ListenAndHandle()")
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
 	go v.conn.ListenAndHandle()
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
 		case vnclib.FramebufferUpdateMsg:
-			glog.Info("ListenAndHandle() FramebufferUpdateMessage")
+			if glog.V(5) {
+				glog.Info("ListenAndHandle() FramebufferUpdateMessage")
+			}
 			for i := uint16(0); i < msg.(*vnclib.FramebufferUpdate).NumRect; i++ {
 				var colors []vnclib.Color
 				rect := msg.(*vnclib.FramebufferUpdate).Rects[i]
@@ -99,7 +103,7 @@ func (v *VNC) ListenAndHandle() {
 			}
 
 		default:
-			log.Printf("ListenAndHandle() unknown message type:%s msg:%s\n", msg.Type(), msg)
+			glog.Errorf("ListenAndHandle() unknown message type:%s msg:%s\n", msg.Type(), msg)
 		}
 	}
 }
@@ -123,7 +127,7 @@ func (v *VNC) Widget(p int, n string) Widget {
 	}
 	w, err := page.Widget(n)
 	if err != nil {
-		glog.Fatalf("Requested uninitialized widget; %s", n, err)
+		glog.Fatalf("Requested uninitialized widget %q; %s", n, err)
 	}
 	return w
 }
@@ -133,7 +137,7 @@ func (v *VNC) SelectInput(input uint16) error {
 	if input > maxInputs {
 		return fmt.Errorf("input number %d exceeds maximum number of inputs %d", input, maxInputs)
 	}
-	log.Printf("Selecting input #%v.", input)
+	glog.Infof("Selecting input #%v.", input)
 
 	if err := v.SetPage(InputsPage); err != nil {
 		return err
@@ -195,7 +199,7 @@ func (v *VNC) FramebufferRefresh(p time.Duration) {
 	for {
 		if err := v.Snapshot(r); err != nil {
 			// TODO(kward:20161124) Return errors on a channel.
-			log.Printf("framebuffer refresh error: %s", err)
+			glog.Errorf("framebuffer refresh error: %s", err)
 		}
 		if p == 0 {
 			break
@@ -206,11 +210,13 @@ func (v *VNC) FramebufferRefresh(p time.Duration) {
 
 // Snapshot requests updated image info from the VNC server.
 func (v *VNC) Snapshot(r image.Rectangle) error {
-	log.Printf("Snapshot(%v)\n", r)
+	if glog.V(5) {
+		glog.Infof("Snapshot(%v)\n", r)
+	}
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
 		vnclib.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
-		log.Println("Snapshot() error:", err)
+		glog.Errorf("Snapshot() error:", err)
 		return err
 	}
 	return nil
