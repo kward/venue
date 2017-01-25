@@ -18,7 +18,7 @@ func TestIntToKeys(t *testing.T) {
 		{"negative", -123, []uint32{vnclib.KeyMinus, vnclib.Key1, vnclib.Key2, vnclib.Key3}},
 		{"positive", 456, []uint32{vnclib.Key4, vnclib.Key5, vnclib.Key6}},
 	} {
-		if got, want := intToKeys(tt.v), tt.keys; !equalSlices(got, want) {
+		if got, want := IntToKeys(tt.v), tt.keys; !equalSlices(got, want) {
 			t.Errorf("%s: intToKeys() = %v, want = %v", tt.desc, got, want)
 		}
 	}

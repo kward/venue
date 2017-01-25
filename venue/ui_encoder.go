@@ -1,48 +1,51 @@
-package vnc
+package venue
 
 import (
 	"image"
 
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/venue/math"
+	"github.com/kward/venue/vnc"
 )
 
+type encoderEnum int
+
 const (
-	encoderTL = iota // Top left
-	encoderML        // Middle left
-	encoderBL        // Bottom left
-	encoderBC        // Bottom center
-	encoderTR        // Top right
-	encoderMR        // Middle right
-	encoderBR        // Bottom right
+	encoderTL encoderEnum = iota // Top left
+	encoderML                    // Middle left
+	encoderBL                    // Bottom left
+	encoderBC                    // Bottom center
+	encoderTR                    // Top right
+	encoderMR                    // Middle right
+	encoderBR                    // Bottom right
 )
 
 type Encoder struct {
 	center   image.Point
-	window   int  // Position of value window
-	hasOnOff bool // Has an on/off switch
+	window   encoderEnum // Position of value window
+	hasOnOff bool        // Has an on/off switch
 }
 
 // Verify that the Widget interface is honored.
 var _ Widget = new(Encoder)
 
-func (w *Encoder) Read(v *VNC) (interface{}, error) { return nil, nil }
+func (w *Encoder) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
 
-func (w *Encoder) Update(v *VNC, val interface{}) error {
+func (w *Encoder) Update(v *vnc.VNC, val interface{}) error {
 	w.Press(v)
-	for _, key := range intToKeys(val.(int)) {
+	for _, key := range vnc.IntToKeys(val.(int)) {
 		v.KeyPress(key)
 	}
 	v.KeyPress(vnclib.KeyReturn)
 	return nil
 }
 
-func (w *Encoder) Press(v *VNC) error {
+func (w *Encoder) Press(v *vnc.VNC) error {
 	return v.MouseLeftClick(w.clickOffset())
 }
 
 // Adjust the value of an encoder with cursor keys.
-func (w *Encoder) Adjust(v *VNC, val int) error {
+func (w *Encoder) Adjust(v *vnc.VNC, val int) error {
 	if err := w.Press(v); err != nil {
 		return err
 	}
@@ -61,10 +64,10 @@ func (w *Encoder) Adjust(v *VNC, val int) error {
 }
 
 // Increment the value of an encoder.
-func (w *Encoder) Increment(v *VNC) error { return w.Adjust(v, 1) }
+func (w *Encoder) Increment(v *vnc.VNC) error { return w.Adjust(v, 1) }
 
 // Decrement the value of an encoder.
-func (w *Encoder) Decrement(v *VNC) error { return w.Adjust(v, -1) }
+func (w *Encoder) Decrement(v *vnc.VNC) error { return w.Adjust(v, -1) }
 
 func (w *Encoder) clickOffset() image.Point {
 	var dx, dy int

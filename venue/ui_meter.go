@@ -1,6 +1,10 @@
-package vnc
+package venue
 
-import "image"
+import (
+	"image"
+
+	"github.com/kward/venue/vnc"
+)
 
 type Meter struct {
 	pos      image.Point // Position of UI element.
@@ -11,9 +15,9 @@ type Meter struct {
 // Verify that the Widget interface is honored.
 var _ Widget = new(Meter)
 
-func (w *Meter) Read(v *VNC) (interface{}, error)     { return nil, nil }
-func (w *Meter) Update(v *VNC, val interface{}) error { return nil }
-func (w *Meter) Press(v *VNC) error {
+func (w *Meter) Read(v *vnc.VNC) (interface{}, error)     { return nil, nil }
+func (w *Meter) Update(v *vnc.VNC, val interface{}) error { return nil }
+func (w *Meter) Press(v *vnc.VNC) error {
 	return v.MouseLeftClick(w.clickOffset())
 }
 

@@ -24,7 +24,6 @@ type VNC struct {
 	cfg  *vnclib.ClientConfig
 	conn *vnclib.ClientConn
 	fb   *Framebuffer
-	ui   *UI
 }
 
 // New returns a populated VNC structure.
@@ -37,7 +36,7 @@ func New(opts ...func(*options) error) (*VNC, error) {
 		}
 	}
 
-	return &VNC{opts: o, ui: NewUI()}, nil
+	return &VNC{opts: o}, nil
 }
 
 // Close a VNC connection.
@@ -108,90 +107,6 @@ func (v *VNC) ListenAndHandle() {
 	}
 }
 
-// SetPage changes the VENUE page.
-func (v *VNC) SetPage(p int) error {
-	if v.ui == nil {
-		return fmt.Errorf("v.ui is nil")
-	}
-	return v.Press(v.ui.Inputs())
-}
-
-// Widget returns a pointer to a widget with name `n` on a given page `p`.
-func (v *VNC) Widget(p int, n string) Widget {
-	var page *Page
-	switch p {
-	case InputsPage:
-		page = v.ui.Inputs()
-	case OutputsPage:
-		page = v.ui.Outputs()
-	}
-	w, err := page.Widget(n)
-	if err != nil {
-		glog.Fatalf("Requested uninitialized widget %q; %s", n, err)
-	}
-	return w
-}
-
-// SelectInput for interaction.
-func (v *VNC) SelectInput(input uint16) error {
-	if input > maxInputs {
-		return fmt.Errorf("input number %d exceeds maximum number of inputs %d", input, maxInputs)
-	}
-	glog.Infof("Selecting input #%v.", input)
-
-	if err := v.SetPage(InputsPage); err != nil {
-		return err
-	}
-	return v.selectInput(1)
-}
-
-// selectInput directly.
-func (v *VNC) selectInput(input uint16) error {
-	if input < 10 {
-		if err := v.KeyPress(vnclib.Key0); err != nil {
-			return err
-		}
-	}
-	for _, key := range intToKeys(int(input)) {
-		if err := v.KeyPress(key); err != nil {
-			return err
-		}
-	}
-	// TODO(kward:20161126): Start a timer that expires after 1750ms. Additional
-	// key presses aren't allowed until the time expires, but mouse input is.
-	time.Sleep(1750 * time.Millisecond)
-
-	return nil
-}
-
-// SelectOutput for interaction.
-func (v *VNC) SelectOutput(output string) error {
-	v.SetPage(OutputsPage)
-	p := v.ui.Outputs()
-
-	// Clear solo.
-	glog.Infof("Clearing output solo.")
-	w, err := p.Widget("solo_clear")
-	if err != nil {
-		return err
-	}
-	if err := w.Press(v); err != nil {
-		return err
-	}
-
-	// Solo output.
-	glog.Infof("Soloing %v output.", output)
-	w, err = p.Widget(output + "solo")
-	if err != nil {
-		return err
-	}
-	if err := w.Press(v); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // FramebufferRefresh refreshes the local framebuffer image of the VNC server
 // every period `p`.
 func (v *VNC) FramebufferRefresh(p time.Duration) {
@@ -239,7 +154,6 @@ func (v *VNC) KeyPress(key uint32) error {
 }
 
 // MouseMove moves the mouse.
-// TODO(kward): Don't ignore the errors!
 func (v *VNC) MouseMove(p image.Point) error {
 	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
 }
@@ -270,8 +184,10 @@ func (v *VNC) MouseDrag(p, d image.Point) error {
 	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
 }
 
+// IntToKeys returns a slice of uint32 values that represent the key presses
+// required to input an int.
 // TODO(kward:20161126) This should move to upstream VNC library.
-func intToKeys(v int) []uint32 {
+func IntToKeys(v int) []uint32 {
 	keys := map[rune]uint32{
 		'-': vnclib.KeyMinus,
 		'0': vnclib.Key0,

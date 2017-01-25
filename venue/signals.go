@@ -37,38 +37,40 @@ func NewSignal(defVal, min, max float64, prec int, unit string, defEna bool) *Si
 	}
 }
 
-func (s *Signal) Enabled() bool {
-	return s.ena
+func (sig *Signal) Enabled() bool {
+	return sig.ena
 }
 
-func (s *Signal) Value() float64 {
-	return s.val
+func (sig *Signal) Value() float64 {
+	return sig.val
 }
 
-func (s *Signal) Reset() {
-	s.val = s.defVal
-	s.ena = s.defEna
+func (sig *Signal) Reset() {
+	sig.val = sig.defVal
+	sig.ena = sig.defEna
 }
+
+type signalEnum int
 
 const (
-	Ichannel = iota
-	Ifx
+	signalChannel signalEnum = iota
+	signalFx
 )
 
 // Input represents an input signal.
 type Input struct {
 	v     *Venue
-	ch    int // Channel number
-	kind  int //
+	ch    int        // Channel number
+	sig   signalEnum //
 	prop  Signals
 	sends Signals
 }
 
-func NewInput(v *Venue, ch int, kind int) *Input {
+func NewInput(v *Venue, ch int, sig signalEnum) *Input {
 	i := &Input{
-		v:    v,
-		ch:   ch,
-		kind: kind,
+		v:   v,
+		ch:  ch,
+		sig: sig,
 		prop: map[string]*Signal{
 			"signal": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
 			"gain":   NewSignal(10, 10, 60, 1, "dB", true),

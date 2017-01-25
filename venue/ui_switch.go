@@ -1,6 +1,10 @@
-package vnc
+package venue
 
-import "image"
+import (
+	"image"
+
+	"github.com/kward/venue/vnc"
+)
 
 // Switch size examples:
 // - Tiny: Channel solo or mute on bank (13x13 px)
@@ -34,9 +38,9 @@ type Switch struct {
 // Verify that the Widget interface is honored.
 var _ Widget = new(Switch)
 
-func (w *Switch) Read(v *VNC) (interface{}, error) { return nil, nil }
+func (w *Switch) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
 
-func (w *Switch) Update(v *VNC, val interface{}) error {
+func (w *Switch) Update(v *vnc.VNC, val interface{}) error {
 	if w.IsPushButton() {
 		// It doesn't make sense to update a push-button.
 		return nil
@@ -52,7 +56,7 @@ func (w *Switch) Update(v *VNC, val interface{}) error {
 	return nil
 }
 
-func (w *Switch) Press(v *VNC) error {
+func (w *Switch) Press(v *vnc.VNC) error {
 	return v.MouseLeftClick(w.clickOffset())
 }
 

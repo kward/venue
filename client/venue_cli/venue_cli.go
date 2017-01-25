@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/kward/venue"
+	"github.com/kward/venue/venue"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -50,7 +50,7 @@ func main() {
 
 	// Randomly adjust an input.
 	for {
-		v.VNC.SelectInput(uint16(rand.Intn(int(*numInputs))))
+		v.SelectInput(uint16(rand.Intn(int(*numInputs))))
 
 		if *period == 0 {
 			break

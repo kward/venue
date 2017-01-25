@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
 )
 
@@ -20,15 +21,12 @@ const (
 type Venue struct {
 	opts *options
 
-	VNC *vnc.VNC
+	vnc *vnc.VNC
 
-	inputs    [numInputs]*Input
-	currInput *Input
-
-	outputs    map[string]*Output
-	currOutput *Output
-
-	currPage int
+	ui       *UI
+	currPage pageEnum
+	inputs   [numInputs]*Input
+	outputs  map[string]*Output
 }
 
 // New returns a populated Venue struct.
@@ -46,7 +44,7 @@ func New(opts ...func(*options) error) (*Venue, error) {
 
 // Close a Venue session.
 func (v *Venue) Close() error {
-	return v.VNC.Close()
+	return v.vnc.Close()
 }
 
 // Connect to a VENUE VNC server.
@@ -59,36 +57,52 @@ func (v *Venue) Connect(ctx context.Context, h string, p uint, pw string) error 
 	if err := handle.Connect(ctx); err != nil {
 		return err
 	}
-	v.VNC = handle
+	v.vnc = handle
 	return nil
 }
 
 // Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() error {
-	glog.Info("Initialize()")
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+
+	v.ui = NewUI()
 
 	// Initialize inputs.
-	glog.Info("Initializing inputs.")
+	if glog.V(2) {
+		glog.Info("Initializing inputs.")
+	}
 	for ch := 0; ch < numInputs; ch++ {
-		input := NewInput(v, ch+1, Ichannel)
+		input := NewInput(v, ch+1, signalChannel)
 		v.inputs[ch] = input
 	}
 
 	// Choose output before input so that later when the Inputs page is selected,
 	// it shows first bank of channels.
-	glog.Info("Selecting I/O.")
-	if err := v.VNC.SelectOutput("aux1"); err != nil {
+	if glog.V(2) {
+		glog.Info("Selecting I/O.")
+	}
+	if err := v.ui.selectOutput(v.vnc, "aux1"); err != nil {
 		return err
 	}
-	if err := v.VNC.SelectInput(1); err != nil {
+	if err := v.ui.selectInput(v.vnc, 1); err != nil {
 		return err
 	}
 
-	// Clear solo.
-	glog.Info("Clearing solo.")
-	// TODO(kward:20170120) use something generated instead of solo_clear string.
-	widget := v.VNC.Widget(vnc.InputsPage, "solo_clear")
-	if err := v.VNC.Update(widget, vnc.SwitchOff); err != nil {
+	p, err := v.ui.selectPage(v.vnc, inputsPage)
+	if err != nil {
+		return err
+	}
+
+	if glog.V(2) {
+		glog.Infof("Clearing input solo.")
+	}
+	w, err := p.Widget("solo_clear")
+	if err != nil {
+		return err
+	}
+	if err := w.Press(v.vnc); err != nil {
 		return err
 	}
 
@@ -97,11 +111,15 @@ func (v *Venue) Initialize() error {
 
 // ListenAndHandle connections and incoming requests.
 func (v *Venue) ListenAndHandle() {
-	go v.VNC.ListenAndHandle()
-	go v.VNC.FramebufferRefresh(v.opts.refresh)
+	go v.vnc.ListenAndHandle()
+	go v.vnc.FramebufferRefresh(v.opts.refresh)
 }
 
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
 func (v *Venue) Ping() {
-	v.VNC.DebugMetrics()
+	v.vnc.DebugMetrics()
+}
+
+func (v *Venue) SelectInput(input uint16) error {
+	return v.ui.selectInput(v.vnc, input)
 }

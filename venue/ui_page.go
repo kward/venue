@@ -1,25 +1,27 @@
-package vnc
+package venue
 
 import (
 	"fmt"
 	"image"
-	"log"
 
+	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/vnc"
 )
 
 type Page struct {
 	widgets map[string]Widget
 }
-
-type Pages map[string]*Page
+type Pages map[pageEnum]*Page
 
 // Verify that the Widget interface is honored.
 var _ Widget = new(Page)
 
+type pageEnum int
+
 const (
-	InputsPage = iota
-	OutputsPage
+	inputsPage pageEnum = iota
+	outputsPage
 	FilingPage
 	SnapshotsPage
 	PatchbayPage
@@ -27,21 +29,19 @@ const (
 	OptionsPage
 )
 
-var (
-	pageNames = map[int]string{
-		InputsPage:    "INPUTS",
-		OutputsPage:   "OUTPUTS",
-		FilingPage:    "FILING",
-		SnapshotsPage: "SNAPSHOTS",
-		PatchbayPage:  "PATCHBAY",
-		PluginsPage:   "PLUG-INS",
-		OptionsPage:   "OPTIONS",
-	}
-)
+var pageNames = map[pageEnum]string{
+	inputsPage:    "INPUTS",
+	outputsPage:   "OUTPUTS",
+	FilingPage:    "FILING",
+	SnapshotsPage: "SNAPSHOTS",
+	PatchbayPage:  "PATCHBAY",
+	PluginsPage:   "PLUG-INS",
+	OptionsPage:   "OPTIONS",
+}
 
-func (w *Page) Read(v *VNC) (interface{}, error) { return nil, nil }
+func (w *Page) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
 
-func (w *Page) Update(v *VNC, val interface{}) error {
+func (w *Page) Update(v *vnc.VNC, val interface{}) error {
 	var page int = val.(int)
 	if err := v.KeyPress(vnclib.KeyF1 + uint32(page)); err != nil {
 		return err
@@ -49,7 +49,7 @@ func (w *Page) Update(v *VNC, val interface{}) error {
 	return nil
 }
 
-func (w *Page) Press(v *VNC) error { return fmt.Errorf("Page.Press() is unsupported") }
+func (w *Page) Press(v *vnc.VNC) error { return fmt.Errorf("Page.Press() is unsupported") }
 
 const (
 	bankX  = 8   // X position of 1st bank.
@@ -117,17 +117,21 @@ func NewOutputsPage() *Page {
 	}
 
 	// Auxes
-	for _, b := range []int{1, 2} { // bank
-		pre := "aux"
-		for c := 1; c <= 8; c++ { // bank channel
+	for _, b := range []int{1, 2} { // Bank.
+		pre := WidgetAux
+		for c := 1; c <= 8; c++ { // Bank channel.
 			ch, x := (b-1)*8+c, bankX+(b-1)*bankDX+(c-1)*chanDX
 
-			n := fmt.Sprintf("%v%vsolo", pre, ch)
-			log.Println("NewOutput() element[%v]:", n)
+			n := fmt.Sprintf("%s%vsolo", pre, ch)
+			if glog.V(4) {
+				glog.Infof("NewOutput() element[%v]:", n)
+			}
 			widgets[n] = NewToggle(x, soloY, tinySwitch, false)
 
-			n = fmt.Sprintf("%v%vmeter", pre, ch)
-			log.Println("NewOutput() element[%v]:", n)
+			n = fmt.Sprintf("%s%vmeter", pre, ch)
+			if glog.V(4) {
+				glog.Infof("NewOutput() element[%v]:", n)
+			}
 			widgets[n] = &Meter{
 				pos:  image.Point{x, meterY},
 				size: smallVMeter,
@@ -137,16 +141,20 @@ func NewOutputsPage() *Page {
 
 	// Groups
 	b := 5 // bank
-	pre := "grp"
+	pre := WidgetGroup
 	for c := 1; c <= 8; c++ { // bank channel
 		ch, x := c, bankX+(b-1)*bankDX+(c-1)*chanDX
 
 		n := fmt.Sprintf("%v%vsolo", pre, ch)
-		log.Println("NewOutput() element[%v]:", n)
+		if glog.V(4) {
+			glog.Infof("NewOutput() element[%v]:", n)
+		}
 		widgets[n] = NewToggle(x, soloY, tinySwitch, false)
 
 		n = fmt.Sprintf("%v%vmeter", pre, ch)
-		log.Println("NewOutput() element[%v]:", n)
+		if glog.V(4) {
+			glog.Infof("NewOutput() element[%v]:", n)
+		}
 		widgets[n] = &Meter{
 			pos:  image.Point{x, meterY},
 			size: smallVMeter,
