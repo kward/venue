@@ -3,29 +3,31 @@ package venuelib
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"runtime"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/howeyc/gopass"
 )
 
+// GetPasswd requests the user for a masked password.
 func GetPasswd() string {
 	fmt.Printf("Password: ")
 	p, err := gopass.GetPasswdMasked()
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 	return string(p)
 }
 
-// ToInt converts a string
-func ToInt(s string) (i int) {
+// ToInt converts a string to an int.
+func ToInt(s string) int {
+	var i int
 	_, err := fmt.Fscanf(bytes.NewBufferString(s), "%d", &i)
 	if err != nil {
 		return 0
 	}
-	return
+	return i
 }
 
 // FnName returns the calling function name, e.g. "SomeFunction()". This is
