@@ -24,7 +24,7 @@ func TestV01Parse(t *testing.T) {
 			&Packet{
 				Control: controls.Input,
 				Command: commands.InputGain,
-				Val:     5,
+				Value:   5,
 			},
 			true},
 	} {
@@ -94,7 +94,7 @@ func TestV01PackGain(t *testing.T) {
 		if got, want := p.pkt.Command, commands.InputGain; got != want {
 			t.Errorf("%s: packGain() y = %d: pkt.Command = %v, want = %v", tt.desc, tt.y, got, want)
 		}
-		if got, want := p.pkt.Val, tt.want; got != want {
+		if got, want := p.pkt.Value, tt.want; got != want {
 			t.Errorf("%s: packGain() y = %d: pkt.Val = %d, want = %d", tt.desc, tt.y, got, want)
 		}
 	}

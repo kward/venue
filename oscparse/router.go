@@ -10,10 +10,10 @@ import (
 
 // Packet represents a Venue action to perform.
 type Packet struct {
-	Control controls.Control // The control.
-	Command commands.Command // The command.
-	Pos     int              // The position or channel number.
-	Val     interface{}
+	Control  controls.Control // The control.
+	Command  commands.Command // The command.
+	Position int              // The position or channel number.
+	Value    interface{}
 }
 
 // Equal returns true if the two packets are equal.
@@ -23,8 +23,8 @@ func (p *Packet) Equal(p2 *Packet) bool {
 
 // String returns a human readable representation of the packet.
 func (p *Packet) String() string {
-	return fmt.Sprintf("{ Control: %s Command: %s Pos: %d Value: %v }",
-		p.Control, p.Command, p.Pos, p.Val)
+	return fmt.Sprintf("{ Control: %s Command: %s Position: %d Value: %v }",
+		p.Control, p.Command, p.Position, p.Value)
 }
 
 type packetBus struct {

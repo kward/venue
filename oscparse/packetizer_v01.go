@@ -107,7 +107,7 @@ func (p *packerV01) inputGain() packerFn {
 	}
 
 	p.pkt.Command = commands.InputGain
-	p.pkt.Val = clicks
+	p.pkt.Value = clicks
 	return nil
 }
 
@@ -145,7 +145,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 
 	pos := p.req.multiPosition(dxInputSelect, dyInputSelect)
-	p.pkt = &Packet{Control: controls.Input, Command: commands.SelectInput, Pos: pos}
+	p.pkt = &Packet{Control: controls.Input, Command: commands.SelectInput, Position: pos}
 	return nil
 }
 
@@ -191,7 +191,7 @@ func (p *packerV01) outputLevel() packerFn {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt = &Packet{Control: ctrl, Command: commands.OutputLevel, Pos: pos, Val: clicks}
+	p.pkt = &Packet{Control: ctrl, Command: commands.OutputLevel, Position: pos, Value: clicks}
 	return nil
 }
 
@@ -209,7 +209,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 
 	ctrl, pos := venueAuxGroup(p.req)
-	p.pkt = &Packet{Control: ctrl, Command: commands.SelectOutput, Pos: pos}
+	p.pkt = &Packet{Control: ctrl, Command: commands.SelectOutput, Position: pos}
 	return nil
 }
 
