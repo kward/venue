@@ -85,9 +85,9 @@ Parsing:
 	}
 
 	switch req.request {
-	case "ping":
+	case PingReq:
 		return &Packet{Cmd: PingCmd}, nil
-	case "venue":
+	case VenueReq:
 	default:
 		return nil, fmt.Errorf("unrecognized request %q", req.request)
 	}

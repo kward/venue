@@ -40,6 +40,9 @@ type item struct {
 const (
 	eof   = "EOF"
 	label = "label"
+
+	PingReq  = "ping"
+	VenueReq = "venue"
 )
 
 func (i item) String() string {
@@ -101,11 +104,11 @@ func lexRequest(l *lexer) stateFn {
 		return l.errorf(eof)
 	}
 	switch s := l.next(); {
-	case s == "ping":
+	case s == PingReq:
 		l.emit(itemPingReq, s)
 		l.emit(itemEOF, eof)
 		return nil
-	case s == "venue":
+	case s == VenueReq:
 		l.emit(itemVenueReq, s)
 		return lexVersion
 	}
