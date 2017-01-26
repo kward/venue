@@ -61,7 +61,7 @@ func (p *packerV01) input() packerFn {
 		glog.Infof("Packing input command %q.", p.req.command)
 	}
 
-	p.pkt.Ctrl = CtrlInput
+	p.pkt.Ctrl = InputCtrl
 	switch p.req.command {
 	case "bank":
 		return p.inputBank
@@ -104,7 +104,7 @@ func (p *packerV01) inputGain() packerFn {
 		return p.errorf("invalid gain control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt.Cmd = CmdGain
+	p.pkt.Cmd = GainCmd
 	p.pkt.Val = clicks
 	return nil
 }
@@ -143,7 +143,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 
 	pos := p.req.multiPosition(dxInputSelect, dyInputSelect)
-	p.pkt = &Packet{Ctrl: CtrlInput, Cmd: CmdSelectInput, Pos: pos}
+	p.pkt = &Packet{Ctrl: InputCtrl, Cmd: SelectInputCmd, Pos: pos}
 	return nil
 }
 
@@ -189,7 +189,7 @@ func (p *packerV01) outputLevel() packerFn {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt = &Packet{Ctrl: ctrl, Cmd: CmdSetOutputLevel, Pos: pos, Val: clicks}
+	p.pkt = &Packet{Ctrl: ctrl, Cmd: SetOutputLevelCmd, Pos: pos, Val: clicks}
 	return nil
 }
 
@@ -207,7 +207,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 
 	ctrl, pos := venueAuxGroup(p.req)
-	p.pkt = &Packet{Ctrl: ctrl, Cmd: CmdSelectOutput, Pos: pos}
+	p.pkt = &Packet{Ctrl: ctrl, Cmd: SelectOutputCmd, Pos: pos}
 	return nil
 }
 
@@ -235,10 +235,10 @@ func clicks(x int) int {
 // venueAugGroup converts request into a Ctrl and position.
 // A Bus Configuration of "16 Auxes + 8 Variable Groups (24 bus)" is assumed.
 func venueAuxGroup(req request) (Ctrl, int) {
-	ctrl := CtrlAux
+	ctrl := AuxCtrl
 	pos := req.y
 	if req.y > 8 {
-		ctrl = CtrlGroup
+		ctrl = GroupCtrl
 		pos = req.y - 8
 	}
 	pos = pos*2 - 1 // Convert position into stereo channel number.

@@ -20,8 +20,8 @@ func TestV01Parse(t *testing.T) {
 			"/venue/0.1/th/soundcheck/input/gain/4/1",
 			[]interface{}{},
 			&Packet{
-				Ctrl: CtrlInput,
-				Cmd:  CmdGain,
+				Ctrl: InputCtrl,
+				Cmd:  GainCmd,
 				Val:  5,
 			},
 			true},
@@ -69,7 +69,7 @@ func TestV01PackGain(t *testing.T) {
 				y:      tt.y,
 			},
 			pkt: &Packet{
-				Ctrl: CtrlInput,
+				Ctrl: InputCtrl,
 			},
 		}
 		t.Logf("%s: request: %s", tt.desc, p.req)
@@ -89,7 +89,7 @@ func TestV01PackGain(t *testing.T) {
 		}
 		t.Logf("%s: packet after: %s", tt.desc, p.pkt)
 
-		if got, want := p.pkt.Cmd, CmdGain; got != want {
+		if got, want := p.pkt.Cmd, GainCmd; got != want {
 			t.Errorf("%s: packGain() y = %d: pkt.Cmd = %v, want = %v", tt.desc, tt.y, got, want)
 		}
 		if got, want := p.pkt.Val, tt.want; got != want {
@@ -105,9 +105,9 @@ func TestVenueAuxGroup(t *testing.T) {
 		ctrl Ctrl
 		pos  int
 	}{
-		{"aux1", 1, CtrlAux, 1},
-		{"aux9", 5, CtrlAux, 9},
-		{"grp1", 9, CtrlGroup, 1},
+		{"aux1", 1, AuxCtrl, 1},
+		{"aux9", 5, AuxCtrl, 9},
+		{"grp1", 9, GroupCtrl, 1},
 	} {
 		req := request{y: tt.y}
 		ctrl, pos := venueAuxGroup(req)

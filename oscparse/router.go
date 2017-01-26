@@ -9,40 +9,40 @@ import (
 type Ctrl int
 
 const (
-	CtrlUnknown Ctrl = iota
-	CtrlInput
-	CtrlAux
-	CtrlGroup
+	UnknownCtrl Ctrl = iota
+	InputCtrl
+	AuxCtrl
+	GroupCtrl
 )
 
 var Ctrls = map[Ctrl]string{
-	CtrlUnknown: "unknown",
-	CtrlInput:   "input",
-	CtrlAux:     "aux",
-	CtrlGroup:   "grp",
+	UnknownCtrl: "unknown",
+	InputCtrl:   "input",
+	AuxCtrl:     "aux",
+	GroupCtrl:   "grp",
 }
 
 // Cmd identifies the type of command.
 type Cmd int
 
 const (
-	CmdUnknown Cmd = iota
-	CmdBank
-	CmdGain
-	CmdPing
-	CmdSetOutputLevel
-	CmdSelectOutput
-	CmdSelectInput
+	UnknownCmd Cmd = iota
+	BankCmd
+	GainCmd
+	PingCmd
+	SetOutputLevelCmd
+	SelectOutputCmd
+	SelectInputCmd
 )
 
 var Cmds = map[Cmd]string{
-	CmdUnknown:        "unknown",
-	CmdBank:           "bank",
-	CmdGain:           "gain",
-	CmdPing:           "ping",
-	CmdSetOutputLevel: "set_output_level",
-	CmdSelectOutput:   "select_output",
-	CmdSelectInput:    "select_input",
+	UnknownCmd:        "unknown",
+	BankCmd:           "bank",
+	GainCmd:           "gain",
+	PingCmd:           "ping",
+	SetOutputLevelCmd: "set_output_level",
+	SelectOutputCmd:   "select_output",
+	SelectInputCmd:    "select_input",
 }
 
 // Packet represents a Venue action to perform.
