@@ -26,7 +26,8 @@ var (
 	venuePasswd  string
 	venueTimeout = flag.Duration("venue_timeout", 15*time.Second, "Venue VNC timeout.")
 
-	venueFbRefresh = flag.Bool("enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
+	venueFbRefresh   = flag.Bool("enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
+	checkpointPeriod = flag.Duration("checkpoint_period", 1*time.Minute, "Checkpoint period")
 )
 
 func flagInit() {
@@ -58,6 +59,7 @@ func (s *state) handleBundle(b *osc.Bundle, remote net.Addr) {
 			glog.Infof("OSC message #%d: ", i+1, msg.Address)
 		}
 	}
+	glog.Errorf("%s unimplemented", venuelib.FnName())
 }
 
 func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr) {
@@ -143,6 +145,6 @@ func main() {
 		if glog.V(5) {
 			glog.Infof("--- checkpoint ---")
 		}
-		time.Sleep(1 * time.Minute)
+		time.Sleep(*checkpointPeriod)
 	}
 }
