@@ -5,28 +5,12 @@ import (
 	"reflect"
 
 	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/oscparse/controls"
 )
-
-// Ctrl identifies the type of control.
-type Ctrl int
-
-const (
-	UnknownCtrl Ctrl = iota
-	InputCtrl
-	AuxCtrl
-	GroupCtrl
-)
-
-var Ctrls = map[Ctrl]string{
-	UnknownCtrl: "unknown",
-	InputCtrl:   "input",
-	AuxCtrl:     "aux",
-	GroupCtrl:   "grp",
-}
 
 // Packet represents a Venue action to perform.
 type Packet struct {
-	Ctrl    Ctrl             // The control.
+	Control controls.Control // The control.
 	Command commands.Command // The command.
 	Pos     int              // The position or channel number.
 	Val     interface{}
@@ -39,8 +23,8 @@ func (p *Packet) Equal(p2 *Packet) bool {
 
 // String returns a human readable representation of the packet.
 func (p *Packet) String() string {
-	return fmt.Sprintf("{ Ctrl: %s Command: %s Pos: %d Value: %v }",
-		Ctrls[p.Ctrl], p.Command, p.Pos, p.Val)
+	return fmt.Sprintf("{ Control: %s Command: %s Pos: %d Value: %v }",
+		p.Control, p.Command, p.Pos, p.Val)
 }
 
 type packetBus struct {

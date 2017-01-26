@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/oscparse/controls"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -62,7 +63,7 @@ func (p *packerV01) input() packerFn {
 		glog.Infof("Packing input command %q.", p.req.command)
 	}
 
-	p.pkt.Ctrl = InputCtrl
+	p.pkt.Control = controls.Input
 	switch p.req.command {
 	case "bank":
 		return p.inputBank
@@ -144,7 +145,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 
 	pos := p.req.multiPosition(dxInputSelect, dyInputSelect)
-	p.pkt = &Packet{Ctrl: InputCtrl, Command: commands.SelectInput, Pos: pos}
+	p.pkt = &Packet{Control: controls.Input, Command: commands.SelectInput, Pos: pos}
 	return nil
 }
 
@@ -190,7 +191,7 @@ func (p *packerV01) outputLevel() packerFn {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt = &Packet{Ctrl: ctrl, Command: commands.OutputLevel, Pos: pos, Val: clicks}
+	p.pkt = &Packet{Control: ctrl, Command: commands.OutputLevel, Pos: pos, Val: clicks}
 	return nil
 }
 
@@ -208,7 +209,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 
 	ctrl, pos := venueAuxGroup(p.req)
-	p.pkt = &Packet{Ctrl: ctrl, Command: commands.SelectOutput, Pos: pos}
+	p.pkt = &Packet{Control: ctrl, Command: commands.SelectOutput, Pos: pos}
 	return nil
 }
 
@@ -233,13 +234,14 @@ func clicks(x int) int {
 	}
 }
 
-// venueAugGroup converts request into a Ctrl and position.
-// A Bus Configuration of "16 Auxes + 8 Variable Groups (24 bus)" is assumed.
-func venueAuxGroup(req request) (Ctrl, int) {
-	ctrl := AuxCtrl
+// venueAugGroup converts request into a Control and position.
+// Note: a Bus Configuration of "16 Auxes + 8 Variable Groups (24 bus)" is
+// assumed.
+func venueAuxGroup(req request) (controls.Control, int) {
+	ctrl := controls.Aux
 	pos := req.y
 	if req.y > 8 {
-		ctrl = GroupCtrl
+		ctrl = controls.Group
 		pos = req.y - 8
 	}
 	pos = pos*2 - 1 // Convert position into stereo channel number.

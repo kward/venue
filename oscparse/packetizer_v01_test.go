@@ -6,6 +6,7 @@ import (
 
 	"github.com/kward/go-osc/osc"
 	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/oscparse/controls"
 )
 
 func init() {
@@ -21,7 +22,7 @@ func TestV01Parse(t *testing.T) {
 			"/venue/0.1/th/soundcheck/input/gain/4/1",
 			[]interface{}{},
 			&Packet{
-				Ctrl:    InputCtrl,
+				Control: controls.Input,
 				Command: commands.InputGain,
 				Val:     5,
 			},
@@ -70,7 +71,7 @@ func TestV01PackGain(t *testing.T) {
 				y:      tt.y,
 			},
 			pkt: &Packet{
-				Ctrl: InputCtrl,
+				Control: controls.Input,
 			},
 		}
 		t.Logf("%s: request: %s", tt.desc, p.req)
@@ -103,17 +104,17 @@ func TestVenueAuxGroup(t *testing.T) {
 	for _, tt := range []struct {
 		desc string
 		y    int
-		ctrl Ctrl
+		ctrl controls.Control
 		pos  int
 	}{
-		{"aux1", 1, AuxCtrl, 1},
-		{"aux9", 5, AuxCtrl, 9},
-		{"grp1", 9, GroupCtrl, 1},
+		{"aux1", 1, controls.Aux, 1},
+		{"aux9", 5, controls.Aux, 9},
+		{"grp1", 9, controls.Group, 1},
 	} {
 		req := request{y: tt.y}
 		ctrl, pos := venueAuxGroup(req)
 		if got, want := ctrl, tt.ctrl; got != want {
-			t.Errorf("%s: control: got %d (%s), want %d (%s)", tt.desc, got, Ctrls[got], want, Ctrls[want])
+			t.Errorf("%s: control: got %d, want %d", tt.desc, got, want)
 		}
 		if got, want := pos, tt.pos; got != want {
 			t.Errorf("%s: position: got %d, want %d", tt.desc, got, want)
