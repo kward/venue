@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/kward/venue/oscparse/commands"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -104,7 +105,7 @@ func (p *packerV01) inputGain() packerFn {
 		return p.errorf("invalid gain control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt.Cmd = GainCmd
+	p.pkt.Command = commands.InputGain
 	p.pkt.Val = clicks
 	return nil
 }
@@ -143,7 +144,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 
 	pos := p.req.multiPosition(dxInputSelect, dyInputSelect)
-	p.pkt = &Packet{Ctrl: InputCtrl, Cmd: SelectInputCmd, Pos: pos}
+	p.pkt = &Packet{Ctrl: InputCtrl, Command: commands.SelectInput, Pos: pos}
 	return nil
 }
 
@@ -189,7 +190,7 @@ func (p *packerV01) outputLevel() packerFn {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt = &Packet{Ctrl: ctrl, Cmd: SetOutputLevelCmd, Pos: pos, Val: clicks}
+	p.pkt = &Packet{Ctrl: ctrl, Command: commands.OutputLevel, Pos: pos, Val: clicks}
 	return nil
 }
 
@@ -207,7 +208,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 
 	ctrl, pos := venueAuxGroup(p.req)
-	p.pkt = &Packet{Ctrl: ctrl, Cmd: SelectOutputCmd, Pos: pos}
+	p.pkt = &Packet{Ctrl: ctrl, Command: commands.SelectOutput, Pos: pos}
 	return nil
 }
 

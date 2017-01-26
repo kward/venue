@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/oscparse/commands"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -86,7 +87,7 @@ Parsing:
 
 	switch req.request {
 	case PingReq:
-		return &Packet{Cmd: PingCmd}, nil
+		return &Packet{Command: commands.Ping}, nil
 	case VenueReq:
 	default:
 		return nil, fmt.Errorf("unrecognized request %q", req.request)

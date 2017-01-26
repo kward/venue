@@ -3,6 +3,8 @@ package oscparse
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/kward/venue/oscparse/commands"
 )
 
 // Ctrl identifies the type of control.
@@ -22,35 +24,12 @@ var Ctrls = map[Ctrl]string{
 	GroupCtrl:   "grp",
 }
 
-// Cmd identifies the type of command.
-type Cmd int
-
-const (
-	UnknownCmd Cmd = iota
-	BankCmd
-	GainCmd
-	PingCmd
-	SetOutputLevelCmd
-	SelectOutputCmd
-	SelectInputCmd
-)
-
-var Cmds = map[Cmd]string{
-	UnknownCmd:        "unknown",
-	BankCmd:           "bank",
-	GainCmd:           "gain",
-	PingCmd:           "ping",
-	SetOutputLevelCmd: "set_output_level",
-	SelectOutputCmd:   "select_output",
-	SelectInputCmd:    "select_input",
-}
-
 // Packet represents a Venue action to perform.
 type Packet struct {
-	Ctrl Ctrl // The control.
-	Cmd  Cmd  // The command.
-	Pos  int  // The position or channel number.
-	Val  interface{}
+	Ctrl    Ctrl             // The control.
+	Command commands.Command // The command.
+	Pos     int              // The position or channel number.
+	Val     interface{}
 }
 
 // Equal returns true if the two packets are equal.
@@ -60,8 +39,8 @@ func (p *Packet) Equal(p2 *Packet) bool {
 
 // String returns a human readable representation of the packet.
 func (p *Packet) String() string {
-	return fmt.Sprintf("{ Ctrl: %s Cmd: %s Pos: %d Value: %v }",
-		Ctrls[p.Ctrl], Cmds[p.Cmd], p.Pos, p.Val)
+	return fmt.Sprintf("{ Ctrl: %s Command: %s Pos: %d Value: %v }",
+		Ctrls[p.Ctrl], p.Command, p.Pos, p.Val)
 }
 
 type packetBus struct {

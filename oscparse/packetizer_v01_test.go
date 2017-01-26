@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/oscparse/commands"
 )
 
 func init() {
@@ -20,9 +21,9 @@ func TestV01Parse(t *testing.T) {
 			"/venue/0.1/th/soundcheck/input/gain/4/1",
 			[]interface{}{},
 			&Packet{
-				Ctrl: InputCtrl,
-				Cmd:  GainCmd,
-				Val:  5,
+				Ctrl:    InputCtrl,
+				Command: commands.InputGain,
+				Val:     5,
 			},
 			true},
 	} {
@@ -89,8 +90,8 @@ func TestV01PackGain(t *testing.T) {
 		}
 		t.Logf("%s: packet after: %s", tt.desc, p.pkt)
 
-		if got, want := p.pkt.Cmd, GainCmd; got != want {
-			t.Errorf("%s: packGain() y = %d: pkt.Cmd = %v, want = %v", tt.desc, tt.y, got, want)
+		if got, want := p.pkt.Command, commands.InputGain; got != want {
+			t.Errorf("%s: packGain() y = %d: pkt.Command = %v, want = %v", tt.desc, tt.y, got, want)
 		}
 		if got, want := p.pkt.Val, tt.want; got != want {
 			t.Errorf("%s: packGain() y = %d: pkt.Val = %d, want = %d", tt.desc, tt.y, got, want)
