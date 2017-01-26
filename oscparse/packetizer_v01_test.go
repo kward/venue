@@ -85,7 +85,7 @@ func TestV01PackGain(t *testing.T) {
 			continue
 		}
 		if !p.done() {
-			t.Error("%s: expected packing to be done", tt.desc)
+			t.Errorf("%s: expected packing to be done", tt.desc)
 		}
 		t.Logf("%s: packet after: %s", tt.desc, p.pkt)
 
@@ -112,7 +112,7 @@ func TestVenueAuxGroup(t *testing.T) {
 		req := request{y: tt.y}
 		ctrl, pos := venueAuxGroup(req)
 		if got, want := ctrl, tt.ctrl; got != want {
-			t.Errorf("%s: control: got %s, want %s", tt.desc, got, want)
+			t.Errorf("%s: control: got %d (%s), want %d (%s)", tt.desc, got, Ctrls[got], want, Ctrls[want])
 		}
 		if got, want := pos, tt.pos; got != want {
 			t.Errorf("%s: position: got %d, want %d", tt.desc, got, want)

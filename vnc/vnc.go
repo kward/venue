@@ -102,7 +102,7 @@ func (v *VNC) ListenAndHandle() {
 			}
 
 		default:
-			glog.Errorf("ListenAndHandle() unknown message type:%s msg:%s\n", msg.Type(), msg)
+			glog.Errorf("ListenAndHandle() unknown message type:%v msg:%s\n", msg.Type(), msg)
 		}
 	}
 }
@@ -131,7 +131,7 @@ func (v *VNC) Snapshot(r image.Rectangle) error {
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
 		vnclib.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
-		glog.Errorf("Snapshot() error:", err)
+		glog.Errorf("Snapshot() error: %s", err)
 		return err
 	}
 	return nil

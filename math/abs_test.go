@@ -13,7 +13,7 @@ func TestAbs(t *testing.T) {
 		{"negative", -1, 1},
 	} {
 		if got, want := Abs(tt.in), tt.out; got != want {
-			t.Errorf("%s: Abs(%d) = %d, want = %d", tt.desc, got, want)
+			t.Errorf("%s: Abs() = %d, want %d", tt.desc, got, want)
 		}
 	}
 }

@@ -113,7 +113,7 @@ func main() {
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", *oscServerHost, *oscServerPort))
 	if err != nil {
-		glog.Fatalf("Error starting OSC server:", err)
+		glog.Fatalf("Error starting OSC server: %s", err)
 	}
 	defer conn.Close()
 	glog.Info("OSC server started.")
