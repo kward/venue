@@ -73,7 +73,7 @@ This code is written in Golang (<http://golang.org/>).
 
     ```sh
     $ cd "${GOPATH}/src/github.com/kward/venue"
-    $ go run client/rand_inputs.go --venue_host <hostname/IP> --venue_passwd <passwd>
+    $ go run client/rand_inputs/main.go --venue_host <hostname/IP> --venue_passwd <passwd>
     Press CTRL-C to exit.
     ```
 
@@ -83,7 +83,7 @@ This code is written in Golang (<http://golang.org/>).
    of your machine (not the host running VENUE).
 
    ```sh
-   $ go run server/venue_osc.go --venue_host <hostname/IP> --venue_passwd <passwd>
+   $ go run server/main.go --venue_host <hostname/IP> --venue_passwd <passwd>
    ```
 
 Notes:
@@ -91,7 +91,7 @@ Notes:
 - If you are not using the default VNC port of 5900, the `--venue_port` option
   should be added.
 - If you are not using the default TouchOSC port of 8000, the
-  `--osc_server_port` option should be added for `server/venue_osc.go`.
+  `--osc_server_port` option should be added for `server/main.go`.
 
 ### Updates
 
