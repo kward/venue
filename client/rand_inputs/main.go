@@ -57,7 +57,7 @@ func main() {
 	// Randomly adjust an input.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		v.SelectInput(uint16(r.Intn(int(*numInputs))))
+		v.SelectInput(r.Intn(int(*numInputs)))
 		if *period == 0 {
 			break
 		}

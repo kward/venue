@@ -5,9 +5,13 @@ package venue
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kward/venue/oscparse"
+	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
 )
@@ -24,7 +28,7 @@ type Venue struct {
 	vnc *vnc.VNC
 
 	ui       *UI
-	currPage pageEnum
+	currPage pages.Page
 	inputs   [numInputs]*Input
 	outputs  map[string]*Output
 }
@@ -90,13 +94,12 @@ func (v *Venue) Initialize() error {
 		return err
 	}
 
-	p, err := v.ui.selectPage(v.vnc, inputsPage)
-	if err != nil {
-		return err
-	}
-
 	if glog.V(2) {
 		glog.Infof("Clearing input solo.")
+	}
+	p, err := v.ui.selectPage(v.vnc, pages.Inputs)
+	if err != nil {
+		return err
 	}
 	w, err := p.Widget("solo_clear")
 	if err != nil {
@@ -115,11 +118,58 @@ func (v *Venue) ListenAndHandle() {
 	go v.vnc.FramebufferRefresh(v.opts.refresh)
 }
 
+// Handle incoming packets.
+func (v *Venue) Handle(pkt *oscparse.Packet) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Infof("Handling incoming %s packet.", pkt.Command)
+	}
+	if glog.V(4) {
+		glog.Infof("packet: %s", pkt)
+	}
+
+	// TODO(kward:20170127) Put the commands in struct as function pointers.
+	switch pkt.Command {
+	case commands.Ping:
+		v.Ping()
+	case commands.SelectInput:
+		v.SelectInput(pkt.Position)
+	case commands.SelectOutput:
+		v.SelectOutput(pkt.Position)
+	default:
+		glog.Errorf("%s packet command unimplemented.", pkt.Command)
+	}
+}
+
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
 func (v *Venue) Ping() {
 	v.vnc.DebugMetrics()
 }
 
-func (v *Venue) SelectInput(input uint16) error {
-	return v.ui.selectInput(v.vnc, input)
+// SelectInput for adjustment.
+func (v *Venue) SelectInput(input int) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if err := v.ui.selectInput(v.vnc, uint16(input)); err != nil {
+		glog.Errorf("unable to select input; %s", err)
+	}
+}
+
+// SelectOutput for adjustment.
+func (v *Venue) SelectOutput(output int) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	name := "aux"
+	pos := output
+	if output > 16 {
+		name = "group"
+		pos = output - 10
+	}
+	if err := v.ui.selectOutput(v.vnc, fmt.Sprintf("%s%d", name, pos)); err != nil {
+		glog.Errorf("unable to select output; %s", err)
+	}
 }

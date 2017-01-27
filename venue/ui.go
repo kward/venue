@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
 )
@@ -30,14 +31,14 @@ type UI struct {
 func NewUI() *UI {
 	return &UI{
 		Pages{
-			inputsPage:  NewInputsPage(),
-			outputsPage: NewOutputsPage(),
+			pages.Inputs:  NewInputsPage(),
+			pages.Outputs: NewOutputsPage(),
 		},
 	}
 }
 
 // selectPage changes the VENUE page.
-func (ui *UI) selectPage(v *vnc.VNC, p pageEnum) (*Page, error) {
+func (ui *UI) selectPage(v *vnc.VNC, p pages.Page) (*Page, error) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -60,7 +61,7 @@ func (ui *UI) selectInput(v *vnc.VNC, input uint16) error {
 	if input > maxInputs {
 		return fmt.Errorf("input number %d exceeds maximum number of inputs %d", input, maxInputs)
 	}
-	if _, err := ui.selectPage(v, inputsPage); err != nil {
+	if _, err := ui.selectPage(v, pages.Inputs); err != nil {
 		return err
 	}
 
@@ -88,7 +89,7 @@ func (ui *UI) selectOutput(v *vnc.VNC, output string) error {
 	}
 
 	// Select outputs page.
-	p, err := ui.selectPage(v, outputsPage)
+	p, err := ui.selectPage(v, pages.Outputs)
 	if err != nil {
 		return err
 	}

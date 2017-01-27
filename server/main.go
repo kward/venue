@@ -76,8 +76,10 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr)
 		return
 	}
 	if glog.V(4) {
-		glog.Infof("Venue packet: %s", pkt)
+		glog.Infof("Parsed packet: %s", pkt)
 	}
+
+	v.Handle(pkt)
 }
 
 func main() {
@@ -106,7 +108,9 @@ func main() {
 	defer v.Close()
 	glog.Info("Venue connection established.")
 
-	v.Initialize()
+	if err := v.Initialize(); err != nil {
+		glog.Fatalf("Unable to initialize Venue properly; %s", err)
+	}
 	//time.Sleep(1 * time.Second)
 	go v.ListenAndHandle()
 

@@ -50,7 +50,7 @@ func main() {
 
 	// Randomly adjust an input.
 	for {
-		v.SelectInput(uint16(rand.Intn(int(*numInputs))))
+		v.SelectInput(rand.Intn(int(*numInputs)))
 
 		if *period == 0 {
 			break
