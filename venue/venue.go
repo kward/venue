@@ -163,10 +163,10 @@ func (v *Venue) SelectOutput(output int) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	name := "aux"
+	name := WidgetAux
 	pos := output
 	if output > 16 {
-		name = "group"
+		name = WidgetGroup
 		pos = output - 10
 	}
 	if err := v.ui.selectOutput(v.vnc, fmt.Sprintf("%s%d", name, pos)); err != nil {
