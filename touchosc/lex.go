@@ -20,7 +20,7 @@ to provide a proof-of-concept of how to do it as it is anticipated that future
 versions of Venue will require modification, and lexing is easier to maintain
 long-term.
 */
-package oscparse
+package touchosc
 
 import (
 	"fmt"

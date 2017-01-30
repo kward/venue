@@ -1,12 +1,14 @@
-package oscparse
+package touchosc
 
 import (
 	"flag"
 	"testing"
 
 	"github.com/kward/go-osc/osc"
-	"github.com/kward/venue/oscparse/commands"
-	"github.com/kward/venue/oscparse/controls"
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/router/controls"
+	"github.com/kward/venue/router/signals"
 )
 
 func init() {
@@ -18,22 +20,25 @@ func init() {
 
 func TestV01Parse(t *testing.T) {
 	for _, tt := range []parseTest{
-		{"thGain",
-			"/venue/0.1/th/soundcheck/input/gain/4/1",
-			[]interface{}{},
-			&Packet{
-				Control: controls.Input,
-				Command: commands.InputGain,
+		{"thGain (press)",
+			osc.NewMessage("/venue/0.1/th/soundcheck/input/gain/4/1", 1),
+			&router.Packet{
+				Source:  TouchOSC,
+				Action:  actions.InputGain,
+				Control: controls.Gain,
+				Signal:  signals.Input,
 				Value:   5,
 			},
 			true},
+		{"thGain (release)",
+			osc.NewMessage("/venue/0.1/th/soundcheck/input/gain/4/1", 0),
+			&router.Packet{
+				Source: TouchOSC,
+				Action: actions.DropPacket,
+			},
+			true},
 	} {
-		msg := osc.NewMessage(tt.addr)
-		for _, v := range tt.val {
-			msg.Append(v)
-		}
-
-		pkt, err := Parse(msg)
+		pkt, err := Parse(tt.msg)
 		if err != nil && tt.ok {
 			t.Errorf("%s: unexpected error: %v", tt.name, err)
 		}
@@ -65,13 +70,14 @@ func TestV01PackGain(t *testing.T) {
 		{"bad", "th", 0, 0, 0, false},
 	} {
 		p := &packerV01{
-			req: request{
+			req: &request{
+				msg:    osc.NewMessage("/test/inputGain", 1),
 				layout: tt.layout,
 				x:      tt.x,
 				y:      tt.y,
 			},
-			pkt: &Packet{
-				Control: controls.Input,
+			pkt: &router.Packet{
+				Signal: signals.Input,
 			},
 		}
 		t.Logf("%s: request: %s", tt.desc, p.req)
@@ -91,33 +97,33 @@ func TestV01PackGain(t *testing.T) {
 		}
 		t.Logf("%s: packet after: %s", tt.desc, p.pkt)
 
-		if got, want := p.pkt.Command, commands.InputGain; got != want {
-			t.Errorf("%s: packGain() y = %d: pkt.Command = %v, want = %v", tt.desc, tt.y, got, want)
+		if got, want := p.pkt.Action, actions.InputGain; got != want {
+			t.Errorf("%s: packGain() y = %d: pkt.Action = %v, want = %v", tt.desc, tt.y, got, want)
 		}
 		if got, want := p.pkt.Value, tt.want; got != want {
-			t.Errorf("%s: packGain() y = %d: pkt.Val = %d, want = %d", tt.desc, tt.y, got, want)
+			t.Errorf("%s: packGain() y = %d: pkt.Value = %d, want = %d", tt.desc, tt.y, got, want)
 		}
 	}
 }
 
 func TestVenueAuxGroup(t *testing.T) {
 	for _, tt := range []struct {
-		desc string
-		y    int
-		ctrl controls.Control
-		pos  int
+		desc  string
+		y     int
+		sig   signals.Signal
+		sigNo int
 	}{
-		{"aux1", 1, controls.Aux, 1},
-		{"aux9", 5, controls.Aux, 9},
-		{"grp1", 9, controls.Group, 1},
+		{"aux1", 1, signals.Aux, 1},
+		{"aux9", 5, signals.Aux, 9},
+		{"grp1", 9, signals.Group, 1},
 	} {
-		req := request{y: tt.y}
-		ctrl, pos := venueAuxGroup(req)
-		if got, want := ctrl, tt.ctrl; got != want {
-			t.Errorf("%s: control: got %d, want %d", tt.desc, got, want)
+		req := &request{y: tt.y}
+		sig, sigNo := venueAuxGroup(req)
+		if got, want := sig, tt.sig; got != want {
+			t.Errorf("%s: sig: got %d, want %d", tt.desc, got, want)
 		}
-		if got, want := pos, tt.pos; got != want {
-			t.Errorf("%s: position: got %d, want %d", tt.desc, got, want)
+		if got, want := sigNo, tt.sigNo; got != want {
+			t.Errorf("%s: sigNo: got %d, want %d", tt.desc, got, want)
 		}
 	}
 }

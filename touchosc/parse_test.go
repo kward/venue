@@ -1,12 +1,16 @@
-package oscparse
+package touchosc
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/router"
+)
 
 type parseTest struct {
 	name string
-	addr string
-	val  []interface{}
-	pkt  *Packet
+	msg  *osc.Message
+	pkt  *router.Packet
 	ok   bool
 }
 

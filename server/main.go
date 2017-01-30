@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
-	"github.com/kward/venue/oscparse"
+	"github.com/kward/venue/touchosc"
 	"github.com/kward/venue/venue"
 	"github.com/kward/venue/venuelib"
 )
@@ -65,14 +65,13 @@ func (s *state) handleBundle(b *osc.Bundle, remote net.Addr) {
 func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr) {
 	// The address is expected to be in this format:
 	// /version/layout/page/control/command[/num1][/num2][/label]
-	addr := msg.Address
 	if glog.V(2) {
-		glog.Infof("Received OSC message from %v: %v", remote, addr)
+		glog.Infof("Received OSC message from %v: %v", remote, msg)
 	}
 
-	pkt, err := oscparse.Parse(msg)
+	pkt, err := touchosc.Parse(msg)
 	if err != nil {
-		glog.Errorf("Failed to parse OSC message %q; %s", msg.Address, err)
+		glog.Errorf("Failed to parse OSC message address %q; %s", msg.Address, err)
 		return
 	}
 	if glog.V(4) {

@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kward/venue/oscparse"
-	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/router/signals"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
@@ -119,27 +120,30 @@ func (v *Venue) ListenAndHandle() {
 }
 
 // Handle incoming packets.
-func (v *Venue) Handle(pkt *oscparse.Packet) {
+func (v *Venue) Handle(pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
-	}
-	if glog.V(2) {
-		glog.Infof("Handling incoming %s packet.", pkt.Command)
 	}
 	if glog.V(4) {
 		glog.Infof("packet: %s", pkt)
 	}
+	if pkt == nil { // Ignore nil packets.
+		return
+	}
+	if glog.V(2) {
+		glog.Infof("Handling %s packet.", pkt.Action)
+	}
 
-	// TODO(kward:20170127) Put the commands in struct as function pointers.
-	switch pkt.Command {
-	case commands.Ping:
+	switch pkt.Action {
+	case actions.Ping:
 		v.Ping()
-	case commands.SelectInput:
-		v.SelectInput(pkt.Position)
-	case commands.SelectOutput:
-		v.SelectOutput(pkt.Position)
+	case actions.SelectInput:
+		v.SelectInput(pkt.SignalNo)
+	case actions.SelectOutput:
+		v.SelectOutput(pkt.Signal, pkt.SignalNo)
+	case actions.DropPacket: // Do nothing.
 	default:
-		glog.Errorf("%s packet command unimplemented.", pkt.Command)
+		glog.Errorf("%s action unimplemented.", pkt.Action)
 	}
 }
 
@@ -159,17 +163,19 @@ func (v *Venue) SelectInput(input int) {
 }
 
 // SelectOutput for adjustment.
-func (v *Venue) SelectOutput(output int) {
+func (v *Venue) SelectOutput(sig signals.Signal, sigNo int) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	name := WidgetAux
-	pos := output
-	if output > 16 {
+
+	var name string
+	switch sig {
+	case signals.Aux:
+		name = WidgetAux
+	case signals.Group:
 		name = WidgetGroup
-		pos = output - 10
 	}
-	if err := v.ui.selectOutput(v.vnc, fmt.Sprintf("%s%d", name, pos)); err != nil {
+	if err := v.ui.selectOutput(v.vnc, fmt.Sprintf("%s%d", name, sigNo)); err != nil {
 		glog.Errorf("unable to select output; %s", err)
 	}
 }

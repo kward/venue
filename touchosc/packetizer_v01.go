@@ -1,12 +1,15 @@
 // TODO(kward:20170122) The packetizer should be separate from the lexer/parser.
-package oscparse
+package touchosc
 
 import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/kward/venue/oscparse/commands"
-	"github.com/kward/venue/oscparse/controls"
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/router/controls"
+	"github.com/kward/venue/router/signals"
+	"github.com/kward/venue/touchosc/multistates"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -15,10 +18,10 @@ type packerV01 packerT
 // Verify that the PackerI interface is honored.
 var _ PackerI = new(packerV01)
 
-func (p *packerV01) init(req request) {
+func (p *packerV01) init(req *request) {
 	p.setPacker(p.packByControl)
-	p.pkt = &Packet{}
 	p.req = req
+	p.pkt = &router.Packet{}
 }
 func (p *packerV01) done() bool { return p.fn == nil }
 
@@ -33,7 +36,7 @@ func (p *packerV01) packer() packerFn      { return p.fn }
 func (p *packerV01) setPacker(fn packerFn) { p.fn = fn }
 func (p *packerV01) pack()                 { p.fn = p.fn() }
 
-func (p *packerV01) packet() *Packet { return p.pkt }
+func (p *packerV01) packet() *router.Packet { return p.pkt }
 
 func (p *packerV01) packByControl() packerFn {
 	if glog.V(3) {
@@ -63,7 +66,7 @@ func (p *packerV01) input() packerFn {
 		glog.Infof("Packing input command %q.", p.req.command)
 	}
 
-	p.pkt.Control = controls.Input
+	p.pkt.Signal = signals.Input
 	switch p.req.command {
 	case "bank":
 		return p.inputBank
@@ -101,13 +104,30 @@ func (p *packerV01) inputGain() packerFn {
 		glog.Info(venuelib.FnName())
 	}
 
+	args := p.req.msg.Arguments
+	if len(args) == 0 {
+		return p.errorf("missing OCS arguments")
+	}
+	switch multistates.State(args[0]) {
+	case multistates.Released: // Do nothing.
+		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		return nil
+	case multistates.Unknown:
+		return p.errorf("received invalid argument %v", args[0])
+	}
+
 	clicks := clicks(p.req.x)
 	if clicks == 0 {
 		return p.errorf("invalid gain control x/y: %d/%d", p.req.x, p.req.y)
 	}
 
-	p.pkt.Command = commands.InputGain
-	p.pkt.Value = clicks
+	p.setPacket(&router.Packet{
+		Action:  actions.InputGain,
+		Control: controls.Gain,
+		Signal:  signals.Input,
+		// No SignalNo as we expect to work on the currently selected channel.
+		Value: clicks,
+	})
 	return nil
 }
 
@@ -144,8 +164,25 @@ func (p *packerV01) inputSelect() packerFn {
 		glog.Info(venuelib.FnName())
 	}
 
+	args := p.req.msg.Arguments
+	if len(args) == 0 {
+		return p.errorf("missing OCS arguments")
+	}
+	switch multistates.State(args[0]) {
+	case multistates.Released: // Do nothing.
+		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		return nil
+	case multistates.Unknown:
+		return p.errorf("invalid OSC argument %v", args[0])
+	}
+
 	pos := p.req.multiPosition(dxInputSelect, dyInputSelect)
-	p.pkt = &Packet{Control: controls.Input, Command: commands.SelectInput, Position: pos}
+	p.setPacket(&router.Packet{
+		Action:   actions.SelectInput,
+		Control:  controls.Select,
+		Signal:   signals.Input,
+		SignalNo: pos,
+	})
 	return nil
 }
 
@@ -185,13 +222,18 @@ func (p *packerV01) outputLevel() packerFn {
 		glog.Info(venuelib.FnName())
 	}
 
-	ctrl, pos := venueAuxGroup(p.req)
 	clicks := clicks(p.req.x)
 	if clicks == 0 {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
+	sig, sigNo := venueAuxGroup(p.req)
 
-	p.pkt = &Packet{Control: ctrl, Command: commands.OutputLevel, Position: pos, Value: clicks}
+	p.setPacket(&router.Packet{
+		Action:   actions.OutputLevel,
+		Signal:   sig,
+		SignalNo: sigNo,
+		Value:    clicks,
+	})
 	return nil
 }
 
@@ -199,7 +241,6 @@ func (p *packerV01) outputPan() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-
 	return p.errorf("%s unimplemented", venuelib.FnName())
 }
 
@@ -208,9 +249,35 @@ func (p *packerV01) outputSelect() packerFn {
 		glog.Info(venuelib.FnName())
 	}
 
-	ctrl, pos := venueAuxGroup(p.req)
-	p.pkt = &Packet{Control: ctrl, Command: commands.SelectOutput, Position: pos}
+	args := p.req.msg.Arguments
+	if len(args) == 0 {
+		return p.errorf("missing OCS arguments")
+	}
+	switch multistates.State(args[0]) {
+	case multistates.Released: // Do nothing.
+		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		return nil
+	case multistates.Unknown:
+		return p.errorf("received invalid argument %v", args[0])
+	}
+
+	sig, sigNo := venueAuxGroup(p.req)
+	p.setPacket(&router.Packet{
+		Action:   actions.SelectOutput,
+		Signal:   sig,
+		SignalNo: sigNo,
+	})
 	return nil
+}
+
+func (p *packerV01) setPacket(pkt *router.Packet) {
+	p.pkt = pkt
+	if pkt == nil {
+		return
+	}
+	if p.pkt.Source == "" {
+		p.pkt.Source = TouchOSC
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -237,13 +304,13 @@ func clicks(x int) int {
 // venueAugGroup converts request into a Control and position.
 // Note: a Bus Configuration of "16 Auxes + 8 Variable Groups (24 bus)" is
 // assumed.
-func venueAuxGroup(req request) (controls.Control, int) {
-	ctrl := controls.Aux
-	pos := req.y
+func venueAuxGroup(req *request) (signals.Signal, int) {
+	sig := signals.Aux
+	sigNo := req.y
 	if req.y > 8 {
-		ctrl = controls.Group
-		pos = req.y - 8
+		sig = signals.Group
+		sigNo = req.y - 8
 	}
-	pos = pos*2 - 1 // Convert position into stereo channel number.
-	return ctrl, pos
+	sigNo = sigNo*2 - 1 // Convert position into stereo channel number.
+	return sig, sigNo
 }

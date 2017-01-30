@@ -7,12 +7,10 @@ const (
 	// Unknown indicates a control wasn't specified.
 	Unknown Control = iota
 
-	// Input indicates an input was selected.
-	Input
+	// Select the signal to operate on. Frequently a 'Select' button.
+	Select
 
-	// Aux indicates an aux was selected.
-	Aux
-
-	// Group indicates a group was selected.
-	Group
+	Gain
+	Solo
+	SoloClear
 )

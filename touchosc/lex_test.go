@@ -1,4 +1,4 @@
-package oscparse
+package touchosc
 
 import "testing"
 

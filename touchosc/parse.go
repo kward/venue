@@ -4,56 +4,30 @@ functionality to each of the tokens. As different versions of Venue support
 different functionality, the parser enables different versions to provide their
 own custom functionality.
 */
-package oscparse
+package touchosc
 
 import (
 	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
-	"github.com/kward/venue/oscparse/commands"
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
 	"github.com/kward/venue/venuelib"
 )
 
-type PackerI interface {
-	// init prepares the packer to parse the request `req`.
-	init(req request)
-	// done returns true when packing is complete.
-	done() bool
-
-	// error returns the packet error.
-	error() error
-	// errorf stores a formatted error for later recovery.
-	errorf(format string, args ...interface{}) packerFn
-
-	// packer returns the current packer function.
-	packer() packerFn
-	// setPacker sets the next packer function.
-	setPacker(pack packerFn)
-	// pack calls the current packer function.
-	pack()
-
-	// packet returns the constructed Venue packet.
-	packet() *Packet
-}
-type packerFn func() packerFn
-type packerT struct {
-	client string   // The name of client.
-	err    error    // An error message, if present.
-	fn     packerFn // The next packer state to enter.
-	req    request  // The request to pack.
-	pkt    *Packet  // The packet to pack.
-}
-
-var packers = map[string]PackerI{
-	"0.1": &packerV01{},
-}
-
 // Parse the OSC message `msg` and transform it into a Packet.
-func Parse(msg *osc.Message) (*Packet, error) {
-	req := request{msg: msg, x: -1, y: -1}
+func Parse(msg *osc.Message) (*router.Packet, error) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	req := &request{msg: msg, x: -1, y: -1}
+
+	// Lex the request into tokens.
 	l := lex("OSC", msg.Address)
-Parsing:
+
+	// Process the tokens.
+Processing:
 	for {
 		item := l.nextItem()
 		if glog.V(5) {
@@ -81,17 +55,20 @@ Parsing:
 		case itemError:
 			return nil, fmt.Errorf("unable to parse item %v", item)
 		case itemEOF:
-			break Parsing
+			break Processing
 		}
 	}
 
+	// Check for supported requests.
 	switch req.request {
 	case PingReq:
-		return &Packet{Command: commands.Ping}, nil
+		return &router.Packet{Action: actions.Ping}, nil
 	case VenueReq:
 	default:
 		return nil, fmt.Errorf("unrecognized request %q", req.request)
 	}
+
+	// Packetize the request.
 	packer, ok := packers[req.version]
 	if !ok {
 		return nil, fmt.Errorf("unable to pack version %s", req.version)

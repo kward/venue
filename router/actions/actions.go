@@ -1,14 +1,18 @@
-package commands
+package actions
 
-// Command identifies the type of command.
-type Command int
+// Action identifies the type of action.
+type Action int
 
 const (
-	// Unknown indicates a command wasn't specified.
-	Unknown Command = iota
+	// Unknown indicates the action wasn't specified.
+	Unknown Action = iota
 
 	// Ping is a periodic request to indicate the client is still alive.
 	Ping
+	// DropPacket is a special request that indicates the packet should be
+	// dropped. This action is given instead of nil to differentiate it from an
+	// unknown error condition.
+	DropPacket
 
 	// SelectInput channel for adjustment.
 	SelectInput
