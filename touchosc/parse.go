@@ -62,7 +62,11 @@ Processing:
 	// Check for supported requests.
 	switch req.request {
 	case PingReq:
-		return &router.Packet{Action: actions.Ping}, nil
+		return &router.Packet{
+			SourceName: TouchOSC,
+			SourceAddr: req.msg.Addr(),
+			Action:     actions.Ping,
+		}, nil
 	case VenueReq:
 	default:
 		return nil, fmt.Errorf("unrecognized request %q", req.request)

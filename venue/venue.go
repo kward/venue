@@ -47,6 +47,9 @@ func New(opts ...func(*options) error) (*Venue, error) {
 	return &Venue{opts: o}, nil
 }
 
+// Verify that expected interfaces are implemented properly.
+var _ router.Endpoint = new(Venue)
+
 // Close a Venue session.
 func (v *Venue) Close() error {
 	return v.vnc.Close()
@@ -119,13 +122,13 @@ func (v *Venue) ListenAndHandle() {
 	go v.vnc.FramebufferRefresh(v.opts.refresh)
 }
 
-// Handle incoming packets.
+// EndpointName implements router.Endpoint.
+func (v *Venue) EndpointName() string { return "Venue" }
+
+// Handle implements router.Endpoint.
 func (v *Venue) Handle(pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
-	}
-	if glog.V(4) {
-		glog.Infof("packet: %s", pkt)
 	}
 	if pkt == nil { // Ignore nil packets.
 		return

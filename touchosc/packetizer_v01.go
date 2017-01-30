@@ -275,8 +275,11 @@ func (p *packerV01) setPacket(pkt *router.Packet) {
 	if pkt == nil {
 		return
 	}
-	if p.pkt.Source == "" {
-		p.pkt.Source = TouchOSC
+	if p.pkt.SourceName == "" {
+		p.pkt.SourceName = TouchOSC
+	}
+	if p.pkt.SourceAddr == "" {
+		p.pkt.SourceAddr = p.req.msg.Addr()
 	}
 }
 

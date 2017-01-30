@@ -10,6 +10,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/ping"
+	"github.com/kward/venue/router"
 	"github.com/kward/venue/touchosc"
 	"github.com/kward/venue/venue"
 	"github.com/kward/venue/venuelib"
@@ -40,19 +42,21 @@ type state struct {
 	inputBank  int
 	output     int
 	outputBank int
+	router     *router.Router
 }
 
-func NewState() *state {
+func NewState(router *router.Router) *state {
 	return &state{
 		input:      1,
 		inputBank:  1,
 		outputBank: 1,
+		router:     router,
 	}
 }
 
-func (s *state) handleBundle(b *osc.Bundle, remote net.Addr) {
+func (s *state) handleBundle(b *osc.Bundle) {
 	if glog.V(2) {
-		glog.Infof("Received OSC bundle from %v:", remote)
+		glog.Infof("Received OSC bundle from %v:", b.Addr())
 	}
 	for i, msg := range b.Messages {
 		if glog.V(4) {
@@ -62,23 +66,27 @@ func (s *state) handleBundle(b *osc.Bundle, remote net.Addr) {
 	glog.Errorf("%s unimplemented", venuelib.FnName())
 }
 
-func (s *state) handleMessage(v *venue.Venue, msg *osc.Message, remote net.Addr) {
+func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+
 	// The address is expected to be in this format:
 	// /version/layout/page/control/command[/num1][/num2][/label]
 	if glog.V(2) {
-		glog.Infof("Received OSC message from %v: %v", remote, msg)
+		glog.Infof("Received OSC message from %s: %q", msg.Addr(), msg)
 	}
 
 	pkt, err := touchosc.Parse(msg)
 	if err != nil {
-		glog.Errorf("Failed to parse OSC message address %q; %s", msg.Address, err)
+		glog.Errorf("Failed to parse OSC message %s; %s", msg, err)
 		return
 	}
 	if glog.V(4) {
 		glog.Infof("Parsed packet: %s", pkt)
 	}
 
-	v.Handle(pkt)
+	router.Dispatch(s.router, pkt)
 }
 
 func main() {
@@ -93,12 +101,15 @@ func main() {
 		venuePasswd = venuelib.GetPasswd()
 	}
 
+	// The router will be used to dispatch incoming packets.
+	router := &router.Router{}
+
+	// Establish connection with the VENUE VNC server.
 	v, err := venue.New()
 	if err != nil {
 		glog.Fatal(err)
 	}
 
-	// Establish connection with the VENUE VNC server.
 	ctx, cancel := context.WithTimeout(context.Background(), *venueTimeout)
 	defer cancel()
 	if err := v.Connect(ctx, *venueHost, *venuePort, venuePasswd); err != nil {
@@ -111,7 +122,10 @@ func main() {
 		glog.Fatalf("Unable to initialize Venue properly; %s", err)
 	}
 	//time.Sleep(1 * time.Second)
+	router.RegisterEndpoint(v)
 	go v.ListenAndHandle()
+
+	router.RegisterEndpoint(&ping.Ping{})
 
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", *oscServerHost, *oscServerPort))
@@ -122,10 +136,10 @@ func main() {
 	glog.Info("OSC server started.")
 
 	go func() {
-		s := NewState()
+		s := NewState(router)
 
 		for {
-			p, remote, err := o.ReceivePacket(context.Background(), conn)
+			p, err := o.ReceivePacket(context.Background(), conn)
 			if err != nil {
 				glog.Fatalf("OSC error: %v", err)
 			}
@@ -135,9 +149,9 @@ func main() {
 
 			switch t := p.(type) {
 			case *osc.Bundle:
-				s.handleBundle(p.(*osc.Bundle), remote)
+				s.handleBundle(p.(*osc.Bundle))
 			case *osc.Message:
-				s.handleMessage(v, p.(*osc.Message), remote)
+				s.handleMessage(v, p.(*osc.Message))
 			default:
 				glog.Errorf("unrecognized packet type %v", t)
 			}

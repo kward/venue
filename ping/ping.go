@@ -1,0 +1,31 @@
+package ping
+
+import (
+	"github.com/golang/glog"
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/touchosc"
+	"github.com/kward/venue/venuelib"
+)
+
+// Ping is a Venue endpoint.
+type Ping struct{}
+
+// Verify that expected interfaces are implemented properly.
+var _ router.Endpoint = new(Ping)
+
+// EndpointName implements router.Endpoint.
+func (e *Ping) EndpointName() string { return "Ping" }
+
+// Handle implements router.Endpoint.
+func (e *Ping) Handle(pkt *router.Packet) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if pkt.SourceName != touchosc.TouchOSC && pkt.Action != actions.Ping {
+		return
+	}
+	if glog.V(2) {
+		glog.Infof("Received ping request from %s/%s.", pkt.SourceName, pkt.SourceAddr)
+	}
+}
