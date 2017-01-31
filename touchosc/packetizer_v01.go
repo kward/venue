@@ -19,8 +19,8 @@ type packerV01 packerT
 var _ PackerI = new(packerV01)
 
 func (p *packerV01) init(req *request) {
-	p.setPacker(p.packByControl)
 	p.err = nil
+	p.fn = p.packByControl
 	p.req = req
 	p.pkt = &router.Packet{}
 }
@@ -222,7 +222,7 @@ func (p *packerV01) outputLevel() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	glog.Errorf("error: ", p.err)
+	glog.Errorf("error: %s", p.err)
 
 	args := p.req.msg.Arguments
 	if len(args) == 0 {
