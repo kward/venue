@@ -1,6 +1,3 @@
-/*
-The Venue package exposes the Avid™ VENUE VNC interface as a programmatic API.
-*/
 package venue
 
 import (
