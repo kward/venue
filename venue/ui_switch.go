@@ -35,7 +35,7 @@ type Switch struct {
 	isEnabled  bool        // True if the switch state is enabled.
 }
 
-// Verify that the Widget interface is honored.
+// Verify that the expected interface is implemented properly.
 var _ Widget = new(Switch)
 
 func (w *Switch) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }

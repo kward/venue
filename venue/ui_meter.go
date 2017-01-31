@@ -12,7 +12,7 @@ type Meter struct {
 	isStereo bool        // True if the meter is stereo.
 }
 
-// Verify that the Widget interface is honored.
+// Verify that the expected interface is implemented properly.
 var _ Widget = new(Meter)
 
 func (w *Meter) Read(v *vnc.VNC) (interface{}, error)     { return nil, nil }

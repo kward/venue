@@ -11,7 +11,7 @@ import (
 // Ping is a Venue endpoint.
 type Ping struct{}
 
-// Verify that expected interfaces are implemented properly.
+// Verify that the expected interface is implemented properly.
 var _ router.Endpoint = new(Ping)
 
 // EndpointName implements router.Endpoint.

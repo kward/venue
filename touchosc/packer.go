@@ -4,7 +4,7 @@ import "github.com/kward/venue/router"
 
 const TouchOSC = "TouchOSC"
 
-type PackerI interface {
+type Packer interface {
 	// init prepares the packer to parse the request `req`.
 	init(req *request)
 	// done returns true when packing is complete.
@@ -25,7 +25,9 @@ type PackerI interface {
 	// packet returns the constructed packet.
 	packet() *router.Packet
 }
+
 type packerFn func() packerFn
+
 type packerT struct {
 	err error          // An error message, if present.
 	fn  packerFn       // The next packer state to enter.
@@ -34,7 +36,7 @@ type packerT struct {
 }
 
 var (
-	packers = map[string]PackerI{
+	packers = map[string]Packer{
 		"0.1": &packerV01{},
 	}
 )

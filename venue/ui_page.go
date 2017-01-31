@@ -17,7 +17,7 @@ type Page struct {
 }
 type Pages map[pages.Page]*Page
 
-// Verify that the Widget interface is honored.
+// Verify that the expected interface is implemented properly.
 var _ Widget = new(Page)
 
 // Read implements the Widget interface.

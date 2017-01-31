@@ -47,6 +47,9 @@ type Venue struct {
 	outputs  map[string]*Output
 }
 
+// Verify that the expected interface is implemented properly.
+var _ router.Endpoint = new(Venue)
+
 // New returns a populated Venue struct.
 func New(opts ...func(*options) error) (*Venue, error) {
 	o := &options{}
@@ -59,9 +62,6 @@ func New(opts ...func(*options) error) (*Venue, error) {
 	}
 	return &Venue{opts: o}, nil
 }
-
-// Verify that expected interfaces are implemented properly.
-var _ router.Endpoint = new(Venue)
 
 // Close a Venue session.
 func (v *Venue) Close() error {

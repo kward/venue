@@ -15,8 +15,8 @@ import (
 
 type packerV01 packerT
 
-// Verify that the PackerI interface is honored.
-var _ PackerI = new(packerV01)
+// Verify that the expected interface is implemented properly.
+var _ Packer = new(packerV01)
 
 func (p *packerV01) init(req *request) {
 	p.err = nil

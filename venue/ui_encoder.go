@@ -28,7 +28,7 @@ type Encoder struct {
 	hasOnOff bool        // Has an on/off switch
 }
 
-// Verify that the Widget interface is honored.
+// Verify that the expected interface is implemented properly.
 var _ Widget = new(Encoder)
 
 func (w *Encoder) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
