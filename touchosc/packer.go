@@ -27,11 +27,10 @@ type PackerI interface {
 }
 type packerFn func() packerFn
 type packerT struct {
-	client string         // The name of client.
-	err    error          // An error message, if present.
-	fn     packerFn       // The next packer state to enter.
-	req    *request       // The request to pack.
-	pkt    *router.Packet // The packet to pack.
+	err error          // An error message, if present.
+	fn  packerFn       // The next packer state to enter.
+	req *request       // The request to pack.
+	pkt *router.Packet // The packet to pack.
 }
 
 var (

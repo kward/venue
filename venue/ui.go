@@ -6,6 +6,8 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/router/controls"
+	"github.com/kward/venue/router/signals"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
@@ -83,13 +85,18 @@ func (ui *UI) selectInput(v *vnc.VNC, input uint16) error {
 }
 
 // selectOutput changes the output channel to operate on.
-func (ui *UI) selectOutput(v *vnc.VNC, output string) error {
+func (ui *UI) selectOutput(v *vnc.VNC, sig signals.Signal, sigNo signals.SignalNo) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
 
+	ctrlName := signalControlName(sig, sigNo)
+	if ctrlName == "Invalid" {
+		return fmt.Errorf("invalid control name for %s %d signal combination", sig, sigNo)
+	}
+
 	// Select outputs page.
-	p, err := ui.selectPage(v, pages.Outputs)
+	page, err := ui.selectPage(v, pages.Outputs)
 	if err != nil {
 		return err
 	}
@@ -98,26 +105,53 @@ func (ui *UI) selectOutput(v *vnc.VNC, output string) error {
 	if glog.V(2) {
 		glog.Infof("Clearing output solo.")
 	}
-	w, err := p.Widget("solo_clear")
+	widget, err := page.Widget("SoloClear")
 	if err != nil {
 		return err
 	}
-	if err := w.Press(v); err != nil {
+	if err := widget.Press(v); err != nil {
 		return err
 	}
 
 	// Solo output.
 	if glog.V(2) {
-		glog.Infof("Soloing %v output.", output)
+		glog.Infof("Soloing %s output.", ctrlName)
 	}
-	w, err = p.Widget(output + "solo")
+	widget, err = page.Widget(ctrlName + " Solo")
 	if err != nil {
 		return err
 	}
-	if err := w.Press(v); err != nil {
+	if err := widget.Press(v); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (ui *UI) setOutputLevel(v *vnc.VNC, sig signals.Signal, sigNo signals.SignalNo, val int) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+
+	ctrlName := signalControlName(sig, sigNo)
+	if ctrlName == "Invalid" {
+		return fmt.Errorf("invalid control name for %s %d signal combination", sig, sigNo)
+	}
+
+	if err := ui.selectOutput(v, sig, sigNo); err != nil {
+		return err
+	}
+	page, err := ui.selectPage(v, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	ctrl, err := page.Widget(ctrlName)
+	if err != nil {
+		return err
+	}
+	if err := ctrl.(*Encoder).Adjust(v, val); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -134,7 +168,19 @@ type Widget interface {
 // Widgets holds references to a grouping of UI widgets.
 type Widgets map[string]Widget
 
-const (
-	WidgetAux   = "aux"
-	WidgetGroup = "grp"
-)
+// signalControlName returns a control name for a `signal` and `signalNo`
+// combination.
+func signalControlName(sig signals.Signal, sigNo signals.SignalNo) string {
+	switch sig {
+	case signals.Input, signals.FXReturn:
+		return controls.Fader.String()
+	case signals.Direct:
+		return "Invalid"
+	case signals.Aux:
+		return fmt.Sprintf("%s %d", controls.Aux, sigNo)
+	case signals.Group:
+		return fmt.Sprintf("%s %d", controls.Group, sigNo)
+	default:
+		return controls.Unknown.String()
+	}
+}

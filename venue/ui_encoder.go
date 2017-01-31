@@ -3,8 +3,10 @@ package venue
 import (
 	"image"
 
+	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/venue/math"
+	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
 )
 
@@ -46,15 +48,24 @@ func (w *Encoder) Press(v *vnc.VNC) error {
 
 // Adjust the value of an encoder with cursor keys.
 func (w *Encoder) Adjust(v *vnc.VNC, val int) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Infof("Adjusting encoder by %d steps.", val)
+	}
+	if val == 0 {
+		return nil
+	}
+
 	if err := w.Press(v); err != nil {
 		return err
 	}
-
 	key := vnclib.KeyUp
-	amount := math.Abs(val)
-	if amount < 0 {
+	if val < 0 {
 		key = vnclib.KeyDown
 	}
+	amount := math.Abs(val)
 	for i := 0; i < amount; i++ {
 		if err := v.KeyPress(key); err != nil {
 			return err

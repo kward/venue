@@ -17,7 +17,7 @@ type Packet struct {
 	Action     actions.Action   // Action to be, or that was, performed.
 	Control    controls.Control // Control to be acted upon.
 	Signal     signals.Signal   // Signal being acted upon.
-	SignalNo   int              // The signal number (e.g. input #1, or aux #3).
+	SignalNo   signals.SignalNo // The signal number (e.g. input #1, or aux #3).
 	Value      interface{}
 }
 

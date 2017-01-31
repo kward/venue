@@ -5,7 +5,6 @@ package venue
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/golang/glog"
@@ -21,6 +20,23 @@ const (
 	refresh   = 1000 * time.Millisecond
 	numInputs = 48
 )
+
+// Endpoint handlers.
+var handlers router.Handlers
+
+func init() {
+	specs := []router.HandlerSpec{
+		router.HandlerSpec{actions.Noop, noop},
+		router.HandlerSpec{actions.Ping, ping},
+		router.HandlerSpec{actions.SelectInput, selectInput},
+		router.HandlerSpec{actions.SelectOutput, selectOutput},
+		router.HandlerSpec{actions.SetOutputLevel, setOutputLevel},
+	}
+	handlers = make(router.Handlers, len(specs))
+	for _, spec := range specs {
+		handlers[spec.Action] = spec
+	}
+}
 
 // Venue holds information representing the state of the VENUE backend.
 type Venue struct {
@@ -91,7 +107,7 @@ func (v *Venue) Initialize() error {
 	if glog.V(2) {
 		glog.Info("Selecting I/O.")
 	}
-	if err := v.ui.selectOutput(v.vnc, "aux1"); err != nil {
+	if err := v.ui.selectOutput(v.vnc, signals.Aux, 1); err != nil {
 		return err
 	}
 	if err := v.ui.selectInput(v.vnc, 1); err != nil {
@@ -105,7 +121,7 @@ func (v *Venue) Initialize() error {
 	if err != nil {
 		return err
 	}
-	w, err := p.Widget("solo_clear")
+	w, err := p.Widget("SoloClear")
 	if err != nil {
 		return err
 	}
@@ -130,55 +146,49 @@ func (v *Venue) Handle(pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	if pkt == nil { // Ignore nil packets.
-		return
-	}
-	if glog.V(2) {
-		glog.Infof("Handling %s packet.", pkt.Action)
-	}
-
-	switch pkt.Action {
-	case actions.Ping:
-		v.Ping()
-	case actions.SelectInput:
-		v.SelectInput(pkt.SignalNo)
-	case actions.SelectOutput:
-		v.SelectOutput(pkt.Signal, pkt.SignalNo)
-	case actions.DropPacket: // Do nothing.
-	default:
-		glog.Errorf("%s action unimplemented.", pkt.Action)
-	}
+	router.Handle(v, pkt, handlers)
 }
+
+// noop is a noop packet.
+func noop(_ router.Endpoint, _ *router.Packet) {}
 
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
-func (v *Venue) Ping() {
-	v.vnc.DebugMetrics()
+func ping(ep router.Endpoint, _ *router.Packet) {
+	ep.(*Venue).vnc.DebugMetrics()
 }
 
-// SelectInput for adjustment.
-func (v *Venue) SelectInput(input int) {
+// selectInput for adjustment.
+func selectInput(ep router.Endpoint, pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	if err := v.ui.selectInput(v.vnc, uint16(input)); err != nil {
+	v := ep.(*Venue)
+	if err := v.ui.selectInput(v.vnc, uint16(pkt.SignalNo)); err != nil {
 		glog.Errorf("unable to select input; %s", err)
 	}
 }
 
-// SelectOutput for adjustment.
-func (v *Venue) SelectOutput(sig signals.Signal, sigNo int) {
+// selectOutput for adjustment.
+func selectOutput(ep router.Endpoint, pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-
-	var name string
-	switch sig {
-	case signals.Aux:
-		name = WidgetAux
-	case signals.Group:
-		name = WidgetGroup
+	v := ep.(*Venue)
+	if err := v.ui.selectOutput(v.vnc, pkt.Signal, pkt.SignalNo); err != nil {
+		glog.Errorf("unable to select output for %s %d; %s", pkt.Signal, pkt.SignalNo, err)
+		return
 	}
-	if err := v.ui.selectOutput(v.vnc, fmt.Sprintf("%s%d", name, sigNo)); err != nil {
-		glog.Errorf("unable to select output; %s", err)
+}
+
+// setOutputLevel for the specified output. This handler operates on the
+// currently selected input.
+func setOutputLevel(ep router.Endpoint, pkt *router.Packet) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	v := ep.(*Venue)
+	if err := v.ui.setOutputLevel(v.vnc, pkt.Signal, pkt.SignalNo, pkt.Value.(int)); err != nil {
+		glog.Errorf("unable to set output level for %s %d; %s", pkt.Signal, pkt.SignalNo, err)
+		return
 	}
 }

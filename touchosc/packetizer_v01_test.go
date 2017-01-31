@@ -34,7 +34,7 @@ func TestV01Parse(t *testing.T) {
 			osc.NewMessage("/venue/0.1/th/soundcheck/input/gain/4/1", 0),
 			&router.Packet{
 				SourceName: TouchOSC,
-				Action:     actions.DropPacket,
+				Action:     actions.Noop,
 			},
 			true},
 	} {
@@ -111,11 +111,11 @@ func TestVenueAuxGroup(t *testing.T) {
 		desc  string
 		y     int
 		sig   signals.Signal
-		sigNo int
+		sigNo signals.SignalNo
 	}{
-		{"aux1", 1, signals.Aux, 1},
-		{"aux9", 5, signals.Aux, 9},
-		{"grp1", 9, signals.Group, 1},
+		{"aux 1", 1, signals.Aux, 1},
+		{"aux 9", 5, signals.Aux, 9},
+		{"group 1", 9, signals.Group, 1},
 	} {
 		req := &request{y: tt.y}
 		sig, sigNo := venueAuxGroup(req)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/router/controls"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/vnc"
 )
@@ -70,58 +71,58 @@ func NewInputsPage() *Page {
 	return &Page{
 		pages.Inputs,
 		Widgets{
-			"gain":       &Encoder{image.Point{167, 279}, encoderBL, true},
-			"delay":      &Encoder{image.Point{168, 387}, encoderBL, false},
-			"hpf":        &Encoder{image.Point{168, 454}, encoderBL, true},
-			"pan":        &Encoder{image.Point{239, 443}, encoderBC, false},
-			"var_groups": NewPushButton(226, 299, mediumSwitch),
-			"aux1":       &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
-			"aux1pan":    &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
-			"aux3":       &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
-			"aux3pan":    &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
-			"aux5":       &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
-			"aux5pan":    &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
-			"aux7":       &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
-			"aux7pan":    &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
-			"aux9":       &Encoder{image.Point{auxOddX, aux910Y}, encoderTR, true},
-			"aux9pan":    &Encoder{image.Point{auxPanX, aux910Y}, encoderTL, false},
-			"aux11":      &Encoder{image.Point{auxOddX, aux1112Y}, encoderTR, true},
-			"aux11pan":   &Encoder{image.Point{auxPanX, aux1112Y}, encoderTL, false},
-			"aux13":      &Encoder{image.Point{auxOddX, aux1314Y}, encoderTR, true},
-			"aux13pan":   &Encoder{image.Point{auxPanX, aux1314Y}, encoderTL, false},
-			"aux15":      &Encoder{image.Point{auxOddX, aux1516Y}, encoderTR, true},
-			"aux15pan":   &Encoder{image.Point{auxPanX, aux1516Y}, encoderTL, false},
-			"grp1":       &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
-			"grp1pan":    &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
-			"grp3":       &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
-			"grp3pan":    &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
-			"grp5":       &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
-			"grp5pan":    &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
-			"grp7":       &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
-			"grp7pan":    &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
-			"solo_clear": NewPushButton(979, 493, mediumSwitch),
+			"Gain":         &Encoder{image.Point{167, 279}, encoderBL, true},
+			"Delay":        &Encoder{image.Point{168, 387}, encoderBL, false},
+			"HPF":          &Encoder{image.Point{168, 454}, encoderBL, true},
+			"Pan":          &Encoder{image.Point{239, 443}, encoderBC, false},
+			"VarGroups":    NewPushButton(226, 299, mediumSwitch),
+			"Aux 1":        &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
+			"AuxPan 1/2":   &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
+			"Aux 3":        &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
+			"AuxPan 3/4":   &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
+			"Aux 5":        &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
+			"AuxPan 5/6":   &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
+			"Aux 7":        &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
+			"AuxPan 7/8":   &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
+			"Aux 9":        &Encoder{image.Point{auxOddX, aux910Y}, encoderTR, true},
+			"AuxPan 9/10":  &Encoder{image.Point{auxPanX, aux910Y}, encoderTL, false},
+			"Aux 11":       &Encoder{image.Point{auxOddX, aux1112Y}, encoderTR, true},
+			"AuxPan 11/12": &Encoder{image.Point{auxPanX, aux1112Y}, encoderTL, false},
+			"Aux 13":       &Encoder{image.Point{auxOddX, aux1314Y}, encoderTR, true},
+			"AuxPan 13/14": &Encoder{image.Point{auxPanX, aux1314Y}, encoderTL, false},
+			"Aux 15":       &Encoder{image.Point{auxOddX, aux1516Y}, encoderTR, true},
+			"AuxPan 15/16": &Encoder{image.Point{auxPanX, aux1516Y}, encoderTL, false},
+			"Group 1":      &Encoder{image.Point{auxOddX, aux12Y}, encoderTR, true},
+			"GroupPan 1/2": &Encoder{image.Point{auxPanX, aux12Y}, encoderTL, false},
+			"Group 3":      &Encoder{image.Point{auxOddX, aux34Y}, encoderTR, true},
+			"GroupPan 3/4": &Encoder{image.Point{auxPanX, aux34Y}, encoderTL, false},
+			"Group 5":      &Encoder{image.Point{auxOddX, aux56Y}, encoderTR, true},
+			"GroupPan 5/6": &Encoder{image.Point{auxPanX, aux56Y}, encoderTL, false},
+			"Group 7":      &Encoder{image.Point{auxOddX, aux78Y}, encoderTR, true},
+			"GroupPan 7/8": &Encoder{image.Point{auxPanX, aux78Y}, encoderTL, false},
+			"SoloClear":    NewPushButton(979, 493, mediumSwitch),
 		}}
 }
 
 // NewOutputsPage returns a populated Outputs page.
 func NewOutputsPage() *Page {
 	widgets := Widgets{
-		"solo_clear": NewPushButton(980, 490, mediumSwitch),
+		"SoloClear": NewPushButton(980, 490, mediumSwitch),
 	}
 
 	// Auxes
 	for _, b := range []int{1, 2} { // Bank.
-		pre := WidgetAux
+		pre := controls.Aux.String()
 		for c := 1; c <= 8; c++ { // Bank channel.
 			ch, x := (b-1)*8+c, bankX+(b-1)*bankDX+(c-1)*chanDX
 
-			n := fmt.Sprintf("%s%vsolo", pre, ch)
+			n := fmt.Sprintf("%s %d Solo", pre, ch)
 			if glog.V(4) {
 				glog.Infof("NewOutput() element[%v]:", n)
 			}
 			widgets[n] = NewToggle(x, soloY, tinySwitch, false)
 
-			n = fmt.Sprintf("%s%vmeter", pre, ch)
+			n = fmt.Sprintf("%s %d Value", pre, ch)
 			if glog.V(4) {
 				glog.Infof("NewOutput() element[%v]:", n)
 			}
@@ -134,17 +135,17 @@ func NewOutputsPage() *Page {
 
 	// Groups
 	b := 5 // bank
-	pre := WidgetGroup
+	pre := controls.Group.String()
 	for c := 1; c <= 8; c++ { // bank channel
 		ch, x := c, bankX+(b-1)*bankDX+(c-1)*chanDX
 
-		n := fmt.Sprintf("%v%vsolo", pre, ch)
+		n := fmt.Sprintf("%s %d Solo", pre, ch)
 		if glog.V(4) {
 			glog.Infof("NewOutput() element[%v]:", n)
 		}
 		widgets[n] = NewToggle(x, soloY, tinySwitch, false)
 
-		n = fmt.Sprintf("%v%vmeter", pre, ch)
+		n = fmt.Sprintf("%s %d Meter", pre, ch)
 		if glog.V(4) {
 			glog.Infof("NewOutput() element[%v]:", n)
 		}
