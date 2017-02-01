@@ -272,6 +272,11 @@ func setOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 
 	v := ep.(*Venue)
 
+	// Select output. Needed to select correct Aux or VarGroup.
+	if err := selectOutput(ep, pkt); err != nil {
+		return err
+	}
+
 	// Select the INPUTS page.
 	page, err := v.ui.selectPage(v.vnc, pages.Inputs)
 	if err != nil {
