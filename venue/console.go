@@ -3,7 +3,11 @@ Everything representing the UI state of the console.
 */
 package venue
 
-import "math"
+import (
+	"math"
+
+	"github.com/kward/venue/router/signals"
+)
 
 const (
 	auxDef = -20.0
@@ -50,34 +54,25 @@ func (sig *Signal) Reset() {
 	sig.ena = sig.defEna
 }
 
-type signalEnum int
-
-const (
-	signalChannel signalEnum = iota
-	signalFx
-)
-
 // Input represents an input signal.
 type Input struct {
-	v     *Venue
-	ch    int        // Channel number
-	sig   signalEnum //
+	sig   signals.Signal
+	sigNo signals.SignalNo
 	prop  Signals
 	sends Signals
 }
 
-func NewInput(v *Venue, ch int, sig signalEnum) *Input {
+func NewInput(sig signals.Signal, sigNo signals.SignalNo) *Input {
 	i := &Input{
-		v:   v,
-		ch:  ch,
-		sig: sig,
-		prop: map[string]*Signal{
+		sig:   sig,
+		sigNo: sigNo,
+		prop: Signals{
 			"Fader": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
 			"Gain":  NewSignal(10, 10, 60, 1, "dB", true),
 			"Delay": NewSignal(0, 0, 250, 0, "ms", false),
 			"HPF":   NewSignal(100, 20, 500, 0, "Hz", true),
 		},
-		sends: map[string]*Signal{
+		sends: Signals{
 			"Pan":          NewSignal(panDef, panMin, panMax, 0, "", false),
 			"Aux 1":        NewSignal(auxDef, auxMin, auxMax, 1, "dB", true),
 			"Aux 2":        NewSignal(auxDef, auxMin, auxMax, 1, "dB", true),
@@ -118,46 +113,31 @@ func (i *Input) Reset() {
 	}
 }
 
-const (
-	Oaux = iota
-	Opq
-	Omatrix
-	Ogroup
-	Ovca
-	Oleft
-	Omiddle
-	Oright
-	Ogeq
-)
+// // Output represents an input signal.
+// type Output struct {
+// 	sig   signals.Signal
+// 	sigNo signals.SignalNo
+// 	prop  Signals
+// 	sends Signals
+// }
 
-// Output represents an input signal.
-type Output struct {
-	v     *Venue
-	name  string
-	kind  int
-	prop  Signals
-	sends Signals
-}
+// func NewOutput(sig signals.Signal, sigNo signals.SignalNo) *Output {
+// 	o := &Output{
+// 		sig:   sig,
+// 		sigNo: sigNo,
+// 		prop: Signals{
+// 			"Fader": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
+// 		},
+// 		sends: Signals{
+// 			"Pan": NewSignal(panDef, panMin, panMax, 0, "", false),
+// 		},
+// 	}
+// 	o.Reset()
+// 	return o
+// }
 
-func NewOutput(v *Venue, name string, kind int) *Output {
-	o := &Output{
-		v:    v,
-		name: name,
-		kind: kind,
-		prop: map[string]*Signal{
-			"Fader": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
-		},
-		sends: map[string]*Signal{
-			"Pan": NewSignal(panDef, panMin, panMax, 0, "", false),
-		},
-	}
-	o.Reset()
-
-	return o
-}
-
-func (o *Output) Reset() {
-	for _, p := range o.prop {
-		p.Reset()
-	}
-}
+// func (o *Output) Reset() {
+// 	for _, p := range o.prop {
+// 		p.Reset()
+// 	}
+// }

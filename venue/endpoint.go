@@ -105,9 +105,9 @@ func (v *Venue) Initialize() error {
 	if glog.V(2) {
 		glog.Info("Initializing inputs.")
 	}
-	for ch := 0; ch < numInputs; ch++ {
-		input := NewInput(v, ch+1, signalChannel)
-		v.inputs[ch] = input
+	for sigNo := 0; sigNo < numInputs; sigNo++ {
+		input := NewInput(signals.Input, signals.SignalNo(sigNo+1))
+		v.inputs[sigNo] = input
 	}
 
 	// Choose output before input so that later when the Inputs page is selected,
