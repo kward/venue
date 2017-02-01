@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+
 	"github.com/golang/glog"
 	"github.com/kward/venue/router/actions"
 	"github.com/kward/venue/venuelib"
@@ -25,7 +27,7 @@ type Endpoint interface {
 }
 
 // Handler describes an Endpoint handler.
-type Handler func(ep Endpoint, pkt *Packet)
+type Handler func(ep Endpoint, pkt *Packet) error
 
 // Handlers is a map of HandlerSpec keyed on actions.Action.
 type Handlers map[actions.Action]HandlerSpec
@@ -38,7 +40,7 @@ type HandlerSpec struct {
 
 // Handle requests that a packet be handled by the appropriate handler from
 // Handlers `hs` for the Endpoint `ep`.
-func Handle(ep Endpoint, pkt *Packet, hs Handlers) {
+func Handle(ep Endpoint, pkt *Packet, hs Handlers) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -48,9 +50,9 @@ func Handle(ep Endpoint, pkt *Packet, hs Handlers) {
 
 	h, ok := hs[pkt.Action]
 	if !ok {
-		glog.Errorf("%s action unimplemented for %s.", pkt.Action, ep.EndpointName())
+		return fmt.Errorf("%s action unimplemented for %s.", pkt.Action, ep.EndpointName())
 	}
-	h.Handler(ep, pkt)
+	return h.Handler(ep, pkt)
 }
 
 // Router holds the representation of a Router.

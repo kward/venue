@@ -2,11 +2,14 @@ package venue
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/router"
 	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/router/controls"
 	"github.com/kward/venue/router/signals"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venuelib"
@@ -16,6 +19,14 @@ import (
 const (
 	refresh   = 1000 * time.Millisecond
 	numInputs = 48
+	// Maximum number of consecutive arrow key presses.
+	// WiFi connections have low enough latency to not need more.
+	maxArrowKeys = 4
+	// Maximum number of signal inputs the code can handle.
+	maxInputs = 96
+	// The amount of time to delay after a keyboard input was made. It takes this
+	// long for the VENUE UI to stop waiting for additional input.
+	inputWait = 1750 * time.Millisecond
 )
 
 // Endpoint handlers.
@@ -104,10 +115,10 @@ func (v *Venue) Initialize() error {
 	if glog.V(2) {
 		glog.Info("Selecting I/O.")
 	}
-	if err := v.ui.selectOutput(v.vnc, signals.Aux, 1); err != nil {
+	if err := selectOutput(v, &router.Packet{Signal: signals.Aux, SignalNo: 1}); err != nil {
 		return err
 	}
-	if err := v.ui.selectInput(v.vnc, 1); err != nil {
+	if err := selectInput(v, &router.Packet{SignalNo: 1}); err != nil {
 		return err
 	}
 
@@ -143,49 +154,155 @@ func (v *Venue) Handle(pkt *router.Packet) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	router.Handle(v, pkt, handlers)
+	if err := router.Handle(v, pkt, handlers); err != nil {
+		glog.Errorf("Error handling %s packet; %s", pkt.Action, err)
+	}
 }
 
 // noop is a noop packet.
-func noop(_ router.Endpoint, _ *router.Packet) {}
+func noop(_ router.Endpoint, _ *router.Packet) error { return nil }
 
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
-func ping(ep router.Endpoint, _ *router.Packet) {
+func ping(ep router.Endpoint, _ *router.Packet) error {
 	ep.(*Venue).vnc.DebugMetrics()
+	return nil
 }
 
 // selectInput for adjustment.
-func selectInput(ep router.Endpoint, pkt *router.Packet) {
+func selectInput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	v := ep.(*Venue)
-	if err := v.ui.selectInput(v.vnc, uint16(pkt.SignalNo)); err != nil {
-		glog.Errorf("unable to select input; %s", err)
+	if glog.V(2) {
+		glog.Infof("Selecting input #%d.", pkt.SignalNo)
 	}
+
+	if pkt.SignalNo > maxInputs {
+		return fmt.Errorf("signal number %d exceeds maximum number of inputs %d", pkt.SignalNo, maxInputs)
+	}
+
+	v := ep.(*Venue)
+
+	// Select INPUTS page.
+	if _, err := v.ui.selectPage(v.vnc, pages.Inputs); err != nil {
+		return err
+	}
+
+	// Type the channel number.
+	ks := keys.Keys{}
+	if pkt.SignalNo < 10 {
+		ks = append(ks, keys.Digit0)
+	}
+	ks = append(ks, keys.IntToKeys(int(pkt.SignalNo))...)
+	for _, k := range ks {
+		if err := v.vnc.KeyPress(k); err != nil {
+			return err
+		}
+	}
+
+	// TODO(kward:20161126): Start a timer that expires after 1750ms. Additional
+	// key presses aren't allowed until the time expires, but mouse input is.
+	time.Sleep(inputWait)
+	return nil
 }
 
 // selectOutput for adjustment.
-func selectOutput(ep router.Endpoint, pkt *router.Packet) {
+func selectOutput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	v := ep.(*Venue)
-	if err := v.ui.selectOutput(v.vnc, pkt.Signal, pkt.SignalNo); err != nil {
-		glog.Errorf("unable to select output for %s %d; %s", pkt.Signal, pkt.SignalNo, err)
-		return
+	if glog.V(2) {
+		glog.Infof("Selecting %s %d output.", pkt.Signal, pkt.SignalNo)
 	}
+
+	ctrlName := signalControlName(pkt.Signal, pkt.SignalNo)
+	if ctrlName == "Invalid" {
+		return fmt.Errorf("invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
+	}
+
+	v := ep.(*Venue)
+
+	// Select the OUTPUTS page.
+	page, err := v.ui.selectPage(v.vnc, pages.Outputs)
+	if err != nil {
+		return err
+	}
+
+	// Clear the output solo.
+	if glog.V(2) {
+		glog.Infof("Clearing output solo.")
+	}
+	widget, err := page.Widget("SoloClear")
+	if err != nil {
+		return err
+	}
+	if err := widget.Press(v.vnc); err != nil {
+		return err
+	}
+
+	// Solo output.
+	if glog.V(2) {
+		glog.Infof("Soloing %s output.", ctrlName)
+	}
+	widget, err = page.Widget(ctrlName + " Solo")
+	if err != nil {
+		return err
+	}
+	if err := widget.Press(v.vnc); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // setOutputLevel for the specified output. This handler operates on the
 // currently selected input.
-func setOutputLevel(ep router.Endpoint, pkt *router.Packet) {
+func setOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
+	if glog.V(2) {
+		glog.Infof("Adjusting %s %d output level by %d dB.", pkt.Signal, pkt.SignalNo, pkt.Value)
+	}
+
+	ctrlName := signalControlName(pkt.Signal, pkt.SignalNo)
+	if ctrlName == "Invalid" {
+		return fmt.Errorf("invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
+	}
+
 	v := ep.(*Venue)
-	if err := v.ui.setOutputLevel(v.vnc, pkt.Signal, pkt.SignalNo, pkt.Value.(int)); err != nil {
-		glog.Errorf("unable to set output level for %s %d; %s", pkt.Signal, pkt.SignalNo, err)
-		return
+
+	// Select the INPUTS page.
+	page, err := v.ui.selectPage(v.vnc, pages.Inputs)
+	if err != nil {
+		return err
+	}
+
+	// Adjust the Aux/Group knob.
+	ctrl, err := page.Widget(ctrlName)
+	if err != nil {
+		return err
+	}
+	if err := ctrl.(*Encoder).Adjust(v.vnc, pkt.Value.(int)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// signalControlName returns a control name for a `signal` and `signalNo`
+// combination.
+func signalControlName(sig signals.Signal, sigNo signals.SignalNo) string {
+	switch sig {
+	case signals.Input, signals.FXReturn:
+		return controls.Fader.String()
+	case signals.Direct:
+		return "Invalid"
+	case signals.Aux:
+		return fmt.Sprintf("%s %d", controls.Aux, sigNo)
+	case signals.Group:
+		return fmt.Sprintf("%s %d", controls.Group, sigNo)
+	default:
+		return controls.Unknown.String()
 	}
 }
