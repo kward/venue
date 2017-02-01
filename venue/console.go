@@ -1,5 +1,6 @@
 /*
-Everything representing the UI state of the console.
+The console represents the full known state of the console, including all
+signals that are not currently exposed by the UI.
 */
 package venue
 
