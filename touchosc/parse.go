@@ -34,7 +34,7 @@ Processing:
 			glog.Infof("parsing item: %v", item)
 		}
 		switch item.typ {
-		case itemPingReq, itemVenueReq:
+		case itemRequest:
 			req.request = item.val
 		case itemCommand:
 			req.command = item.val
@@ -61,9 +61,9 @@ Processing:
 
 	// Check for supported requests.
 	switch req.request {
-	case PingReq:
+	case "ping":
 		return &router.Packet{Action: actions.Ping}, nil
-	case VenueReq:
+	case "venue": // Continue below.
 	default:
 		return nil, fmt.Errorf("unrecognized request %q", req.request)
 	}
