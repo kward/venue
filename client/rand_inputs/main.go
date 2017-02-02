@@ -7,6 +7,9 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/kward/venue/router"
+	"github.com/kward/venue/router/actions"
+	"github.com/kward/venue/router/signals"
 	"github.com/kward/venue/venue"
 	"github.com/kward/venue/venuelib"
 )
@@ -57,7 +60,12 @@ func main() {
 	// Randomly adjust an input.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		v.SelectInput(r.Intn(int(*numInputs)))
+		v.Handle(&router.Packet{
+			SourceName: "rand_inputs",
+			Action:     actions.SelectInput,
+			Signal:     signals.Input,
+			SignalNo:   (signals.SignalNo)(r.Intn(int(*numInputs))),
+		})
 		if *period == 0 {
 			break
 		}

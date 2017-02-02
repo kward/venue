@@ -10,7 +10,16 @@ const (
 	// Select the signal to operate on. Frequently a 'Select' button.
 	Select
 
+	Aux
+	AuxPan
+	Delay
+	Fader
 	Gain
+	Group
+	GroupPan
+	HPF
+	Pan
 	Solo
 	SoloClear
+	VarGroups
 )

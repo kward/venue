@@ -83,7 +83,7 @@ This code is written in Golang (<http://golang.org/>).
    of your machine (not the host running VENUE).
 
    ```sh
-   $ go run server/main.go --venue_host <hostname/IP> --venue_passwd <passwd>
+   $ go run venue.go --venue_host <hostname/IP> --venue_passwd <passwd>
    ```
 
 Notes:
@@ -91,7 +91,7 @@ Notes:
 - If you are not using the default VNC port of 5900, the `--venue_port` option
   should be added.
 - If you are not using the default TouchOSC port of 8000, the
-  `--osc_server_port` option should be added for `server/main.go`.
+  `--osc_server_port` option should be added for `venue.go`.
 
 ### Updates
 

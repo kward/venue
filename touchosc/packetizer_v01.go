@@ -15,11 +15,12 @@ import (
 
 type packerV01 packerT
 
-// Verify that the PackerI interface is honored.
-var _ PackerI = new(packerV01)
+// Verify that the expected interface is implemented properly.
+var _ Packer = new(packerV01)
 
 func (p *packerV01) init(req *request) {
-	p.setPacker(p.packByControl)
+	p.err = nil
+	p.fn = p.packByControl
 	p.req = req
 	p.pkt = &router.Packet{}
 }
@@ -110,7 +111,7 @@ func (p *packerV01) inputGain() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		p.setPacket(&router.Packet{Action: actions.Noop})
 		return nil
 	case multistates.Unknown:
 		return p.errorf("received invalid argument %v", args[0])
@@ -170,7 +171,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		p.setPacket(&router.Packet{Action: actions.Noop})
 		return nil
 	case multistates.Unknown:
 		return p.errorf("invalid OSC argument %v", args[0])
@@ -181,7 +182,7 @@ func (p *packerV01) inputSelect() packerFn {
 		Action:   actions.SelectInput,
 		Control:  controls.Select,
 		Signal:   signals.Input,
-		SignalNo: pos,
+		SignalNo: (signals.SignalNo)(pos),
 	})
 	return nil
 }
@@ -221,19 +222,34 @@ func (p *packerV01) outputLevel() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
+	glog.Errorf("error: %s", p.err)
 
+	args := p.req.msg.Arguments
+	if len(args) == 0 {
+		return p.errorf("missing OCS arguments")
+	}
+	switch multistates.State(args[0]) {
+	case multistates.Released: // Do nothing.
+		p.setPacket(&router.Packet{Action: actions.Noop})
+		return nil
+	case multistates.Unknown:
+		return p.errorf("received invalid argument %v", args[0])
+	}
+
+	sig, sigNo := venueAuxGroup(p.req)
 	clicks := clicks(p.req.x)
 	if clicks == 0 {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
-	sig, sigNo := venueAuxGroup(p.req)
-
 	p.setPacket(&router.Packet{
-		Action:   actions.OutputLevel,
+		Action:   actions.SetOutputLevel,
 		Signal:   sig,
 		SignalNo: sigNo,
 		Value:    clicks,
 	})
+	if glog.V(4) {
+		glog.Infof("packet: %s", p.pkt)
+	}
 	return nil
 }
 
@@ -255,7 +271,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.DropPacket})
+		p.setPacket(&router.Packet{Action: actions.Noop})
 		return nil
 	case multistates.Unknown:
 		return p.errorf("received invalid argument %v", args[0])
@@ -275,8 +291,11 @@ func (p *packerV01) setPacket(pkt *router.Packet) {
 	if pkt == nil {
 		return
 	}
-	if p.pkt.Source == "" {
-		p.pkt.Source = TouchOSC
+	if p.pkt.SourceName == "" {
+		p.pkt.SourceName = TouchOSC
+	}
+	if p.pkt.SourceAddr == "" {
+		p.pkt.SourceAddr = p.req.msg.Addr()
 	}
 }
 
@@ -304,7 +323,7 @@ func clicks(x int) int {
 // venueAugGroup converts request into a Control and position.
 // Note: a Bus Configuration of "16 Auxes + 8 Variable Groups (24 bus)" is
 // assumed.
-func venueAuxGroup(req *request) (signals.Signal, int) {
+func venueAuxGroup(req *request) (signals.Signal, signals.SignalNo) {
 	sig := signals.Aux
 	sigNo := req.y
 	if req.y > 8 {
@@ -312,5 +331,5 @@ func venueAuxGroup(req *request) (signals.Signal, int) {
 		sigNo = req.y - 8
 	}
 	sigNo = sigNo*2 - 1 // Convert position into stereo channel number.
-	return sig, sigNo
+	return sig, (signals.SignalNo)(sigNo)
 }

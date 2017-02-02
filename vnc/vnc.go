@@ -9,6 +9,8 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/go-vnc/buttons"
+	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -143,7 +145,7 @@ func (v *VNC) DebugMetrics() {
 }
 
 // KeyPress presses a key on the VENUE console.
-func (v *VNC) KeyPress(key uint32) error {
+func (v *VNC) KeyPress(key keys.Key) error {
 	if err := v.conn.KeyEvent(key, vnclib.PressKey); err != nil {
 		return err
 	}
@@ -155,7 +157,7 @@ func (v *VNC) KeyPress(key uint32) error {
 
 // MouseMove moves the mouse.
 func (v *VNC) MouseMove(p image.Point) error {
-	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
 }
 
 // MouseLeftClick moves the mouse to a position and left clicks.
@@ -163,10 +165,10 @@ func (v *VNC) MouseLeftClick(p image.Point) error {
 	if err := v.MouseMove(p); err != nil {
 		return err
 	}
-	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
 		return err
 	}
-	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
+	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
 }
 
 // MouseDrag moves the mouse, clicks, and drags to a new position.
@@ -174,37 +176,12 @@ func (v *VNC) MouseDrag(p, d image.Point) error {
 	if err := v.MouseMove(p); err != nil {
 		return err
 	}
-	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
 		return err
 	}
 	p = p.Add(d) // Add delta.
-	if err := v.conn.PointerEvent(vnclib.ButtonLeft, uint16(p.X), uint16(p.Y)); err != nil {
+	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
 		return err
 	}
-	return v.conn.PointerEvent(vnclib.ButtonNone, uint16(p.X), uint16(p.Y))
-}
-
-// IntToKeys returns a slice of uint32 values that represent the key presses
-// required to input an int.
-// TODO(kward:20161126) This should move to upstream VNC library.
-func IntToKeys(v int) []uint32 {
-	keys := map[rune]uint32{
-		'-': vnclib.KeyMinus,
-		'0': vnclib.Key0,
-		'1': vnclib.Key1,
-		'2': vnclib.Key2,
-		'3': vnclib.Key3,
-		'4': vnclib.Key4,
-		'5': vnclib.Key5,
-		'6': vnclib.Key6,
-		'7': vnclib.Key7,
-		'8': vnclib.Key8,
-		'9': vnclib.Key9,
-	}
-	k := []uint32{}
-	s := fmt.Sprintf("%d", v)
-	for _, c := range s {
-		k = append(k, keys[c])
-	}
-	return k
+	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
 }

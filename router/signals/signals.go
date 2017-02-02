@@ -23,3 +23,6 @@ const (
 	// https://en.wikipedia.org/wiki/Surround_sound#Channel_identification
 	Mains
 )
+
+// SignalNo is the signal number.
+type SignalNo int
