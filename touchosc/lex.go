@@ -59,8 +59,7 @@ const (
 	itemPage
 	itemPositionX
 	itemPositionY
-	itemPingReq
-	itemVenueReq
+	itemRequest
 	itemVersion
 )
 
@@ -105,11 +104,11 @@ func lexRequest(l *lexer) stateFn {
 	}
 	switch s := l.next(); {
 	case s == PingReq:
-		l.emit(itemPingReq, s)
+		l.emit(itemRequest, s)
 		l.emit(itemEOF, eof)
 		return nil
 	case s == VenueReq:
-		l.emit(itemVenueReq, s)
+		l.emit(itemRequest, s)
 		return lexVersion
 	}
 	return l.errorf("unrecognized request")

@@ -14,8 +14,8 @@ var (
 	tEOF           = item{itemEOF, "EOF"}
 	tErrInvalidReq = item{itemError, "invalid request"}
 	tLabel         = item{itemLabel, "label"}
-	tPingReq       = item{itemPingReq, "ping"}
-	tVenueReq      = item{itemVenueReq, "venue"}
+	tPingReq       = item{itemRequest, "ping"}
+	tVenueReq      = item{itemRequest, "venue"}
 )
 
 var lexTests = []lexTest{
