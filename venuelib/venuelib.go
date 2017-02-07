@@ -1,3 +1,4 @@
+// Package venuelib provides utility functions.
 package venuelib
 
 import (
