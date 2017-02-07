@@ -5,7 +5,9 @@ import (
 	"image"
 
 	"github.com/golang/glog"
+	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/math"
 	"github.com/kward/venue/router/controls"
 	"github.com/kward/venue/venue/encoders"
@@ -24,21 +26,26 @@ type UI struct {
 
 // NewUI returns a populated UI struct.
 func NewUI() *UI {
-	return &UI{
-		Pages{
-			pages.Inputs:  NewInputsPage(),
-			pages.Outputs: NewOutputsPage(),
-		},
-	}
+	return &UI{Pages{
+		pages.Inputs:  NewInputsPage(),
+		pages.Outputs: NewOutputsPage(),
+	}}
 }
 
 // selectPage changes the VENUE page.
-func (ui *UI) selectPage(v *vnc.VNC, p pages.Page) (*Page, error) {
+func (ui *UI) selectPage(wf *vnc.Workflow, p pages.Page) (*Page, error) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	w := ui.pages[p]
-	if err := w.Press(v); err != nil {
+	w, ok := ui.pages[p]
+	if !ok {
+		return nil, venuelib.Errorf(codes.Unimplemented, "support for %q page unimplemented")
+	}
+	if p == pages.Inputs {
+		// To ensure we start on inputs bank 1-48, select another page first.
+		wf.KeyPress(keys.F2) // OUTPUTS
+	}
+	if err := w.Press(wf); err != nil {
 		return nil, err
 	}
 	return w, nil
@@ -47,11 +54,11 @@ func (ui *UI) selectPage(v *vnc.VNC, p pages.Page) (*Page, error) {
 // The Widget interface provides functionality for interacting with VNC widgets.
 type Widget interface {
 	// Press the widget (if possible).
-	Press(v *vnc.VNC) error
+	Press(wf *vnc.Workflow) error
 	// Read the value of a widget.
-	Read(v *vnc.VNC) (interface{}, error)
+	Read(wf *vnc.Workflow) (interface{}, error)
 	// Update the value of a widget.
-	Update(v *vnc.VNC, val interface{}) error
+	Update(wf *vnc.Workflow, val interface{}) error
 }
 
 // Widgets holds references to a grouping of UI widgets.
@@ -70,25 +77,28 @@ type Encoder struct {
 var _ Widget = new(Encoder)
 
 // Press implements the Widget interface.
-func (w *Encoder) Press(v *vnc.VNC) error {
-	return v.MouseLeftClick(w.clickOffset())
+func (w *Encoder) Press(wf *vnc.Workflow) error {
+	wf.MouseClick(buttons.Left, w.clickPoint())
+	return nil
 }
 
 // Read implements the Widget interface.
-func (w *Encoder) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
+func (w *Encoder) Read(wf *vnc.Workflow) (interface{}, error) {
+	return nil, venuelib.Errorf(codes.Unimplemented, "Encoder.Read() unimplemented")
+}
 
 // Update implements the Widget interface.
-func (w *Encoder) Update(v *vnc.VNC, val interface{}) error {
-	w.Press(v)
+func (w *Encoder) Update(wf *vnc.Workflow, val interface{}) error {
+	w.Press(wf)
 	for _, key := range keys.IntToKeys(val.(int)) {
-		v.KeyPress(key)
+		wf.KeyPress(key)
 	}
-	v.KeyPress(keys.Return)
+	wf.KeyPress(keys.Return)
 	return nil
 }
 
 // Adjust the value of an encoder with cursor keys.
-func (w *Encoder) Adjust(v *vnc.VNC, val int) error {
+func (w *Encoder) Adjust(wf *vnc.Workflow, val int) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -99,7 +109,7 @@ func (w *Encoder) Adjust(v *vnc.VNC, val int) error {
 		return nil
 	}
 
-	if err := w.Press(v); err != nil {
+	if err := w.Press(wf); err != nil {
 		return err
 	}
 	key := keys.Up
@@ -108,20 +118,21 @@ func (w *Encoder) Adjust(v *vnc.VNC, val int) error {
 	}
 	amount := math.Abs(val)
 	for i := 0; i < amount; i++ {
-		if err := v.KeyPress(key); err != nil {
-			return err
-		}
+		wf.KeyPress(key)
 	}
-	return v.KeyPress(keys.Return)
+	wf.KeyPress(keys.Return)
+
+	return nil
 }
 
 // Increment the value of an encoder.
-func (w *Encoder) Increment(v *vnc.VNC) error { return w.Adjust(v, 1) }
+func (w *Encoder) Increment(wf *vnc.Workflow) error { return w.Adjust(wf, 1) }
 
 // Decrement the value of an encoder.
-func (w *Encoder) Decrement(v *vnc.VNC) error { return w.Adjust(v, -1) }
+func (w *Encoder) Decrement(wf *vnc.Workflow) error { return w.Adjust(wf, -1) }
 
-func (w *Encoder) clickOffset() image.Point {
+// clickPoint returns the point to click based on the window of the encoder.
+func (w *Encoder) clickPoint() image.Point {
 	var dx, dy int
 
 	// Horizontal position.
@@ -162,15 +173,20 @@ type Meter struct {
 var _ Widget = new(Meter)
 
 // Press implements the Widget interface.
-func (w *Meter) Press(v *vnc.VNC) error {
-	return v.MouseLeftClick(w.clickOffset())
+func (w *Meter) Press(wf *vnc.Workflow) error {
+	wf.MouseClick(buttons.Left, w.clickOffset())
+	return nil
 }
 
 // Read implements the Widget interface.
-func (w *Meter) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
+func (w *Meter) Read(wf *vnc.Workflow) (interface{}, error) {
+	return nil, venuelib.Errorf(codes.Unimplemented, "Meter.Read() unimplemented")
+}
 
 // Update implements the Widget interface.
-func (w *Meter) Update(v *vnc.VNC, val interface{}) error { return nil }
+func (w *Meter) Update(wf *vnc.Workflow, val interface{}) error {
+	return venuelib.Errorf(codes.Unimplemented, "Meter.Update() unimplemented")
+}
 
 // IsMono returns true if this a mono meter.
 func (w *Meter) IsMono() bool { return !w.isStereo }
@@ -178,6 +194,7 @@ func (w *Meter) IsMono() bool { return !w.isStereo }
 // IsMono returns true if this a stereo meter.
 func (w *Meter) IsStereo() bool { return w.isStereo }
 
+// clickPoint returns the point to click based on the size of the meter.
 func (w *Meter) clickOffset() image.Point {
 	switch w.size {
 	case meters.SmallVertical:
@@ -211,26 +228,28 @@ type Switch struct {
 var _ Widget = new(Switch)
 
 // Press implements the Widget interface.
-func (w *Switch) Press(v *vnc.VNC) error {
-	return v.MouseLeftClick(w.clickOffset())
+func (w *Switch) Press(wf *vnc.Workflow) error {
+	wf.MouseClick(buttons.Left, w.clickOffset())
+	return nil
 }
 
 // Read implements the Widget interface.
-func (w *Switch) Read(v *vnc.VNC) (interface{}, error) { return nil, nil }
+func (w *Switch) Read(wf *vnc.Workflow) (interface{}, error) {
+	return nil, venuelib.Errorf(codes.Unimplemented, "Switch.Read() unimplemented")
+}
 
 // Update implements the Widget interface.
-func (w *Switch) Update(v *vnc.VNC, val interface{}) error {
+func (w *Switch) Update(wf *vnc.Workflow, val interface{}) error {
 	if w.IsPushButton() {
-		// It doesn't make sense to update a push-button.
-		return nil
+		return venuelib.Errorf(codes.InvalidArgument, "switches cannot be updated")
 	}
 
-	val, err := w.Read(v)
+	val, err := w.Read(wf)
 	if err != nil {
 		return err
 	}
 	if w.isEnabled != val.(bool) {
-		return w.Press(v)
+		return w.Press(wf)
 	}
 	return nil
 }
@@ -287,14 +306,13 @@ type Page struct {
 	widgets map[string]Widget
 }
 
-// Pages is a map of Page keyed on pages.Page.
 type Pages map[pages.Page]*Page
 
 // Verify that the expected interface is implemented properly.
 var _ Widget = new(Page)
 
 // Press implements the Widget interface.
-func (w *Page) Press(v *vnc.VNC) error {
+func (w *Page) Press(wf *vnc.Workflow) error {
 	var key keys.Key
 	switch w.page {
 	case pages.Inputs:
@@ -302,20 +320,18 @@ func (w *Page) Press(v *vnc.VNC) error {
 	case pages.Outputs:
 		key = keys.F2
 	}
-	if err := v.KeyPress(key); err != nil {
-		return err
-	}
+	wf.KeyPress(key)
 	return nil
 }
 
 // Read implements the Widget interface.
-func (w *Page) Read(v *vnc.VNC) (interface{}, error) {
-	return nil, fmt.Errorf("page.Read() is unsupported")
+func (w *Page) Read(wf *vnc.Workflow) (interface{}, error) {
+	return nil, venuelib.Errorf(codes.Unimplemented, "Page.Read() unimplemented")
 }
 
 // Update implements the Widget interface.
-func (w *Page) Update(v *vnc.VNC, val interface{}) error {
-	return fmt.Errorf("Page.Update() is unsupported")
+func (w *Page) Update(wf *vnc.Workflow, val interface{}) error {
+	return venuelib.Errorf(codes.Unimplemented, "Page.Update() unimplemented")
 }
 
 const (
@@ -437,7 +453,7 @@ func NewOutputsPage() *Page {
 func (w *Page) Widget(n string) (Widget, error) {
 	v, ok := w.widgets[n]
 	if !ok {
-		return nil, fmt.Errorf("invalid page widget %q", n)
+		return nil, venuelib.Errorf(codes.Internal, "invalid %q page widget", n)
 	}
 	return v, nil
 }

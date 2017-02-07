@@ -222,7 +222,6 @@ func (p *packerV01) outputLevel() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	glog.Errorf("error: %s", p.err)
 
 	args := p.req.msg.Arguments
 	if len(args) == 0 {

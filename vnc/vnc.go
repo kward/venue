@@ -9,8 +9,6 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
-	"github.com/kward/go-vnc/buttons"
-	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -142,46 +140,4 @@ func (v *VNC) Snapshot(r image.Rectangle) error {
 // DebugMetrics passes the call through to the connection.
 func (v *VNC) DebugMetrics() {
 	v.conn.DebugMetrics()
-}
-
-// KeyPress presses a key on the VENUE console.
-func (v *VNC) KeyPress(key keys.Key) error {
-	if err := v.conn.KeyEvent(key, vnclib.PressKey); err != nil {
-		return err
-	}
-	if err := v.conn.KeyEvent(key, vnclib.ReleaseKey); err != nil {
-		return err
-	}
-	return nil
-}
-
-// MouseMove moves the mouse.
-func (v *VNC) MouseMove(p image.Point) error {
-	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
-}
-
-// MouseLeftClick moves the mouse to a position and left clicks.
-func (v *VNC) MouseLeftClick(p image.Point) error {
-	if err := v.MouseMove(p); err != nil {
-		return err
-	}
-	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
-		return err
-	}
-	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
-}
-
-// MouseDrag moves the mouse, clicks, and drags to a new position.
-func (v *VNC) MouseDrag(p, d image.Point) error {
-	if err := v.MouseMove(p); err != nil {
-		return err
-	}
-	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
-		return err
-	}
-	p = p.Add(d) // Add delta.
-	if err := v.conn.PointerEvent(buttons.Left, uint16(p.X), uint16(p.Y)); err != nil {
-		return err
-	}
-	return v.conn.PointerEvent(buttons.None, uint16(p.X), uint16(p.Y))
 }

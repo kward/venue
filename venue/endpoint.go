@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/router"
 	"github.com/kward/venue/router/actions"
 	"github.com/kward/venue/router/controls"
@@ -34,11 +35,11 @@ var handlers router.Handlers
 
 func init() {
 	specs := []router.HandlerSpec{
-		router.HandlerSpec{actions.Noop, noop},
-		router.HandlerSpec{actions.Ping, ping},
-		router.HandlerSpec{actions.SelectInput, selectInput},
-		router.HandlerSpec{actions.SelectOutput, selectOutput},
-		router.HandlerSpec{actions.SetOutputLevel, setOutputLevel},
+		router.HandlerSpec{actions.Noop, Noop},
+		router.HandlerSpec{actions.Ping, Ping},
+		router.HandlerSpec{actions.SelectInput, SelectInput},
+		router.HandlerSpec{actions.SelectOutput, SelectOutput},
+		router.HandlerSpec{actions.SetOutputLevel, SetOutputLevel},
 	}
 	handlers = make(router.Handlers, len(specs))
 	for _, spec := range specs {
@@ -112,20 +113,22 @@ func (v *Venue) Initialize() error {
 
 	// Choose output before input so that later when the Inputs page is selected,
 	// it shows first bank of channels.
+	// TODO(kward:20170207) Remove once the console state can be determined.
 	if glog.V(2) {
 		glog.Info("Selecting I/O.")
 	}
-	if err := selectOutput(v, &router.Packet{Signal: signals.Aux, SignalNo: 1}); err != nil {
+	if err := SelectOutput(v, &router.Packet{Signal: signals.Aux, SignalNo: 1}); err != nil {
 		return err
 	}
-	if err := selectInput(v, &router.Packet{SignalNo: 1}); err != nil {
+	if err := SelectInput(v, &router.Packet{SignalNo: 1}); err != nil {
 		return err
 	}
 
+	wf := vnc.NewWorkflow(v.vnc)
 	if glog.V(2) {
 		glog.Infof("Clearing input solo.")
 	}
-	p, err := v.ui.selectPage(v.vnc, pages.Inputs)
+	p, err := v.ui.selectPage(wf, pages.Inputs)
 	if err != nil {
 		return err
 	}
@@ -133,11 +136,10 @@ func (v *Venue) Initialize() error {
 	if err != nil {
 		return err
 	}
-	if err := w.Press(v.vnc); err != nil {
+	if err := w.Press(wf); err != nil {
 		return err
 	}
-
-	return nil
+	return wf.Execute()
 }
 
 // ListenAndHandle connections and incoming requests.
@@ -159,17 +161,23 @@ func (v *Venue) Handle(pkt *router.Packet) {
 	}
 }
 
-// noop is a noop packet.
-func noop(_ router.Endpoint, _ *router.Packet) error { return nil }
+//-----------------------------------------------------------------------------
+// router.Handler functions
+
+// Noop is a noop packet.
+func Noop(_ router.Endpoint, _ *router.Packet) error { return nil }
 
 // Ping is deprecated. This should move to the OSC module, passed on a channel.
-func ping(ep router.Endpoint, _ *router.Packet) error {
+func Ping(ep router.Endpoint, _ *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
 	ep.(*Venue).vnc.DebugMetrics()
 	return nil
 }
 
 // selectInput for adjustment.
-func selectInput(ep router.Endpoint, pkt *router.Packet) error {
+func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -182,9 +190,11 @@ func selectInput(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc)
 
-	// Select INPUTS page.
-	if _, err := v.ui.selectPage(v.vnc, pages.Inputs); err != nil {
+	// Select the INPUTS page.
+	_, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
 		return err
 	}
 
@@ -195,19 +205,17 @@ func selectInput(ep router.Endpoint, pkt *router.Packet) error {
 	}
 	ks = append(ks, keys.IntToKeys(int(pkt.SignalNo))...)
 	for _, k := range ks {
-		if err := v.vnc.KeyPress(k); err != nil {
-			return err
-		}
+		wf.KeyPress(k)
 	}
-
 	// TODO(kward:20161126): Start a timer that expires after 1750ms. Additional
 	// key presses aren't allowed until the time expires, but mouse input is.
-	time.Sleep(inputWait)
-	return nil
+	wf.Sleep(inputWait)
+
+	return wf.Execute()
 }
 
-// selectOutput for adjustment.
-func selectOutput(ep router.Endpoint, pkt *router.Packet) error {
+// SelectOutput for adjustment.
+func SelectOutput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -215,15 +223,26 @@ func selectOutput(ep router.Endpoint, pkt *router.Packet) error {
 		glog.Infof("Selecting %s %d output.", pkt.Signal, pkt.SignalNo)
 	}
 
-	ctrlName := signalControlName(pkt.Signal, pkt.SignalNo)
-	if ctrlName == "Invalid" {
-		return fmt.Errorf("invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc)
+	if err := selectOutput(v, wf, pkt); err != nil {
+		return err
+	}
+	return wf.Execute()
+}
+
+func selectOutput(v *Venue, wf *vnc.Workflow, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
 	}
 
-	v := ep.(*Venue)
+	ctrlName := signalControlName(pkt.Signal, pkt.SignalNo)
+	if ctrlName == "Invalid" {
+		return venuelib.Errorf(codes.Internal, "invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
+	}
 
 	// Select the OUTPUTS page.
-	page, err := v.ui.selectPage(v.vnc, pages.Outputs)
+	p, err := v.ui.selectPage(wf, pages.Outputs)
 	if err != nil {
 		return err
 	}
@@ -232,32 +251,32 @@ func selectOutput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(2) {
 		glog.Infof("Clearing output solo.")
 	}
-	widget, err := page.Widget("SoloClear")
+	w, err := p.Widget("SoloClear")
 	if err != nil {
 		return err
 	}
-	if err := widget.Press(v.vnc); err != nil {
+	if err := w.Press(wf); err != nil {
 		return err
 	}
 
 	// Solo output.
 	if glog.V(2) {
-		glog.Infof("Soloing %s output.", ctrlName)
+		glog.Infof("Soloing %q output.", ctrlName)
 	}
-	widget, err = page.Widget(ctrlName + " Solo")
+	w, err = p.Widget(ctrlName + " Solo")
 	if err != nil {
 		return err
 	}
-	if err := widget.Press(v.vnc); err != nil {
+	if err := w.Press(wf); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// setOutputLevel for the specified output. This handler operates on the
+// SetOutputLevel for the specified output. This handler operates on the
 // currently selected input.
-func setOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
+func SetOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
@@ -271,29 +290,33 @@ func setOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc)
 
 	// Select output. Needed to select correct Aux or VarGroup.
-	if err := selectOutput(ep, pkt); err != nil {
+	if err := selectOutput(v, wf, pkt); err != nil {
 		return err
 	}
 
 	// Select the INPUTS page.
-	page, err := v.ui.selectPage(v.vnc, pages.Inputs)
+	p, err := v.ui.selectPage(wf, pages.Inputs)
 	if err != nil {
 		return err
 	}
 
 	// Adjust the Aux/Group knob.
-	ctrl, err := page.Widget(ctrlName)
+	w, err := p.Widget(ctrlName)
 	if err != nil {
 		return err
 	}
-	if err := ctrl.(*Encoder).Adjust(v.vnc, pkt.Value.(int)); err != nil {
+	if err := w.(*Encoder).Adjust(wf, pkt.Value.(int)); err != nil {
 		return err
 	}
 
-	return nil
+	return wf.Execute()
 }
+
+//-----------------------------------------------------------------------------
+// Misc
 
 // signalControlName returns a control name for a `signal` and `signalNo`
 // combination.

@@ -114,13 +114,13 @@ func (i *Input) Reset() {
 	}
 }
 
-// // Output represents an input signal.
-// type Output struct {
-// 	sig   signals.Signal
-// 	sigNo signals.SignalNo
-// 	prop  Signals
-// 	sends Signals
-// }
+// Output represents an input signal.
+type Output struct {
+	sig   signals.Signal
+	sigNo signals.SignalNo
+	prop  Signals
+	sends Signals
+}
 
 // func NewOutput(sig signals.Signal, sigNo signals.SignalNo) *Output {
 // 	o := &Output{
