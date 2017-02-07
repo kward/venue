@@ -17,6 +17,7 @@ import (
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc/messages"
 )
@@ -28,12 +29,12 @@ type Event struct {
 }
 
 type Workflow struct {
-	vnc    *VNC
+	conn   ClientConn
 	events []*Event
 }
 
-func NewWorkflow(vnc *VNC) *Workflow {
-	return &Workflow{vnc: vnc}
+func NewWorkflow(conn ClientConn) *Workflow {
+	return &Workflow{conn: conn}
 }
 
 func (wf *Workflow) enqueue(e *Event) {
@@ -46,9 +47,8 @@ func (wf *Workflow) Execute() error {
 		glog.Info(venuelib.FnName())
 	}
 
-	conn := wf.vnc.conn
-	if conn == nil {
-		return fmt.Errorf("invalid VNC connection")
+	if wf.conn == nil {
+		return venuelib.Errorf(codes.Internal, "invalid VNC connection")
 	}
 
 	for eventNo, event := range wf.events {
@@ -59,12 +59,12 @@ func (wf *Workflow) Execute() error {
 		switch event.msg {
 		case messages.KeyEvent:
 			key, down := event.data[0].(keys.Key), event.data[1].(bool)
-			if err := conn.KeyEvent(key, down); err != nil {
+			if err := wf.conn.KeyEvent(key, down); err != nil {
 				return err
 			}
 		case messages.PointerEvent:
 			button, x, y := event.data[0].(buttons.Button), event.data[1].(uint16), event.data[2].(uint16)
-			if err := conn.PointerEvent(button, x, y); err != nil {
+			if err := wf.conn.PointerEvent(button, x, y); err != nil {
 				return err
 			}
 		case messages.Sleep:

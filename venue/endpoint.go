@@ -124,7 +124,7 @@ func (v *Venue) Initialize() error {
 		return err
 	}
 
-	wf := vnc.NewWorkflow(v.vnc)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
 	if glog.V(2) {
 		glog.Infof("Clearing input solo.")
 	}
@@ -190,7 +190,7 @@ func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	v := ep.(*Venue)
-	wf := vnc.NewWorkflow(v.vnc)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
 
 	// Select the INPUTS page.
 	_, err := v.ui.selectPage(wf, pages.Inputs)
@@ -224,7 +224,7 @@ func SelectOutput(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	v := ep.(*Venue)
-	wf := vnc.NewWorkflow(v.vnc)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
 	if err := selectOutput(v, wf, pkt); err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func SetOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	v := ep.(*Venue)
-	wf := vnc.NewWorkflow(v.vnc)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
 
 	// Select output. Needed to select correct Aux or VarGroup.
 	if err := selectOutput(v, wf, pkt); err != nil {

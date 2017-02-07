@@ -9,6 +9,8 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/go-vnc/buttons"
+	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -18,11 +20,24 @@ const (
 	maxInputs = 96 // Maximum number of signal inputs the code can handle.
 )
 
+// ClientConn is a local interface to enable mocking of the go-vnc ClientConn.
+type ClientConn interface {
+	FramebufferHeight() uint16
+	FramebufferWidth() uint16
+	KeyEvent(key keys.Key, down bool) error
+	PointerEvent(button buttons.Button, x, y uint16) error
+
+	Close() error
+	DebugMetrics()
+	FramebufferUpdateRequest(inc uint8, x, y, w, h uint16) error
+	ListenAndHandle() error
+}
+
 // The VNC type contains various handles relating to a VNC connection.
 type VNC struct {
 	opts *options
 	cfg  *vnclib.ClientConfig
-	conn *vnclib.ClientConn
+	conn ClientConn
 	fb   *Framebuffer
 }
 
@@ -76,6 +91,10 @@ func (v *VNC) Connect(ctx context.Context) error {
 	v.cfg.ServerMessageCh = make(chan vnclib.ServerMessage)
 
 	return nil
+}
+
+func (v *VNC) ClientConn() ClientConn {
+	return v.conn
 }
 
 // ListenAndHandle VNC server messages.
