@@ -1,26 +1,29 @@
+// Package pages defines the supported types of pages.
 package pages
 
 // Page indicates the type of UI page.
 type Page int
 
+//go:generate stringer -type=Page
+
 const (
 	// Inputs refers to the Venue INPUTS page. This page manages input signals.
-	Inputs Page = 0
+	Inputs Page = iota
 	// Outputs refers to the Venue OUTPUTS page. This page manages output signals.
-	Outputs Page = 1
+	Outputs
 	// Filing refers to the Venue FILING page. This page supports loading,
 	// saving, and transferring of data.
-	Filing Page = 2
+	Filing
 	// Snapshots refers to the Venue SNAPSHOTS page. This page manages the scene
 	// snapshots.
-	Snapshots Page = 3
+	Snapshots
 	// Patchbay refers to the Venue PATCHBAY page. This page controls all signal
 	// routing from inputs to outputs.
-	Patchbay Page = 4
+	Patchbay
 	// Plugins refers to the Venue PLUG-INS page. This page manages the various
 	// signal processing plugins.
-	Plugins Page = 5
+	Plugins
 	// Options refers to the Venue OPTIONS page. This page manages the various
 	// user definable system options.
-	Options Page = 6
+	Options
 )

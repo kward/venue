@@ -1,3 +1,4 @@
+// Package multistates defines the states of a Multi UI element.
 package multistates
 
 import (
@@ -6,6 +7,8 @@ import (
 )
 
 type MultiState int
+
+//go:generate stringer -type=MultiState
 
 const (
 	Unknown MultiState = iota

@@ -1,7 +1,10 @@
+// Package signals defines the supported types of console signals.
 package signals
 
 // Signal identifies the type of signal.
 type Signal int
+
+//go:generate stringer -type=Signal
 
 const (
 	// Unknown indicates the action wasn't specified.

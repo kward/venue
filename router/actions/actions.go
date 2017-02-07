@@ -1,7 +1,10 @@
+// Package actions defines the supported endpoint actions.
 package actions
 
 // Action identifies the type of action.
 type Action int
+
+//go:generate stringer -type=Action
 
 const (
 	// Unknown indicates the action wasn't specified.
