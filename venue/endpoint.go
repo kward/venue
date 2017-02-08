@@ -38,8 +38,9 @@ func init() {
 		router.HandlerSpec{actions.Noop, Noop},
 		router.HandlerSpec{actions.Ping, Ping},
 		router.HandlerSpec{actions.SelectInput, SelectInput},
+		router.HandlerSpec{actions.InputGain, InputGain},
 		router.HandlerSpec{actions.SelectOutput, SelectOutput},
-		router.HandlerSpec{actions.SetOutputLevel, SetOutputLevel},
+		router.HandlerSpec{actions.OutputLevel, OutputLevel},
 	}
 	handlers = make(router.Handlers, len(specs))
 	for _, spec := range specs {
@@ -176,7 +177,7 @@ func Ping(ep router.Endpoint, _ *router.Packet) error {
 	return nil
 }
 
-// selectInput for adjustment.
+// SelectInput for adjustment.
 func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
@@ -210,6 +211,35 @@ func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	// TODO(kward:20161126): Start a timer that expires after 1750ms. Additional
 	// key presses aren't allowed until the time expires, but mouse input is.
 	wf.Sleep(inputWait)
+
+	return wf.Execute()
+}
+
+// InputGain adjustment.
+func InputGain(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Adjusting input gain by %d dB.", pkt.Value)
+	}
+
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	// Select the INPUTS page.
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+
+	w, err := p.Widget("Gain")
+	if err != nil {
+		return err
+	}
+	if err := w.(*Encoder).Adjust(wf, pkt.Value.(int)); err != nil {
+		return err
+	}
 
 	return wf.Execute()
 }
@@ -274,9 +304,9 @@ func selectOutput(v *Venue, wf *vnc.Workflow, pkt *router.Packet) error {
 	return nil
 }
 
-// SetOutputLevel for the specified output. This handler operates on the
+// OutputLevel for the specified output. This handler operates on the
 // currently selected input.
-func SetOutputLevel(ep router.Endpoint, pkt *router.Packet) error {
+func OutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}

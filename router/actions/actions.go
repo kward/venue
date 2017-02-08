@@ -26,6 +26,6 @@ const (
 
 	// SelectOutput channel for adjustment.
 	SelectOutput
-	// SetOutputLevel sets the output level of a channel.
-	SetOutputLevel
+	// OutputLevel sets the output level of a channel.
+	OutputLevel
 )

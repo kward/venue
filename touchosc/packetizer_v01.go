@@ -241,7 +241,7 @@ func (p *packerV01) outputLevel() packerFn {
 		return p.errorf("invalid level control x/y: %d/%d", p.req.x, p.req.y)
 	}
 	p.setPacket(&router.Packet{
-		Action:   actions.SetOutputLevel,
+		Action:   actions.OutputLevel,
 		Signal:   sig,
 		SignalNo: sigNo,
 		Value:    clicks,
