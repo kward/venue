@@ -11,6 +11,7 @@ import (
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/venuelib"
 )
 
@@ -62,12 +63,12 @@ func (v *VNC) Close() error {
 // Connect to a Venue console.
 func (v *VNC) Connect(ctx context.Context) error {
 	if v.conn != nil {
-		return fmt.Errorf("already connected")
+		return venuelib.Errorf(codes.FailedPrecondition, "already connected")
 	}
 	// TODO(kward:20161122) Add check for a reasonably sufficient deadline.
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("context missing deadline")
+		return venuelib.Errorf(codes.FailedPrecondition, "context missing deadline")
 	}
 
 	glog.Infof("Connecting to VENUE VNC server...")

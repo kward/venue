@@ -187,7 +187,7 @@ func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	}
 
 	if pkt.SignalNo > maxInputs {
-		return fmt.Errorf("signal number %d exceeds maximum number of inputs %d", pkt.SignalNo, maxInputs)
+		return venuelib.Errorf(codes.InvalidArgument, "signal number %d exceeds maximum number of inputs %d", pkt.SignalNo, maxInputs)
 	}
 
 	v := ep.(*Venue)
@@ -316,7 +316,7 @@ func OutputLevel(ep router.Endpoint, pkt *router.Packet) error {
 
 	ctrlName := signalControlName(pkt.Signal, pkt.SignalNo)
 	if ctrlName == "Invalid" {
-		return fmt.Errorf("invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
+		return venuelib.Errorf(codes.InvalidArgument, "invalid control name for %s %d signal combination", pkt.Signal, pkt.SignalNo)
 	}
 
 	v := ep.(*Venue)

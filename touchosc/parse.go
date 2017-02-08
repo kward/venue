@@ -7,10 +7,9 @@ own custom functionality.
 package touchosc
 
 import (
-	"fmt"
-
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/router"
 	"github.com/kward/venue/router/actions"
 	"github.com/kward/venue/venuelib"
@@ -53,7 +52,7 @@ Processing:
 		case itemVersion:
 			req.version = item.val
 		case itemError:
-			return nil, fmt.Errorf("unable to parse item %v", item)
+			return nil, venuelib.Errorf(codes.InvalidArgument, "unable to parse item %v", item)
 		case itemEOF:
 			break Processing
 		}
@@ -69,13 +68,13 @@ Processing:
 		}, nil
 	case "venue":
 	default:
-		return nil, fmt.Errorf("unrecognized request %q", req.request)
+		return nil, venuelib.Errorf(codes.InvalidArgument, "unrecognized request %q", req.request)
 	}
 
 	// Packetize the request.
 	packer, ok := packers[req.version]
 	if !ok {
-		return nil, fmt.Errorf("unable to pack version %s", req.version)
+		return nil, venuelib.Errorf(codes.NotFound, "unable to pack version %s", req.version)
 	}
 	packer.init(req)
 	for packer.setPacker(packer.packer()); !packer.done(); {
