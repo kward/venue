@@ -1,9 +1,8 @@
 package router
 
 import (
-	"fmt"
-
 	"github.com/golang/glog"
+	"github.com/kward/venue/codes"
 	"github.com/kward/venue/router/actions"
 	"github.com/kward/venue/venuelib"
 )
@@ -50,7 +49,7 @@ func Handle(ep Endpoint, pkt *Packet, hs Handlers) error {
 
 	h, ok := hs[pkt.Action]
 	if !ok {
-		return fmt.Errorf("%s action unimplemented for %s.", pkt.Action, ep.EndpointName())
+		return venuelib.Errorf(codes.Unimplemented, "%s action unimplemented for %s.", pkt.Action, ep.EndpointName())
 	}
 	return h.Handler(ep, pkt)
 }
