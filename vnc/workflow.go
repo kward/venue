@@ -1,8 +1,8 @@
 /*
-The envelope wraps a set of VNC requests together into a single object, allowing
+A workflow wraps a set of VNC requests together into a single object, allowing
 that object to be acted upon as a whole, rather than as individual requests.
 
-The purpose of the envelope is to enable the VENUE VNC server to focus on a
+The purpose of a workflow is to enable the VENUE VNC server to focus on a
 single client at a time, as simultaneous requests from multiple clients would
 otherwise conflict with one another.
 */
@@ -22,17 +22,20 @@ import (
 	"github.com/kward/venue/vnc/messages"
 )
 
+// Event describes a single workflow event.
 type Event struct {
 	desc string           // Description of the event.
 	msg  messages.Message // Type of event.
 	data []interface{}    // Supporting data.
 }
 
+// Workflow holds a client connection to the VNC server, and a list of events.
 type Workflow struct {
 	conn   ClientConn
 	events []*Event
 }
 
+// NewWorkflow returns a new workflow object.
 func NewWorkflow(conn ClientConn) *Workflow {
 	return &Workflow{conn: conn}
 }
