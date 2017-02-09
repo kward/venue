@@ -19,7 +19,7 @@ mobile usage. This software should make that easier.
 
 - Build Status:  [![Build Status][CIStatus]][CIProject]
 - Go Documentation: [![GoDoc][GoDocStatus]][GoDoc]
-- [Design doc][https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub]
+- Design doc: <https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub>
 
 ## Requirements
 
