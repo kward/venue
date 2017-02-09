@@ -18,7 +18,8 @@ mobile usage. This software should make that easier.
 ## Project links
 
 - Build Status:  [![Build Status][CIStatus]][CIProject]
-- Documentation: [![GoDoc][GoDocStatus]][GoDoc]
+- Go Documentation: [![GoDoc][GoDocStatus]][GoDoc]
+- [Design doc][https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub]
 
 ## Requirements
 
