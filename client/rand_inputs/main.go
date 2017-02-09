@@ -33,7 +33,11 @@ func main() {
 	flagInit()
 
 	if passwd == "" {
-		passwd = venuelib.GetPasswd()
+		var err error
+		passwd, err = venuelib.GetPasswd()
+		if err != nil {
+			log.Fatalf("failed to get password; %s", err)
+		}
 	}
 
 	v, err := venue.New()

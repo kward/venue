@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/golang/glog"
 	"github.com/howeyc/gopass"
 	"github.com/kward/venue/codes"
 )
@@ -59,13 +58,13 @@ func Errorf(c codes.Code, format string, a ...interface{}) error {
 }
 
 // GetPasswd requests the user for a masked password.
-func GetPasswd() string {
+func GetPasswd() (string, error) {
 	fmt.Printf("Password: ")
 	p, err := gopass.GetPasswdMasked()
 	if err != nil {
-		glog.Fatal(err)
+		return "", err
 	}
-	return string(p)
+	return string(p), nil
 }
 
 // ToInt converts a string to an int.

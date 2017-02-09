@@ -97,8 +97,13 @@ func main() {
 	if *venueHost == "" {
 		glog.Fatal("missing --venue_host flag")
 	}
-	if venuePasswd == "" {
-		venuePasswd = venuelib.GetPasswd()
+	passwd := venuePasswd
+	if passwd == "" {
+		pw, err := venuelib.GetPasswd()
+		if err != nil {
+			glog.Fatalf("failed to get password; %s", err)
+		}
+		passwd = pw
 	}
 
 	// The router will be used to dispatch incoming packets.
@@ -112,7 +117,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), *venueTimeout)
 	defer cancel()
-	if err := v.Connect(ctx, *venueHost, *venuePort, venuePasswd); err != nil {
+	if err := v.Connect(ctx, *venueHost, *venuePort, passwd); err != nil {
 		glog.Fatal(err)
 	}
 	defer v.Close()
