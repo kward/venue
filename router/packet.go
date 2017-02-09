@@ -32,6 +32,7 @@ func (p *Packet) String() string {
 		p.SourceName, p.SourceAddr, p.Action, p.Control, p.Signal, p.SignalNo, p.Value)
 }
 
+// NewNoopPacket generates a new Noop packet.
 func NewNoopPacket() *Packet {
 	return &Packet{Action: actions.Noop}
 }
