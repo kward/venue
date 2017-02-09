@@ -1,3 +1,4 @@
+// Package router provides endpoint packet routing functionality.
 package router
 
 import (
@@ -59,6 +60,7 @@ type Router struct {
 	endpoints []Endpoint
 }
 
+// RegisterEndpoint to make the endpoint available for accepting requests.
 func (r *Router) RegisterEndpoint(e Endpoint) {
 	r.endpoints = append(r.endpoints, e)
 }
