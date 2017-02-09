@@ -4,9 +4,9 @@ package actions
 
 import "fmt"
 
-const _Action_name = "UnknownNoopPingSelectInputInputBankInputGainSelectOutputOutputLevel"
+const _Action_name = "UnknownNoopPingSelectInputInputBankInputGainInputGuessInputMuteInputSoloInputPadInputPhantomSelectOutputOutputLevel"
 
-var _Action_index = [...]uint8{0, 7, 11, 15, 26, 35, 44, 56, 67}
+var _Action_index = [...]uint8{0, 7, 11, 15, 26, 35, 44, 54, 63, 72, 80, 92, 104, 115}
 
 func (i Action) String() string {
 	if i < 0 || i >= Action(len(_Action_index)-1) {

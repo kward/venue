@@ -111,7 +111,7 @@ func (p *packerV01) inputGain() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.Noop})
+		p.setPacket(router.NewNoopPacket())
 		return nil
 	case multistates.Unknown:
 		return p.errorf("received invalid argument %v", args[0])
@@ -137,22 +137,46 @@ func (p *packerV01) inputGuess() packerFn {
 		glog.Info(venuelib.FnName())
 	}
 
-	return p.errorf("%s unimplemented", venuelib.FnName())
+	args := p.req.msg.Arguments
+	if len(args) != 1 {
+		return p.errorf("expected 1 argument, got %d; %v", len(args), args)
+	}
+	switch multistates.State(args[0]) {
+	case multistates.Released: // Do nothing.
+		p.setPacket(router.NewNoopPacket())
+		return nil
+	case multistates.Unknown:
+		return p.errorf("received invalid argument %v", args[0])
+	}
+
+	p.setPacket(&router.Packet{
+		Action:  actions.InputGuess,
+		Control: controls.Guess,
+		Signal:  signals.Input,
+	})
+	return nil
 }
 
 func (p *packerV01) inputMute() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	return p.errorf("%s unimplemented", venuelib.FnName())
+	return p.multiToggle(&router.Packet{
+		Action:  actions.InputMute,
+		Control: controls.Mute,
+		Signal:  signals.Input,
+	})
 }
 
 func (p *packerV01) inputPad() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-
-	return p.errorf("%s unimplemented", venuelib.FnName())
+	return p.multiToggle(&router.Packet{
+		Action:  actions.InputPad,
+		Control: controls.Pad,
+		Signal:  signals.Input,
+	})
 }
 
 const (
@@ -171,7 +195,7 @@ func (p *packerV01) inputSelect() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.Noop})
+		p.setPacket(router.NewNoopPacket())
 		return nil
 	case multistates.Unknown:
 		return p.errorf("invalid OSC argument %v", args[0])
@@ -187,12 +211,40 @@ func (p *packerV01) inputSelect() packerFn {
 	return nil
 }
 
+func (p *packerV01) inputPhantom() packerFn {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	return p.multiToggle(&router.Packet{
+		Action:  actions.InputPhantom,
+		Control: controls.Phantom,
+		Signal:  signals.Input,
+	})
+}
+
 func (p *packerV01) inputSolo() packerFn {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
+	return p.multiToggle(&router.Packet{
+		Action:  actions.InputSolo,
+		Control: controls.Solo,
+		Signal:  signals.Input,
+	})
+}
 
-	return p.errorf("%s unimplemented", venuelib.FnName())
+func (p *packerV01) multiToggle(pkt *router.Packet) packerFn {
+	args := p.req.msg.Arguments
+	if len(args) != 1 {
+		return p.errorf("expected 1 argument, got %d; %v", len(args), args)
+	}
+	state := multistates.State(args[0])
+	if state == multistates.Unknown {
+		return p.errorf("received invalid argument %v", args[0])
+	}
+	pkt.Value = state
+	p.setPacket(pkt)
+	return nil
 }
 
 //-----------------------------------------------------------------------------
@@ -229,7 +281,7 @@ func (p *packerV01) outputLevel() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.Noop})
+		p.setPacket(router.NewNoopPacket())
 		return nil
 	case multistates.Unknown:
 		return p.errorf("received invalid argument %v", args[0])
@@ -270,7 +322,7 @@ func (p *packerV01) outputSelect() packerFn {
 	}
 	switch multistates.State(args[0]) {
 	case multistates.Released: // Do nothing.
-		p.setPacket(&router.Packet{Action: actions.Noop})
+		p.setPacket(router.NewNoopPacket())
 		return nil
 	case multistates.Unknown:
 		return p.errorf("received invalid argument %v", args[0])

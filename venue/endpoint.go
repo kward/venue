@@ -39,6 +39,11 @@ func init() {
 		router.HandlerSpec{actions.Ping, Ping},
 		router.HandlerSpec{actions.SelectInput, SelectInput},
 		router.HandlerSpec{actions.InputGain, InputGain},
+		//router.HandlerSpec{actions.InputGuess, InputGuess},
+		router.HandlerSpec{actions.InputMute, InputMute},
+		router.HandlerSpec{actions.InputPad, InputPad},
+		router.HandlerSpec{actions.InputPhantom, InputPhantom},
+		router.HandlerSpec{actions.InputSolo, InputSolo},
 		router.HandlerSpec{actions.SelectOutput, SelectOutput},
 		router.HandlerSpec{actions.OutputLevel, OutputLevel},
 	}
@@ -232,12 +237,129 @@ func InputGain(ep router.Endpoint, pkt *router.Packet) error {
 	if err != nil {
 		return err
 	}
-
 	w, err := p.Widget("Gain")
 	if err != nil {
 		return err
 	}
 	if err := w.(*Encoder).Adjust(wf, pkt.Value.(int)); err != nil {
+		return err
+	}
+
+	return wf.Execute()
+}
+
+// InputGuess button push.
+func InputGuess(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Guessing input gain.")
+	}
+	return venuelib.Errorf(codes.Unimplemented, "%s unimplemented", venuelib.FnName())
+
+	// TODO(kward:20170209) Guess needs both press/release support as the user
+	// will hold the button for some amount of time, O(seconds).
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	if err := pressWidget(wf, p, "Guess"); err != nil {
+		return err
+	}
+
+	return wf.Execute()
+}
+
+// InputMute button push.
+func InputMute(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Toggle the input mute.")
+	}
+
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	if err := pressWidget(wf, p, "Mute"); err != nil {
+		return err
+	}
+
+	return wf.Execute()
+}
+
+// InputPad toggles the state of the input pad button.
+func InputPad(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Toggle the input pad.")
+	}
+
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	if err := pressWidget(wf, p, "Pad"); err != nil {
+		return err
+	}
+
+	return wf.Execute()
+}
+
+// InputPhantom toggles the state of the input phantom button.
+func InputPhantom(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Toggle the input phantom.")
+	}
+
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	if err := pressWidget(wf, p, "Phantom"); err != nil {
+		return err
+	}
+
+	return wf.Execute()
+}
+
+// InputSolo toggles the state of the input solo button.
+func InputSolo(ep router.Endpoint, pkt *router.Packet) error {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
+	if glog.V(2) {
+		glog.Info("Toggle the input solo.")
+	}
+
+	v := ep.(*Venue)
+	wf := vnc.NewWorkflow(v.vnc.ClientConn())
+
+	p, err := v.ui.selectPage(wf, pages.Inputs)
+	if err != nil {
+		return err
+	}
+	if err := pressWidget(wf, p, "Solo"); err != nil {
 		return err
 	}
 
@@ -363,4 +485,15 @@ func signalControlName(sig signals.Signal, sigNo signals.SignalNo) string {
 	default:
 		return controls.Unknown.String()
 	}
+}
+
+func pressWidget(wf *vnc.Workflow, page *Page, widget string) error {
+	w, err := page.Widget(widget)
+	if err != nil {
+		return err
+	}
+	if err := w.Press(wf); err != nil {
+		return err
+	}
+	return nil
 }

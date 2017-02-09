@@ -21,11 +21,21 @@ const (
 	SelectInput
 	// InputBank selects another input bank.
 	InputBank
-	// InputGain sets the input gain of a channel.
+	// InputGain sets the gain of an input channel.
 	InputGain
+	// InputGuess guesses the gain level of an input channel.
+	InputGuess
+	// InputMute toggles the state of the input mute button.
+	InputMute
+	// InputSolo toggles the state of the input solo button.
+	InputSolo
+	// InputPad toggles the state of the 20 dB Pad.
+	InputPad
+	// InputPhantom toggles the state of the 48V phantom button.
+	InputPhantom
 
 	// SelectOutput channel for adjustment.
 	SelectOutput
-	// OutputLevel sets the output level of a channel.
+	// OutputLevel sets the level of an output channel.
 	OutputLevel
 )

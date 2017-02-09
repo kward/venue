@@ -31,3 +31,7 @@ func (p *Packet) String() string {
 	return fmt.Sprintf("{ SourceName: %s SourceAddr: %s Action: %s, Control: %s Signal: %s SignalNo: %d Value: %v }",
 		p.SourceName, p.SourceAddr, p.Action, p.Control, p.Signal, p.SignalNo, p.Value)
 }
+
+func NewNoopPacket() *Packet {
+	return &Packet{Action: actions.Noop}
+}

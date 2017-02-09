@@ -210,18 +210,13 @@ func (w *Meter) clickOffset() image.Point {
 //-----------------------------------------------------------------------------
 // Switch
 
-const ( // Switch enabled.
-	SwitchOff = false
-	SwitchOn  = true
-)
-
 // Switch is a UIElement representing a switch.
 type Switch struct {
-	pos        image.Point         // Position of UI element.
-	size       switches.SwitchSize // Switch size (tiny..large).
-	kind       switches.SwitchKind // true == toggle, false == push-button
-	defEnabled bool                // Default switch state.
-	isEnabled  bool                // True if the switch state is enabled.
+	pos        image.Point   // Position of UI element.
+	size       switches.Size // Switch size (Tiny..Large).
+	kind       switches.Kind // Switch kind (Toggle, PushButton).
+	defEnabled bool          // Default switch state (Enabled == true).
+	isEnabled  bool          // True if the switch state is enabled.
 }
 
 // Verify that the expected interface is implemented properly.
@@ -257,8 +252,9 @@ func (w *Switch) Update(wf *vnc.Workflow, val interface{}) error {
 // IsEnabled returns true if the switch is enabled.
 func (w *Switch) IsEnabled() bool { return w.isEnabled }
 
-// NewPushButton returns a new push-button switch.
-func NewPushButton(x, y int, size switches.SwitchSize) *Switch {
+// NewPushButton returns a new push-button switch. x and y refer to the
+// top-left corner of the switch.
+func NewPushButton(x, y int, size switches.Size) *Switch {
 	return &Switch{
 		pos:  image.Point{x, y},
 		size: size,
@@ -269,8 +265,9 @@ func NewPushButton(x, y int, size switches.SwitchSize) *Switch {
 // IsPushButton returns true if this is a push-button switch.
 func (w *Switch) IsPushButton() bool { return w.kind == switches.PushButton }
 
-// NewToggle returns a new toggle switch.
-func NewToggle(x, y int, size switches.SwitchSize, def bool) *Switch {
+// NewToggle returns a new toggle switch. x and y refer to the top-left corner
+// of the switch.
+func NewToggle(x, y int, size switches.Size, def bool) *Switch {
 	return &Switch{
 		pos:        image.Point{x, y},
 		size:       size,
@@ -362,11 +359,23 @@ func NewInputsPage() *Page {
 	return &Page{
 		pages.Inputs,
 		Widgets{
-			"Gain":         &Encoder{image.Point{167, 279}, encoders.BottomLeft, true},
-			"Delay":        &Encoder{image.Point{168, 387}, encoders.BottomLeft, false},
-			"HPF":          &Encoder{image.Point{168, 454}, encoders.BottomLeft, true},
-			"Pan":          &Encoder{image.Point{239, 443}, encoders.BottomCenter, false},
-			"VarGroups":    NewPushButton(226, 299, switches.Medium),
+			// Input
+			"Phantom": NewToggle(153, 171, switches.Medium, switches.Disabled),
+			"Pad":     NewToggle(153, 196, switches.Medium, switches.Disabled),
+			"Guess":   NewPushButton(153, 221, switches.Medium),
+			"Gain":    &Encoder{image.Point{167, 279}, encoders.BottomLeft, true},
+			"Phase":   NewToggle(12, 420, switches.Medium, switches.Disabled),
+			"Solo":    NewToggle(12, 451, switches.Large, switches.Disabled),
+			"Mute":    NewToggle(62, 451, switches.Large, switches.Disabled),
+			"Delay":   &Encoder{image.Point{168, 387}, encoders.BottomLeft, false},
+			"HPF":     &Encoder{image.Point{168, 454}, encoders.BottomLeft, true},
+			// Bus Assign
+			"VarGroups": NewPushButton(226, 299, switches.Medium),
+			// Pan
+			"Pan": &Encoder{image.Point{239, 443}, encoders.BottomCenter, false},
+			//-- RightOffset
+			//-- Balance
+			// Aux Sends
 			"Aux 1":        &Encoder{image.Point{auxOddX, aux12Y}, encoders.TopRight, true},
 			"AuxPan 1/2":   &Encoder{image.Point{auxPanX, aux12Y}, encoders.TopLeft, false},
 			"Aux 3":        &Encoder{image.Point{auxOddX, aux34Y}, encoders.TopRight, true},
@@ -391,7 +400,11 @@ func NewInputsPage() *Page {
 			"GroupPan 5/6": &Encoder{image.Point{auxPanX, aux56Y}, encoders.TopLeft, false},
 			"Group 7":      &Encoder{image.Point{auxOddX, aux78Y}, encoders.TopRight, true},
 			"GroupPan 7/8": &Encoder{image.Point{auxPanX, aux78Y}, encoders.TopLeft, false},
-			"SoloClear":    NewPushButton(979, 493, switches.Medium),
+			// EQ
+			// Comp/Lim
+			// Exp/Gate
+			// Misc
+			"SoloClear": NewPushButton(979, 493, switches.Medium),
 		}}
 }
 

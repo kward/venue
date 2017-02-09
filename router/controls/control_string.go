@@ -4,9 +4,9 @@ package controls
 
 import "fmt"
 
-const _Control_name = "UnknownSelectAuxAuxPanDelayFaderGainGroupGroupPanHPFPanSoloSoloClearVarGroups"
+const _Control_name = "UnknownMuteSelectSoloSoloClearDelayFaderGainGuessHPFPadPanPhantomPhaseAuxAuxPanGroupGroupPanVarGroups"
 
-var _Control_index = [...]uint8{0, 7, 13, 16, 22, 27, 32, 36, 41, 49, 52, 55, 59, 68, 77}
+var _Control_index = [...]uint8{0, 7, 11, 17, 21, 30, 35, 40, 44, 49, 52, 55, 58, 65, 70, 73, 79, 84, 92, 101}
 
 func (i Control) String() string {
 	if i < 0 || i >= Control(len(_Control_index)-1) {
