@@ -122,7 +122,7 @@ func (v *VNC) ListenAndHandle() {
 			}
 
 		default:
-			glog.Errorf("ListenAndHandle() unknown message type:%v msg:%s\n", msg.Type(), msg)
+			glog.Errorf("ListenAndHandle() unknown message type:%d msg:%s\n", msg.Type(), msg)
 		}
 	}
 }
