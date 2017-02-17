@@ -29,7 +29,7 @@ func NewFramebuffer(w, h int) *Framebuffer {
 // Paint accepts a Rectangle and Color data, and paints the framebuffer with it.
 func (f *Framebuffer) Paint(r vnclib.Rectangle, colors []vnclib.Color) {
 	if glog.V(4) {
-		glog.Info(venuelib.FnName())
+		glog.Info(venuelib.FnNameWithArgs(r.String(), "colors"))
 	}
 	// TODO(kward): Implement double or triple buffering to reduce paint
 	// interference.
