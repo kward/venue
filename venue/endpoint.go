@@ -256,7 +256,6 @@ func InputGuess(ep router.Endpoint, pkt *router.Packet) error {
 	if glog.V(2) {
 		glog.Info("Guessing input gain.")
 	}
-	return venuelib.Errorf(codes.Unimplemented, "%s unimplemented", venuelib.FnName())
 
 	// TODO(kward:20170209) Guess needs both press/release support as the user
 	// will hold the button for some amount of time, O(seconds).
