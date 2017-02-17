@@ -6,16 +6,19 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"log"
 
+	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
+	"github.com/kward/venue/venuelib"
 )
 
+// Framebuffer maintains a local copy of the remote VNC image.
 type Framebuffer struct {
 	Width, Height int
 	fb            *image.RGBA
 }
 
+// NewFramebuffer returns a new Framebuffer object.
 func NewFramebuffer(w, h int) *Framebuffer {
 	return &Framebuffer{
 		w, h,
@@ -23,7 +26,11 @@ func NewFramebuffer(w, h int) *Framebuffer {
 	}
 }
 
+// Paint accepts a Rectangle and Color data, and paints the framebuffer with it.
 func (f *Framebuffer) Paint(r vnclib.Rectangle, colors []vnclib.Color) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
 	// TODO(kward): Implement double or triple buffering to reduce paint
 	// interference.
 	for x := 0; x < int(r.Width); x++ {
@@ -36,10 +43,12 @@ func (f *Framebuffer) Paint(r vnclib.Rectangle, colors []vnclib.Color) {
 
 // PNG converts the framebuffer into a base64 encoded PNG string.
 func (f *Framebuffer) PNG() (string, error) {
+	if glog.V(3) {
+		glog.Info(venuelib.FnName())
+	}
 	var buf bytes.Buffer
 	err := png.Encode(&buf, f.fb)
 	if err != nil {
-		log.Println("Frambuffer.PNG() error;", err)
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
