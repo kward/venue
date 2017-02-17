@@ -10,6 +10,7 @@ import (
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/go-vnc/buttons"
+	"github.com/kward/go-vnc/encodings"
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/codes"
 	"github.com/kward/venue/venuelib"
@@ -115,7 +116,7 @@ func (v *VNC) ListenAndHandle() {
 				var colors []vnclib.Color
 				rect := msg.(*vnclib.FramebufferUpdate).Rects[i]
 				switch rect.Enc.Type() {
-				case vnclib.Raw:
+				case encodings.Raw:
 					colors = rect.Enc.(*vnclib.RawEncoding).Colors
 				}
 				v.fb.Paint(rect, colors)
