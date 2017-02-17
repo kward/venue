@@ -17,9 +17,11 @@ mobile usage. This software should make that easier.
 
 ## Project links
 
-- Build Status:  [![Build Status][CIStatus]][CIProject]
-- Go Documentation: [![GoDoc][GoDocStatus]][GoDoc]
-- Design doc: <https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub>
+[![GoDoc](https://godoc.org/github.com/kward/venue?status.svg)](https://godoc.org/github.com/kward/venue)
+[![Travis CI](https://travis-ci.org/kward/venue.png?branch=master)](https://travis-ci.org/kward/venue)
+[![Coverage Status](https://coveralls.io/repos/github/kward/venue/badge.svg?branch=master)](https://coveralls.io/github/kward/venue?branch=master)
+
+Design doc: <https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub>
 
 ## Requirements
 
@@ -116,8 +118,3 @@ _Avid™ is a registered trademark of Avid, Inc._
 [Profile]: https://www.avid.com/US/products/profile-system
 [VENUE]: http://www.avid.com/us/products/venue-software
 
-[CIProject]: https://travis-ci.org/kward/venue
-[CIStatus]: https://travis-ci.org/kward/venue.png?branch=master
-
-[GoDoc]: https://godoc.org/github.com/kward/venue
-[GoDocStatus]: https://godoc.org/github.com/kward/venue?status.svg
