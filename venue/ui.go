@@ -39,7 +39,7 @@ func (ui *UI) selectPage(wf *vnc.Workflow, p pages.Page) (*Page, error) {
 	}
 	w, ok := ui.pages[p]
 	if !ok {
-		return nil, venuelib.Errorf(codes.Unimplemented, "support for %q page unimplemented")
+		return nil, venuelib.Errorf(codes.Unimplemented, "support for %q page unimplemented", p)
 	}
 	if p == pages.Inputs {
 		// To ensure we start on inputs bank 1-48, select another page first.
