@@ -12,6 +12,7 @@ import (
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/encodings"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/go-vnc/messages"
 	"github.com/kward/venue/codes"
 	"github.com/kward/venue/venuelib"
 )
@@ -108,7 +109,7 @@ func (v *VNC) ListenAndHandle() {
 	for {
 		msg := <-v.cfg.ServerMessageCh
 		switch msg.Type() {
-		case vnclib.FramebufferUpdateMsg:
+		case messages.FramebufferUpdate:
 			if glog.V(5) {
 				glog.Info("ListenAndHandle() FramebufferUpdateMessage")
 			}
