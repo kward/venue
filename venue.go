@@ -95,47 +95,45 @@ func main() {
 	log.SetFlags(log.Flags() | log.Lmicroseconds | log.Lshortfile)
 
 	if *venueHost == "" {
-		glog.Fatal("missing --venue_host flag")
+		glog.Exitln("missing --venue_host flag")
 	}
 	passwd := venuePasswd
 	if passwd == "" {
 		pw, err := venuelib.GetPasswd()
 		if err != nil {
-			glog.Fatalf("failed to get password; %s", err)
+			glog.Exitf("Failed to get password; %s\n", err)
 		}
 		passwd = pw
 	}
 
-	// The router will be used to dispatch incoming packets.
-	router := &router.Router{}
-
-	// Establish connection with the VENUE VNC server.
+	// Instantiate Venue client.
 	v, err := venue.New()
 	if err != nil {
-		glog.Fatal(err)
+		glog.Exitf("Failure instantiating Venue client; %s\n", err)
 	}
 
+	// Establish connection with the Venue VNC server.
 	ctx, cancel := context.WithTimeout(context.Background(), *venueTimeout)
 	defer cancel()
 	if err := v.Connect(ctx, *venueHost, *venuePort, passwd); err != nil {
-		glog.Fatal(err)
+		glog.Exitf("Failed to connect to Venue VNC server; %s\n", err)
 	}
 	defer v.Close()
 	glog.Info("Venue connection established.")
-
 	if err := v.Initialize(); err != nil {
-		glog.Fatalf("Unable to initialize Venue properly; %s", err)
+		glog.Exitf("Unable to initialize Venue properly; %s\n", err)
 	}
-	//time.Sleep(1 * time.Second)
-	router.RegisterEndpoint(v)
-	go v.ListenAndHandle()
 
+	router := &router.Router{}
+	router.RegisterEndpoint(v)
 	router.RegisterEndpoint(&ping.Ping{})
+
+	go v.ListenAndHandle()
 
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", *oscServerHost, *oscServerPort))
 	if err != nil {
-		glog.Fatalf("Error starting OSC server: %s", err)
+		glog.Exitf("Error starting OSC server; %s\n", err)
 	}
 	defer conn.Close()
 	glog.Info("OSC server started.")
@@ -146,7 +144,7 @@ func main() {
 		for {
 			p, err := o.ReceivePacket(context.Background(), conn)
 			if err != nil {
-				glog.Fatalf("OSC error: %v", err)
+				glog.Exitf("OSC error; %s\n", err)
 			}
 			if p == nil {
 				continue
