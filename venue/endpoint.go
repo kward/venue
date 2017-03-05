@@ -3,9 +3,11 @@ package venue
 import (
 	"context"
 	"fmt"
+	"image"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/codes"
 	"github.com/kward/venue/router"
@@ -103,7 +105,7 @@ func (v *Venue) Connect(ctx context.Context, h string, p uint, pw string) error 
 // Initialize the in-memory state representation of a VENUE console.
 func (v *Venue) Initialize() error {
 	if glog.V(3) {
-		glog.Info(venuelib.FnName())
+		glog.Infof("Venue.%s", venuelib.FnName())
 	}
 
 	v.ui = NewUI()
@@ -203,6 +205,10 @@ func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 	if err != nil {
 		return err
 	}
+
+	// Select 1-48 tab (i.e. not USER).
+	// TODO(kward:20170226) Handle this with UI element.
+	wf.MouseClick(buttons.Left, image.Point{932, 524})
 
 	// Type the channel number.
 	ks := keys.Keys{}
@@ -397,6 +403,10 @@ func selectOutput(v *Venue, wf *vnc.Workflow, pkt *router.Packet) error {
 	if err != nil {
 		return err
 	}
+
+	// Select OUTPUTS tab (i.e. not USER).
+	// TODO(kward:20170226) Handle this with UI element.
+	wf.MouseClick(buttons.Left, image.Point{932, 524})
 
 	// Clear the output solo.
 	if glog.V(2) {
