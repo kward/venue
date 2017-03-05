@@ -93,7 +93,9 @@ func (wf *Workflow) Execute() error {
 			wf.sleeper.Sleep(e.d)
 			time.Sleep(e.d)
 		}
+		time.Sleep(10 * time.Millisecond)
 	}
+
 	return nil
 }
 

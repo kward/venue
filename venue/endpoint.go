@@ -90,6 +90,9 @@ func (v *Venue) Close() error {
 
 // Connect to a VENUE VNC server.
 func (v *Venue) Connect(ctx context.Context, h string, p uint, pw string) error {
+	if glog.V(3) {
+		glog.Infof("Venue.%s", venuelib.FnName())
+	}
 	// Establish a connection to the VENUE VNC server.
 	handle, err := vnc.New(vnc.Host(h), vnc.Port(p), vnc.Password(pw))
 	if err != nil {
@@ -162,7 +165,7 @@ func (v *Venue) EndpointName() string { return "Venue" }
 // Handle implements router.Endpoint.
 func (v *Venue) Handle(pkt *router.Packet) {
 	if glog.V(3) {
-		glog.Info(venuelib.FnName())
+		glog.Infof("Venue.%s", venuelib.FnName())
 	}
 	if err := router.Handle(v, pkt, handlers); err != nil {
 		glog.Errorf("Error handling %s packet; %s", pkt.Action, err)
@@ -206,7 +209,7 @@ func SelectInput(ep router.Endpoint, pkt *router.Packet) error {
 		return err
 	}
 
-	// Select 1-48 tab (i.e. not USER).
+	// Select channels 1-48.
 	// TODO(kward:20170226) Handle this with UI element.
 	wf.MouseClick(buttons.Left, image.Point{932, 524})
 

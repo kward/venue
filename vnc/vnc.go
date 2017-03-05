@@ -132,7 +132,7 @@ func (v *VNC) ListenAndHandle() {
 // FramebufferRefresh refreshes the local framebuffer image of the VNC server
 // every period `p`.
 func (v *VNC) FramebufferRefresh(p time.Duration) {
-	r := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width, v.fb.Height}}
+	r := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width(), v.fb.Height()}}
 	for {
 		if err := v.Snapshot(r); err != nil {
 			// TODO(kward:20161124) Return errors on a channel.

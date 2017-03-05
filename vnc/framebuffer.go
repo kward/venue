@@ -14,15 +14,13 @@ import (
 
 // Framebuffer maintains a local copy of the remote VNC image.
 type Framebuffer struct {
-	Width, Height int
-	fb            *image.RGBA
+	fb *image.RGBA
 }
 
 // NewFramebuffer returns a new Framebuffer object.
 func NewFramebuffer(w, h int) *Framebuffer {
 	return &Framebuffer{
-		w, h,
-		image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{w, h}}),
+		fb: image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{w, h}}),
 	}
 }
 
@@ -53,3 +51,9 @@ func (f *Framebuffer) PNG() (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
+
+// Width returns the width of the framebuffer.
+func (f *Framebuffer) Width() int { return f.fb.Bounds().Max.X }
+
+// Height returns the height of the framebuffer.
+func (f *Framebuffer) Height() int { return f.fb.Bounds().Max.Y }
