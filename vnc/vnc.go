@@ -13,6 +13,7 @@ import (
 	"github.com/kward/go-vnc/encodings"
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/go-vnc/messages"
+	"github.com/kward/go-vnc/rfbflags"
 	"github.com/kward/venue/codes"
 	"github.com/kward/venue/venuelib"
 )
@@ -32,7 +33,7 @@ type ClientConn interface {
 
 	Close() error
 	DebugMetrics()
-	FramebufferUpdateRequest(inc uint8, x, y, w, h uint16) error
+	FramebufferUpdateRequest(inc rfbflags.RFBFlag, x, y, w, h uint16) error
 	ListenAndHandle() error
 }
 
@@ -152,7 +153,7 @@ func (v *VNC) Snapshot(r image.Rectangle) error {
 	}
 	w, h := uint16(r.Max.X-r.Min.X), uint16(r.Max.Y-r.Min.Y)
 	if err := v.conn.FramebufferUpdateRequest(
-		vnclib.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
+		rfbflags.RFBTrue, uint16(r.Min.X), uint16(r.Min.Y), w, h); err != nil {
 		glog.Errorf("Snapshot() error: %s", err)
 		return err
 	}

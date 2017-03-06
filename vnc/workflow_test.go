@@ -8,6 +8,7 @@ import (
 
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/go-vnc/rfbflags"
 )
 
 type Events []interface{}
@@ -110,10 +111,10 @@ func (c *mockConn) PointerEvent(button buttons.Button, x, y uint16) error {
 	return nil
 }
 
-func (c *mockConn) Close() error                                                { return nil }
-func (c *mockConn) DebugMetrics()                                               {}
-func (c *mockConn) FramebufferUpdateRequest(int uint8, x, y, w, h uint16) error { return nil }
-func (c *mockConn) ListenAndHandle() error                                      { return nil }
+func (c *mockConn) Close() error                                                           { return nil }
+func (c *mockConn) DebugMetrics()                                                          {}
+func (c *mockConn) FramebufferUpdateRequest(inc rfbflags.RFBFlag, x, y, w, h uint16) error { return nil }
+func (c *mockConn) ListenAndHandle() error                                                 { return nil }
 
 //-----------------------------------------------------------------------------
 // mockSleeper implements the Sleeper interface.
