@@ -32,7 +32,7 @@ var (
 	checkpointPeriod = flag.Duration("checkpoint_period", 1*time.Minute, "Checkpoint period")
 )
 
-func flagInit() {
+func init() {
 	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue VNC password.")
 	flag.Parse()
 }
@@ -90,8 +90,6 @@ func (s *state) handleMessage(v *venue.Venue, msg *osc.Message) {
 }
 
 func main() {
-	flagInit()
-
 	log.SetFlags(log.Flags() | log.Lmicroseconds | log.Lshortfile)
 
 	if *venueHost == "" {
