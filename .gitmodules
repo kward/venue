@@ -1,0 +1,3 @@
+[submodule "vendor/github.com/howeyc/gopass"]
+	path = vendor/github.com/howeyc/gopass
+	url = git@github.com:howeyc/gopass.git
