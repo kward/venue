@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"syscall"
 
-	"github.com/howeyc/gopass"
 	"github.com/kward/venue/codes"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // venueError defines the status of a Venue call.
@@ -60,7 +61,7 @@ func Errorf(c codes.Code, format string, a ...interface{}) error {
 // GetPasswd requests the user for a masked password.
 func GetPasswd() (string, error) {
 	fmt.Printf("Password: ")
-	p, err := gopass.GetPasswdMasked()
+	p, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err
 	}
