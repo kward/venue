@@ -60,7 +60,7 @@ func (s *state) handleBundle(b *osc.Bundle) {
 	}
 	for i, msg := range b.Messages {
 		if glog.V(4) {
-			glog.Infof("OSC message #%d: ", i+1, msg.Address)
+			glog.Infof("OSC message #%d: %s", i+1, msg.Address)
 		}
 	}
 	glog.Errorf("%s unimplemented", venuelib.FnName())

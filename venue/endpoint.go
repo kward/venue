@@ -235,7 +235,7 @@ func InputGain(ep router.Endpoint, pkt *router.Packet) error {
 		glog.Info(venuelib.FnName())
 	}
 	if glog.V(2) {
-		glog.Info("Adjusting input gain by %d dB.", pkt.Value)
+		glog.Infof("Adjusting input gain by %d dB.", pkt.Value)
 	}
 
 	v := ep.(*Venue)
