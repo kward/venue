@@ -5,8 +5,8 @@ os:
   - osx
 
 go:
-  # Go 1.7 required for context package.
-  - 1.7
+  # Go 1.11 required for module support.
+  - 1.11
   - tip
 
 install:

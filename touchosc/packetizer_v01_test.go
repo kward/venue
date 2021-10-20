@@ -11,7 +11,9 @@ import (
 	"github.com/kward/venue/router/signals"
 )
 
-func init() {
+func TestMain(m *testing.M) {
+	testing.Init()
+	flag.Parse()
 	if testing.Verbose() {
 		flag.Set("alsologtostderr", "true")
 		flag.Set("v", "5")
