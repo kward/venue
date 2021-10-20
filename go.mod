@@ -1,6 +1,6 @@
 module github.com/kward/venue
 
-go 1.11
+go 1.13
 
 require (
 	github.com/golang/glog v1.0.0
