@@ -1,0 +1,1 @@
+rsync -aP "${HOME}/Documents/D-Show/User Data/Effect Presets/testdata/" .
