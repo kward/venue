@@ -1,0 +1,38 @@
+// Generate proto code by running the following from the parent directory:
+// $ protoc --go_out=. proto/*.proto
+
+syntax = "proto3";
+
+package proto;
+
+option go_package = "./proto";
+
+message DShowInputChannel {
+  message Storage {
+    string token = 1;
+    int32 offset = 2;
+    bytes data = 3;
+  }
+  optional Storage storage = 1;
+
+  message Version {
+    string token = 1;
+    int32 offset = 2;
+    uint32 version = 3;
+  }
+  optional Version version = 2;
+
+  message UserComment {
+    string token = 1;
+    int32 offset = 2;
+    bytes data = 3;
+  }
+  optional UserComment userComment = 5;
+
+  message Strip {
+    string token = 1;
+    int32 offset = 2;
+    bytes data = 3;
+  }
+  optional Strip strip = 14;
+}

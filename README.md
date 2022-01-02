@@ -96,6 +96,22 @@ Notes:
 - If you are not using the default TouchOSC port of 8000, the
   `--osc_server_port` option should be added for `venue.go`.
 
+#### protobuf
+
+Install the latest version.
+
+```
+$ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+```
+
+#### bazel
+
+Download the latest release from https://github.com/bazelbuild/bazel/releases.
+
+
+
+
+
 ### Updates
 
 To update the software, repeat Installation step 3, with slight modifications.

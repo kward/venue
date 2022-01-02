@@ -10,13 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[Unknown-0]
 	_ = x[NLCString-1]
-	_ = x[CString-2]
-	_ = x[Bytes-3]
+	_ = x[Bytes-2]
 }
 
-const _Typ_name = "UnknownNLCStringCStringBytes"
+const _Typ_name = "UnknownNLCStringBytes"
 
-var _Typ_index = [...]uint8{0, 7, 16, 23, 28}
+var _Typ_index = [...]uint8{0, 7, 16, 21}
 
 func (i Typ) String() string {
 	if i < 0 || i >= Typ(len(_Typ_index)-1) {
