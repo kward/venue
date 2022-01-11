@@ -11,11 +11,13 @@ data: 6:...
 type: string
 
 ## InputStrip
+
 ### Gain
 
-range: +10.0 .. +60.0 dB
 data: 4-5
 type: uint16
+
+range: +10.0 .. +60.0 dB
 
 +10.0 0x6400
 +10.1 0x6500

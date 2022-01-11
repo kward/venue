@@ -38,29 +38,149 @@ func NewDShowInputChannel() *DShowInputChannel {
 	}
 }
 
-//-----------------------------------------------------------------------------
+//=============================================================================
 // Preset functions.
 
-// InputStrip_Gain returns the channel input gain.
-func (p *DShowInputChannel) InputStrip_Gain() float32 {
-	log.Debugf("DShowInputChannel.InputStrip_Gain()")
+//-----------------------------------------------------------------------------
+// AudioStrip
 
-	if len(p.pb.InputStrip.Bytes) < 5 {
-		return 0.0
+const phaseOffset = 0
+const phaseSize = 1
+
+// Phase returns `true` if phase flip is enabled.
+func (p *DShowInputChannel) Phase() bool {
+	log.Debugf("DShowInputChannel.Phase()")
+
+	bs := p.pb.AudioStrip.Bytes
+	if len(bs) < phaseOffset+phaseSize {
+		return false
 	}
-	b := p.pb.InputStrip.Bytes[3 : 3+2]
-	log.Tracef("  len(b): %d bytes: 0x%04x", len(b), b)
-
-	return float32(binary.LittleEndian.Uint16(b)) * 0.1
-}
-
-// StripName returns the human readable strip name.
-func (p *DShowInputChannel) Strip_Name() string {
-	return string(p.pb.Strip.Bytes[6:])
+	return bs[phaseOffset] == 1
 }
 
 //-----------------------------------------------------------------------------
-// General functions.
+// InputStrip
+
+const gainOffset = 3
+const gainSize = 2
+
+// Gain returns the amount of gain applied from 10.0 to 60.0.
+func (p *DShowInputChannel) Gain() float32 {
+	log.Debugf("DShowInputChannel.Gain()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < gainOffset+gainSize {
+		return 0.0
+	}
+	return float32(binary.LittleEndian.Uint16(bs[gainOffset:gainOffset+gainSize])) * 0.1
+}
+
+const heatOffset = 737
+const heatSize = 1
+
+// Heat returns `true` if heat is enabled.
+func (p *DShowInputChannel) Heat() bool {
+	log.Debugf("DShowInputChannel.Heat()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < heatOffset+heatSize {
+		return false
+	}
+	return bs[heatOffset] == 1
+}
+
+const padOffset = 2
+const padSize = 1
+
+// Pad returns `true` if the pad is enabled.
+func (p *DShowInputChannel) Pad() bool {
+	log.Debugf("DShowInputChannel.Pad()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < padOffset+padSize {
+		return false
+	}
+	return bs[padOffset] == 1
+}
+
+const phantomOffset = 1
+const phantomSize = 1
+
+// Phantom returns the input strip phantom state.
+func (p *DShowInputChannel) Phantom() bool {
+	log.Debugf("DShowInputChannel.Phantom()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < phantomOffset+phantomSize {
+		return false
+	}
+	return bs[phantomOffset] == 1
+}
+
+//-----------------------------------------------------------------------------
+// Strip
+
+const muteOffset = 0
+const muteSize = 1
+
+// Mute returns `true` if the mute is enabled.
+func (p *DShowInputChannel) Mute() bool {
+	log.Debugf("DShowInputChannel.Mute()")
+
+	bs := p.pb.Strip.Bytes
+	if len(bs) < muteOffset+muteSize {
+		return false
+	}
+	return bs[muteOffset] == 1
+}
+
+const nameOffset = 6
+
+// Name returns the strip name.
+func (p *DShowInputChannel) Name() string {
+	log.Debugf("DShowInputChannel.Name()")
+
+	bs := p.pb.Strip.Bytes
+	if len(bs) < nameOffset {
+		return ""
+	}
+	// The strip name comprises all remaining data bytes.
+	return string(bs[nameOffset:])
+}
+
+//-----------------------------------------------------------------------------
+// MicLine Strips
+
+const hpfOffset = 0
+const hpfSize = 1
+
+// HPF returns `true` if the high-pass filter is enabled.
+func (p *DShowInputChannel) HPF() bool {
+	log.Debugf("DShowInputChannel.HPF()")
+
+	bs := p.pb.MicLineStrips.Bytes
+	if len(bs) < hpfOffset+hpfSize {
+		return false
+	}
+	return bs[hpfOffset] == 1
+}
+
+const lpfOffset = 88
+const lpfSize = 1
+
+// LPF returns `true` if the low-pass filter is enabled.
+func (p *DShowInputChannel) LPF() bool {
+	log.Debugf("DShowInputChannel.LPF()")
+
+	bs := p.pb.MicLineStrips.Bytes
+	if len(bs) < lpfOffset+lpfSize {
+		return false
+	}
+	return bs[lpfOffset] == 1
+}
+
+//=============================================================================
+// General functions
 
 func (p *DShowInputChannel) Read(bs []byte) error {
 	log.Debugf("Read()")
@@ -186,10 +306,20 @@ func (p *DShowInputChannel) Read(bs []byte) error {
 
 // String implements fmt.Stringer.
 func (p *DShowInputChannel) String() string {
-	s := fmt.Sprintf("Strip\n")
-	s += fmt.Sprintf("  Name: %s\n", p.Strip_Name())
+	s := ""
+	s += fmt.Sprintf("AudioStrip:\n")
+	s += fmt.Sprintf("  Phase: %v\n", p.Phase())
 	s += fmt.Sprintf("InputStrip:\n")
-	s += fmt.Sprintf("  Gain: %0.1f\n", p.InputStrip_Gain())
+	s += fmt.Sprintf("  Phantom: %v\n", p.Phantom())
+	s += fmt.Sprintf("  Pad: %v\n", p.Pad())
+	s += fmt.Sprintf("  Gain: %0.1f\n", p.Gain())
+	s += fmt.Sprintf("  Heat: %v\n", p.Heat())
+	s += fmt.Sprintf("Strip\n")
+	s += fmt.Sprintf("  Name: %s\n", p.Name())
+	s += fmt.Sprintf("  Mute: %v\n", p.Mute())
+	s += fmt.Sprintf("MicLine Strips\n")
+	s += fmt.Sprintf("  HPF: %v\n", p.HPF())
+	s += fmt.Sprintf("  LPF: %v\n", p.LPF())
 	return s[:len(s)-1] // Strip trailing \n.
 }
 
