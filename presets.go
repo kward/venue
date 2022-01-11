@@ -10,6 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const testdata = "presets/testdata"
+
 func init() {
 	// log.SetLevel(log.TraceLevel)
 	log.SetLevel(log.InfoLevel)
@@ -18,7 +20,7 @@ func init() {
 func main() {
 	log.Info("VENUE presets")
 
-	fn := "presets/testdata/D-Show Input Channel/211231.00 Ch 1 Clear Console.ich"
+	fn := testdata + "/D-Show Input Channel/211231.00 Ch 1 Clear Console.ich"
 	if len(os.Args) > 1 {
 		fn = os.Args[1]
 	}
