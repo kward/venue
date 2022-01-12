@@ -59,18 +59,18 @@ func (p *DShowInputChannel) Phase() bool {
 	return bs[phaseOffset] == 1
 }
 
-const directOutOffset = 7
-const directOutSize = 1
+const delayInOffset = 2
+const delayInSize = 1
 
-// DirectOut returns `true` if the direct out is enabled.
-func (p *DShowInputChannel) DirectOut() bool {
-	log.Debugf("DShowInputChannel.DirectOut()")
+// DelayIn returns `true` if the delay is enabled.
+func (p *DShowInputChannel) DelayIn() bool {
+	log.Debugf("DShowInputChannel.DelayIn()")
 
 	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < directOutOffset+directOutSize {
+	if len(bs) < delayInOffset+delayInSize {
 		return false
 	}
-	return bs[directOutOffset] == 1
+	return bs[delayInOffset] == 1
 }
 
 const delayOffset = 3
@@ -91,22 +91,50 @@ func (p *DShowInputChannel) Delay() float32 {
 	return float32(math.Trunc(v)) / 100
 }
 
-const delayInOffset = 2
-const delayInSize = 1
+const directOutOffset = 7
+const directOutSize = 1
 
-// DelayIn returns `true` if the delay is enabled.
-func (p *DShowInputChannel) DelayIn() bool {
-	log.Debugf("DShowInputChannel.DelayIn()")
+// DirectOut returns `true` if the direct out is enabled.
+func (p *DShowInputChannel) DirectOut() bool {
+	log.Debugf("DShowInputChannel.DirectOut()")
 
 	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < delayInOffset+delayInSize {
+	if len(bs) < directOutOffset+directOutSize {
 		return false
 	}
-	return bs[delayInOffset] == 1
+	return bs[directOutOffset] == 1
 }
 
 //-----------------------------------------------------------------------------
 // InputStrip
+
+const phantomOffset = 1
+const phantomSize = 1
+
+// Phantom returns the input strip phantom state.
+func (p *DShowInputChannel) Phantom() bool {
+	log.Debugf("DShowInputChannel.Phantom()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < phantomOffset+phantomSize {
+		return false
+	}
+	return bs[phantomOffset] == 1
+}
+
+const padOffset = 2
+const padSize = 1
+
+// Pad returns `true` if the pad is enabled.
+func (p *DShowInputChannel) Pad() bool {
+	log.Debugf("DShowInputChannel.Pad()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < padOffset+padSize {
+		return false
+	}
+	return bs[padOffset] == 1
+}
 
 const gainOffset = 3
 const gainSize = 2
@@ -137,36 +165,22 @@ func (p *DShowInputChannel) Heat() bool {
 	return bs[heatOffset] == 1
 }
 
-const padOffset = 2
-const padSize = 1
-
-// Pad returns `true` if the pad is enabled.
-func (p *DShowInputChannel) Pad() bool {
-	log.Debugf("DShowInputChannel.Pad()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < padOffset+padSize {
-		return false
-	}
-	return bs[padOffset] == 1
-}
-
-const phantomOffset = 1
-const phantomSize = 1
-
-// Phantom returns the input strip phantom state.
-func (p *DShowInputChannel) Phantom() bool {
-	log.Debugf("DShowInputChannel.Phantom()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < phantomOffset+phantomSize {
-		return false
-	}
-	return bs[phantomOffset] == 1
-}
-
 //-----------------------------------------------------------------------------
 // Strip
+
+const muteOffset = 0
+const muteSize = 1
+
+// Mute returns `true` if the mute is enabled.
+func (p *DShowInputChannel) Mute() bool {
+	log.Debugf("DShowInputChannel.Mute()")
+
+	bs := p.pb.Strip.Bytes
+	if len(bs) < muteOffset+muteSize {
+		return false
+	}
+	return bs[muteOffset] == 1
+}
 
 const faderOffset = 2
 const faderSize = 4
@@ -181,20 +195,6 @@ func (p *DShowInputChannel) Fader() float32 {
 	}
 	// Divide by 10 to shift the decimal one place to the left.
 	return float32(int32(binary.LittleEndian.Uint32(bs[faderOffset:faderOffset+faderSize]))) / 10
-}
-
-const muteOffset = 0
-const muteSize = 1
-
-// Mute returns `true` if the mute is enabled.
-func (p *DShowInputChannel) Mute() bool {
-	log.Debugf("DShowInputChannel.Mute()")
-
-	bs := p.pb.Strip.Bytes
-	if len(bs) < muteOffset+muteSize {
-		return false
-	}
-	return bs[muteOffset] == 1
 }
 
 const nameOffset = 6
