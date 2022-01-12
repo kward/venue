@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"math"
 
 	"github.com/kward/venue/presets/datatypes"
 	pb "github.com/kward/venue/presets/proto"
@@ -58,6 +59,52 @@ func (p *DShowInputChannel) Phase() bool {
 	return bs[phaseOffset] == 1
 }
 
+const directOutOffset = 7
+const directOutSize = 1
+
+// DirectOut returns `true` if the direct out is enabled.
+func (p *DShowInputChannel) DirectOut() bool {
+	log.Debugf("DShowInputChannel.DirectOut()")
+
+	bs := p.pb.AudioStrip.Bytes
+	if len(bs) < directOutOffset+directOutSize {
+		return false
+	}
+	return bs[directOutOffset] == 1
+}
+
+const delayOffset = 3
+const delaySize = 2
+const delayAdj = 0.96
+
+// Delay returns the amount of delay in ms from 0.0 to 250.0.
+func (p *DShowInputChannel) Delay() float32 {
+	log.Debugf("DShowInputChannel.Delay()")
+
+	bs := p.pb.AudioStrip.Bytes
+	if len(bs) < delayOffset+delaySize {
+		return 0.0
+	}
+	// Divide by delayAdj to compensate for VENUE storing 96% of the UI value.
+	v := float64(binary.LittleEndian.Uint16(bs[delayOffset:delayOffset+delaySize])) / delayAdj
+	// Divide by 100 to shift the decimal two places to the left.
+	return float32(math.Trunc(v)) / 100
+}
+
+const delayInOffset = 2
+const delayInSize = 1
+
+// DelayIn returns `true` if the delay is enabled.
+func (p *DShowInputChannel) DelayIn() bool {
+	log.Debugf("DShowInputChannel.DelayIn()")
+
+	bs := p.pb.AudioStrip.Bytes
+	if len(bs) < delayInOffset+delayInSize {
+		return false
+	}
+	return bs[delayInOffset] == 1
+}
+
 //-----------------------------------------------------------------------------
 // InputStrip
 
@@ -72,7 +119,8 @@ func (p *DShowInputChannel) Gain() float32 {
 	if len(bs) < gainOffset+gainSize {
 		return 0.0
 	}
-	return float32(binary.LittleEndian.Uint16(bs[gainOffset:gainOffset+gainSize])) * 0.1
+	// Divide by 10 to shift the decimal one place to the left.
+	return float32(binary.LittleEndian.Uint16(bs[gainOffset:gainOffset+gainSize])) / 10
 }
 
 const heatOffset = 737
@@ -119,6 +167,21 @@ func (p *DShowInputChannel) Phantom() bool {
 
 //-----------------------------------------------------------------------------
 // Strip
+
+const faderOffset = 2
+const faderSize = 4
+
+// Fader returns the fader value in dB.
+func (p *DShowInputChannel) Fader() float32 {
+	log.Debugf("DShowInputChannel.Fader()")
+
+	bs := p.pb.Strip.Bytes
+	if len(bs) < faderOffset+faderSize {
+		return 0.0
+	}
+	// Divide by 10 to shift the decimal one place to the left.
+	return float32(int32(binary.LittleEndian.Uint32(bs[faderOffset:faderOffset+faderSize]))) / 10
+}
 
 const muteOffset = 0
 const muteSize = 1

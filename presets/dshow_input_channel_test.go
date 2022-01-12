@@ -9,13 +9,59 @@ var audioStrip = []struct {
 	desc string
 	data []byte
 
-	phase bool
+	delayIn   bool
+	delay     float32
+	directOut bool
+	phase     bool
 }{
 	// phase
 	{desc: "phase_off", phase: false,
 		data: []byte{0x00}},
 	{desc: "phase_on", phase: true,
 		data: []byte{0x01}},
+	// delay in
+	{desc: "delay_out", delayIn: false,
+		data: append(make([]byte, delayInOffset), []byte{0x00}...)},
+	{desc: "delay_in", delayIn: true,
+		data: append(make([]byte, delayInOffset), []byte{0x01}...)},
+	// delay
+	{desc: "delay_0.0", delay: 0.0,
+		data: append(make([]byte, delayOffset), []byte{0x00, 0x00}...)},
+	{desc: "delay_0.1", delay: 0.1,
+		data: append(make([]byte, delayOffset), []byte{0x0a, 0x00}...)},
+	{desc: "delay_1.0", delay: 1.0,
+		data: append(make([]byte, delayOffset), []byte{0x60, 0x00}...)},
+	{desc: "delay_10.0", delay: 10.0,
+		data: append(make([]byte, delayOffset), []byte{0xc0, 0x03}...)},
+	{desc: "delay_100", delay: 100.0,
+		data: append(make([]byte, delayOffset), []byte{0x80, 0x25}...)},
+	{desc: "delay_250", delay: 250.0,
+		data: append(make([]byte, delayOffset), []byte{0xc0, 0x5d}...)},
+	// direct out
+	{desc: "direct_out_off", directOut: false,
+		data: append(make([]byte, directOutOffset), []byte{0x00}...)},
+	{desc: "direct_out_on", directOut: true,
+		data: append(make([]byte, directOutOffset), []byte{0x01}...)},
+}
+
+func TestDelay(t *testing.T) {
+	p := NewDShowInputChannel()
+	for _, tt := range audioStrip {
+		p.pb.AudioStrip.Bytes = tt.data
+		if got, want := p.Delay(), tt.delay; got != want {
+			t.Errorf("%s: Delay() = %v, want %v", tt.desc, got, want)
+		}
+	}
+}
+
+func TestDirectOut(t *testing.T) {
+	p := NewDShowInputChannel()
+	for _, tt := range audioStrip {
+		p.pb.AudioStrip.Bytes = tt.data
+		if got, want := p.DirectOut(), tt.directOut; got != want {
+			t.Errorf("%s: DirectOut() = %v, want %v", tt.desc, got, want)
+		}
+	}
 }
 
 func TestPhase(t *testing.T) {
@@ -109,20 +155,42 @@ var strip = []struct {
 	desc string
 	data []byte
 
-	mute bool
-	name string
+	fader float32
+	mute  bool
+	name  string
 }{
 	// mute
 	{desc: "mute_off", mute: false,
 		data: []byte{0x00}},
 	{desc: "mute_on", mute: true,
 		data: []byte{0x01}},
+	// fader
+	{desc: "fader_-INF", fader: -144.0,
+		data: append(make([]byte, faderOffset), []byte{0x60, 0xfa, 0xff, 0xff}...)},
+	{desc: "fader_-131", fader: -131.2,
+		data: append(make([]byte, faderOffset), []byte{0xe0, 0xfa, 0xff, 0xff}...)},
+	{desc: "fader_-114", fader: -114.2,
+		data: append(make([]byte, faderOffset), []byte{0x8a, 0xfb, 0xff, 0xff}...)},
+	{desc: "fader_0.0", fader: 0.0,
+		data: append(make([]byte, faderOffset), []byte{0x00, 0x00, 0x00, 0x00}...)},
+	{desc: "fader_12.0", fader: 12.0,
+		data: append(make([]byte, faderOffset), []byte{0x78, 0x00, 0x00, 0x00}...)},
 	// name
-	{desc: "ch_1", name: "Ch 1",
+	{desc: "name_ch_1", name: "Ch 1",
 		data: append(make([]byte, nameOffset), []byte{0x43, 0x68, 0x20, 0x31}...)},
 	// general
 	{desc: "empty",
 		data: []byte{}},
+}
+
+func TestFader(t *testing.T) {
+	p := NewDShowInputChannel()
+	for _, tt := range strip {
+		p.pb.Strip.Bytes = tt.data
+		if got, want := p.Fader(), tt.fader; got != want {
+			t.Errorf("%s: Fader() = %v, want %v", tt.desc, got, want)
+		}
+	}
 }
 
 func TestMute(t *testing.T) {
