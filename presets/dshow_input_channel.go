@@ -60,17 +60,11 @@ func (p *DShowInputChannel) Phase() bool {
 }
 
 const delayInOffset = 2
-const delayInSize = 1
 
 // DelayIn returns `true` if the delay is enabled.
 func (p *DShowInputChannel) DelayIn() bool {
 	log.Debugf("DShowInputChannel.DelayIn()")
-
-	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < delayInOffset+delayInSize {
-		return false
-	}
-	return bs[delayInOffset] == 1
+	return readBool(p.pb.AudioStrip.Bytes, delayInOffset)
 }
 
 const delayOffset = 3
@@ -91,49 +85,60 @@ func (p *DShowInputChannel) Delay() float32 {
 	return float32(math.Trunc(v)) / 100
 }
 
-const directOutOffset = 7
-const directOutSize = 1
+const directOutInOffset = 7
 
-// DirectOut returns `true` if the direct out is enabled.
-func (p *DShowInputChannel) DirectOut() bool {
+// DirectOutIn returns `true` if the direct out is enabled.
+func (p *DShowInputChannel) DirectOutIn() bool {
+	log.Debugf("DShowInputChannel.DirectOutIn()")
+	return readBool(p.pb.AudioStrip.Bytes, directOutInOffset)
+}
+
+const directOutOffset = 11
+const directOutSize = 4
+
+// DirectOut returns the direct out value.
+func (p *DShowInputChannel) DirectOut() float32 {
 	log.Debugf("DShowInputChannel.DirectOut()")
 
 	bs := p.pb.AudioStrip.Bytes
 	if len(bs) < directOutOffset+directOutSize {
-		return false
+		return 0
 	}
-	return bs[directOutOffset] == 1
+	// Divide by 10 to shift the decimal one place to the left.
+	return float32(int32(binary.LittleEndian.Uint32(bs[directOutOffset:directOutOffset+directOutSize]))) / 10
+}
+
+const panOffset = 17
+const panSize = 4
+
+// Pan returns the pan value.
+func (p *DShowInputChannel) Pan() int32 {
+	log.Debugf("DShowInputChannel.Pan()")
+
+	bs := p.pb.AudioStrip.Bytes
+	if len(bs) < panOffset+panSize {
+		return 0
+	}
+	return int32(binary.LittleEndian.Uint32(bs[panOffset : panOffset+panSize]))
 }
 
 //-----------------------------------------------------------------------------
 // InputStrip
 
 const phantomOffset = 1
-const phantomSize = 1
 
 // Phantom returns the input strip phantom state.
 func (p *DShowInputChannel) Phantom() bool {
 	log.Debugf("DShowInputChannel.Phantom()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < phantomOffset+phantomSize {
-		return false
-	}
-	return bs[phantomOffset] == 1
+	return readBool(p.pb.InputStrip.Bytes, phantomOffset)
 }
 
 const padOffset = 2
-const padSize = 1
 
 // Pad returns `true` if the pad is enabled.
 func (p *DShowInputChannel) Pad() bool {
 	log.Debugf("DShowInputChannel.Pad()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < padOffset+padSize {
-		return false
-	}
-	return bs[padOffset] == 1
+	return readBool(p.pb.InputStrip.Bytes, padOffset)
 }
 
 const gainOffset = 3
@@ -151,35 +156,58 @@ func (p *DShowInputChannel) Gain() float32 {
 	return float32(binary.LittleEndian.Uint16(bs[gainOffset:gainOffset+gainSize])) / 10
 }
 
-const heatOffset = 737
-const heatSize = 1
+const eqInOffset = 14
 
-// Heat returns `true` if heat is enabled.
-func (p *DShowInputChannel) Heat() bool {
-	log.Debugf("DShowInputChannel.Heat()")
+func (p *DShowInputChannel) EQIn() bool {
+	log.Debugf("DShowInputChannel.EQIn()")
+	return readBool(p.pb.InputStrip.Bytes, eqInOffset)
+}
+
+const heatInOffset = 737
+
+// HeatIn returns `true` if heat is enabled.
+func (p *DShowInputChannel) HeatIn() bool {
+	log.Debugf("DShowInputChannel.HeatIn()")
+	return readBool(p.pb.InputStrip.Bytes, heatInOffset)
+}
+
+const driveOffset = 738
+const driveSize = 4
+
+// Drive returns the drive value.
+func (p *DShowInputChannel) Drive() int16 {
+	log.Debugf("DShowInputChannel.Drive()")
 
 	bs := p.pb.InputStrip.Bytes
-	if len(bs) < heatOffset+heatSize {
-		return false
+	if len(bs) < driveOffset+driveSize {
+		return 0
 	}
-	return bs[heatOffset] == 1
+	return int16(binary.LittleEndian.Uint32(bs[driveOffset : driveOffset+driveSize]))
+}
+
+const toneOffset = 742
+const toneSize = 4
+
+// Tone returns the tone value.
+func (p *DShowInputChannel) Tone() int32 {
+	log.Debugf("DShowInputChannel.Tone()")
+
+	bs := p.pb.InputStrip.Bytes
+	if len(bs) < toneOffset+toneSize {
+		return 0
+	}
+	return int32(binary.LittleEndian.Uint32(bs[toneOffset : toneOffset+toneSize]))
 }
 
 //-----------------------------------------------------------------------------
 // Strip
 
 const muteOffset = 0
-const muteSize = 1
 
 // Mute returns `true` if the mute is enabled.
 func (p *DShowInputChannel) Mute() bool {
 	log.Debugf("DShowInputChannel.Mute()")
-
-	bs := p.pb.Strip.Bytes
-	if len(bs) < muteOffset+muteSize {
-		return false
-	}
-	return bs[muteOffset] == 1
+	return readBool(p.pb.Strip.Bytes, muteOffset)
 }
 
 const faderOffset = 2
@@ -214,32 +242,48 @@ func (p *DShowInputChannel) Name() string {
 //-----------------------------------------------------------------------------
 // MicLine Strips
 
-const hpfOffset = 0
-const hpfSize = 1
+const hpfInOffset = 0
 
-// HPF returns `true` if the high-pass filter is enabled.
-func (p *DShowInputChannel) HPF() bool {
+// HPFIn returns `true` if the high-pass filter is enabled.
+func (p *DShowInputChannel) HPFIn() bool {
+	log.Debugf("DShowInputChannel.HPFIn()")
+	return readBool(p.pb.MicLineStrips.Bytes, hpfInOffset)
+}
+
+const hpfOffset = 1
+const hpfSize = 2
+
+// HPF returns the high-pass filter value.
+func (p *DShowInputChannel) HPF() int16 {
 	log.Debugf("DShowInputChannel.HPF()")
 
 	bs := p.pb.MicLineStrips.Bytes
 	if len(bs) < hpfOffset+hpfSize {
-		return false
+		return 0
 	}
-	return bs[hpfOffset] == 1
+	return int16(binary.LittleEndian.Uint16(bs[hpfOffset : hpfOffset+hpfSize]))
 }
 
-const lpfOffset = 88
-const lpfSize = 1
+const lpfInOffset = 88
 
-// LPF returns `true` if the low-pass filter is enabled.
-func (p *DShowInputChannel) LPF() bool {
+// LPFIn returns `true` if the low-pass filter is enabled.
+func (p *DShowInputChannel) LPFIn() bool {
+	log.Debugf("DShowInputChannel.LPFIn()")
+	return readBool(p.pb.MicLineStrips.Bytes, lpfInOffset)
+}
+
+const lpfOffset = 89
+const lpfSize = 2
+
+// LPF returns the low-pass filter value.
+func (p *DShowInputChannel) LPF() int16 {
 	log.Debugf("DShowInputChannel.LPF()")
 
 	bs := p.pb.MicLineStrips.Bytes
 	if len(bs) < lpfOffset+lpfSize {
-		return false
+		return 0
 	}
-	return bs[lpfOffset] == 1
+	return int16(binary.LittleEndian.Uint16(bs[lpfOffset : lpfOffset+lpfSize]))
 }
 
 //=============================================================================
@@ -258,7 +302,7 @@ func (p *DShowInputChannel) Read(bs []byte) error {
 		switch dt {
 
 		case datatypes.Token:
-			t, c, err := p.readToken(bs, i+1)
+			t, c, err := readToken(bs, i+1)
 			if err != nil {
 				log.Errorf("%s error: %s", datatypes.Token, err)
 				break // TODO: need to handle better
@@ -282,7 +326,7 @@ func (p *DShowInputChannel) Read(bs []byte) error {
 			}
 
 		case datatypes.TokenCount:
-			v, c, err := p.readInt32(bs, i+1)
+			v, c, err := readInt32(bs, i+1)
 			if err != nil {
 				log.Errorf("%s error: %s", datatypes.TokenCount, err)
 				break // TODO: need to handle better
@@ -292,14 +336,14 @@ func (p *DShowInputChannel) Read(bs []byte) error {
 			i += c
 
 		case datatypes.Bytes:
-			v, c, err := p.readInt32(bs, i+1)
+			v, c, err := readInt32(bs, i+1)
 			if err != nil {
 				log.Errorf("%s error: %s", datatypes.Bytes, err)
 				break // TODO: need to handle better
 			}
 			i += c
 
-			b, c, err := p.readBytes(bs, i+1, int(v))
+			b, c, err := readBytes(bs, i+1, int(v))
 			if err != nil {
 				log.Errorf("%s error: %s", datatypes.Bytes, err)
 				break // TODO: need to handle better
@@ -343,7 +387,7 @@ func (p *DShowInputChannel) Read(bs []byte) error {
 			}
 
 		case datatypes.Int32:
-			v, c, err := p.readInt32(bs, i+1)
+			v, c, err := readInt32(bs, i+1)
 			if err != nil {
 				log.Errorf("%s error: %s", datatypes.Int32, err)
 				break // TODO: need to handle better
@@ -372,29 +416,58 @@ func (p *DShowInputChannel) String() string {
 	s := ""
 	s += fmt.Sprintf("AudioStrip:\n")
 	s += fmt.Sprintf("  Phase: %v\n", p.Phase())
+	s += fmt.Sprintf("  Delay In: %v\n", p.DelayIn())
+	s += fmt.Sprintf("  Delay: %v\n", p.Delay())
+	s += fmt.Sprintf("  DirectOut In: %v\n", p.DirectOutIn())
+	s += fmt.Sprintf("  DirectOut: %v\n", p.DirectOut())
+	s += fmt.Sprintf("  Pan: %v\n", p.Pan())
 	s += fmt.Sprintf("InputStrip:\n")
 	s += fmt.Sprintf("  Phantom: %v\n", p.Phantom())
 	s += fmt.Sprintf("  Pad: %v\n", p.Pad())
 	s += fmt.Sprintf("  Gain: %0.1f\n", p.Gain())
-	s += fmt.Sprintf("  Heat: %v\n", p.Heat())
+	s += fmt.Sprintf("  EQ In: %v\n", p.EQIn())
+	s += fmt.Sprintf("  Heat In: %v\n", p.HeatIn())
+	s += fmt.Sprintf("  Drive: %v\n", p.Drive())
+	s += fmt.Sprintf("  Tone: %v\n", p.Tone())
 	s += fmt.Sprintf("Strip\n")
-	s += fmt.Sprintf("  Name: %s\n", p.Name())
 	s += fmt.Sprintf("  Mute: %v\n", p.Mute())
+	s += fmt.Sprintf("  Fader: %v\n", p.Fader())
+	s += fmt.Sprintf("  Name: %s\n", p.Name())
 	s += fmt.Sprintf("MicLine Strips\n")
+	s += fmt.Sprintf("  HPF In: %v\n", p.HPFIn())
 	s += fmt.Sprintf("  HPF: %v\n", p.HPF())
+	s += fmt.Sprintf("  LPF In: %v\n", p.LPFIn())
 	s += fmt.Sprintf("  LPF: %v\n", p.LPF())
 	return s[:len(s)-1] // Strip trailing \n.
 }
 
-// readBytes reads byte data.
-func (p *DShowInputChannel) readBytes(bs []byte, o, c int) ([]byte, int, error) {
+//=============================================================================
+// Local functions.
+
+func clen(bs []byte) int {
+	for i := 0; i < len(bs); i++ {
+		if bs[i] == 0x00 {
+			return i
+		}
+	}
+	return len(bs)
+}
+
+func readBool(bs []byte, offset int) bool {
+	if len(bs) < offset+1 {
+		return false
+	}
+	return bs[offset] == 1
+}
+
+func readBytes(bs []byte, o, c int) ([]byte, int, error) {
 	log.Debugf("readBytes()")
 	log.Tracef("  offset: 0x%04x", o)
 	log.Tracef("  len: %d", c)
 	return bs[o : o+c], c, nil
 }
 
-func (p *DShowInputChannel) readInt32(bs []byte, o int) (int32, int, error) {
+func readInt32(bs []byte, o int) (int32, int, error) {
 	log.Debugf("readInt32()")
 	log.Tracef("  offset: 0x%04x", o)
 
@@ -408,7 +481,7 @@ func (p *DShowInputChannel) readInt32(bs []byte, o int) (int32, int, error) {
 	return i, 4, nil
 }
 
-func (p *DShowInputChannel) readToken(bs []byte, o int) (string, int, error) {
+func readToken(bs []byte, o int) (string, int, error) {
 	log.Debugf("readToken()")
 	log.Tracef("  offset: 0x%04x", o)
 
@@ -416,13 +489,4 @@ func (p *DShowInputChannel) readToken(bs []byte, o int) (string, int, error) {
 
 	log.Tracef("  token: %q", t)
 	return string(t), len(t) + 1, nil
-}
-
-func clen(bs []byte) int {
-	for i := 0; i < len(bs); i++ {
-		if bs[i] == 0x00 {
-			return i
-		}
-	}
-	return len(bs)
 }
