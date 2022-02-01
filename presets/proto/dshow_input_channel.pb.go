@@ -23,102 +23,19 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Data struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Bytes []byte `protobuf:"bytes,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
-	Int32 int32  `protobuf:"varint,3,opt,name=int32,proto3" json:"int32,omitempty"`
-	Str   string `protobuf:"bytes,4,opt,name=str,proto3" json:"str,omitempty"`
-}
-
-func (x *Data) Reset() {
-	*x = Data{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_dshow_input_channel_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Data) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Data) ProtoMessage() {}
-
-func (x *Data) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_dshow_input_channel_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Data.ProtoReflect.Descriptor instead.
-func (*Data) Descriptor() ([]byte, []int) {
-	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *Data) GetToken() string {
-	if x != nil {
-		return x.Token
-	}
-	return ""
-}
-
-func (x *Data) GetBytes() []byte {
-	if x != nil {
-		return x.Bytes
-	}
-	return nil
-}
-
-func (x *Data) GetInt32() int32 {
-	if x != nil {
-		return x.Int32
-	}
-	return 0
-}
-
-func (x *Data) GetStr() string {
-	if x != nil {
-		return x.Str
-	}
-	return ""
-}
-
 type DShowInputChannel struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Header            *Data `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
-	Version           *Data `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	FileType          *Data `protobuf:"bytes,3,opt,name=fileType,proto3" json:"fileType,omitempty"`
-	UserComment       *Data `protobuf:"bytes,4,opt,name=userComment,proto3" json:"userComment,omitempty"`
-	AudioMasterStrip  *Data `protobuf:"bytes,5,opt,name=audioMasterStrip,proto3" json:"audioMasterStrip,omitempty"`
-	AudioStrip        *Data `protobuf:"bytes,6,opt,name=audioStrip,proto3" json:"audioStrip,omitempty"`
-	AuxBussesOptions  *Data `protobuf:"bytes,7,opt,name=auxBussesOptions,proto3" json:"auxBussesOptions,omitempty"`
-	AuxBussesOptions2 *Data `protobuf:"bytes,8,opt,name=auxBussesOptions2,proto3" json:"auxBussesOptions2,omitempty"`
-	BusConfigMode     *Data `protobuf:"bytes,9,opt,name=busConfigMode,proto3" json:"busConfigMode,omitempty"`
-	InputStrip        *Data `protobuf:"bytes,10,opt,name=inputStrip,proto3" json:"inputStrip,omitempty"`
-	MatrixMasterStrip *Data `protobuf:"bytes,11,opt,name=matrixMasterStrip,proto3" json:"matrixMasterStrip,omitempty"`
-	MicLineStrips     *Data `protobuf:"bytes,12,opt,name=micLineStrips,proto3" json:"micLineStrips,omitempty"`
-	Strip             *Data `protobuf:"bytes,13,opt,name=strip,proto3" json:"strip,omitempty"`
-	StripType         *Data `protobuf:"bytes,14,opt,name=stripType,proto3" json:"stripType,omitempty"`
+	Header *DShowInputChannel_Header `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
+	Body   *DShowInputChannel_Body   `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 }
 
 func (x *DShowInputChannel) Reset() {
 	*x = DShowInputChannel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_dshow_input_channel_proto_msgTypes[1]
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -131,7 +48,7 @@ func (x *DShowInputChannel) String() string {
 func (*DShowInputChannel) ProtoMessage() {}
 
 func (x *DShowInputChannel) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_dshow_input_channel_proto_msgTypes[1]
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,105 +61,873 @@ func (x *DShowInputChannel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DShowInputChannel.ProtoReflect.Descriptor instead.
 func (*DShowInputChannel) Descriptor() ([]byte, []int) {
-	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{1}
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *DShowInputChannel) GetHeader() *Data {
+func (x *DShowInputChannel) GetHeader() *DShowInputChannel_Header {
 	if x != nil {
 		return x.Header
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetVersion() *Data {
+func (x *DShowInputChannel) GetBody() *DShowInputChannel_Body {
+	if x != nil {
+		return x.Body
+	}
+	return nil
+}
+
+type DShowInputChannel_Header struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Token      string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`            // Digidesign Storage - 1.0
+	TokenCount int32  `protobuf:"varint,2,opt,name=tokenCount,proto3" json:"tokenCount,omitempty"` // 3
+	// 1.0
+	Version     int32  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	FileType    string `protobuf:"bytes,4,opt,name=fileType,proto3" json:"fileType,omitempty"`
+	UserComment string `protobuf:"bytes,5,opt,name=userComment,proto3" json:"userComment,omitempty"`
+}
+
+func (x *DShowInputChannel_Header) Reset() {
+	*x = DShowInputChannel_Header{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_Header) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_Header) ProtoMessage() {}
+
+func (x *DShowInputChannel_Header) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_Header.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_Header) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *DShowInputChannel_Header) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *DShowInputChannel_Header) GetTokenCount() int32 {
+	if x != nil {
+		return x.TokenCount
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_Header) GetVersion() int32 {
 	if x != nil {
 		return x.Version
 	}
-	return nil
+	return 0
 }
 
-func (x *DShowInputChannel) GetFileType() *Data {
+func (x *DShowInputChannel_Header) GetFileType() string {
 	if x != nil {
 		return x.FileType
 	}
-	return nil
+	return ""
 }
 
-func (x *DShowInputChannel) GetUserComment() *Data {
+func (x *DShowInputChannel_Header) GetUserComment() string {
 	if x != nil {
 		return x.UserComment
+	}
+	return ""
+}
+
+type DShowInputChannel_AudioMasterStrip struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_AudioMasterStrip) Reset() {
+	*x = DShowInputChannel_AudioMasterStrip{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_AudioMasterStrip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_AudioMasterStrip) ProtoMessage() {}
+
+func (x *DShowInputChannel_AudioMasterStrip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_AudioMasterStrip.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_AudioMasterStrip) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 1}
+}
+
+type DShowInputChannel_AudioStrip struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_AudioStrip) Reset() {
+	*x = DShowInputChannel_AudioStrip{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_AudioStrip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_AudioStrip) ProtoMessage() {}
+
+func (x *DShowInputChannel_AudioStrip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_AudioStrip.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_AudioStrip) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 2}
+}
+
+type DShowInputChannel_AuxBussesOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_AuxBussesOptions) Reset() {
+	*x = DShowInputChannel_AuxBussesOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_AuxBussesOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_AuxBussesOptions) ProtoMessage() {}
+
+func (x *DShowInputChannel_AuxBussesOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_AuxBussesOptions.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_AuxBussesOptions) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 3}
+}
+
+type DShowInputChannel_AuxBussesOptions2 struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_AuxBussesOptions2) Reset() {
+	*x = DShowInputChannel_AuxBussesOptions2{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_AuxBussesOptions2) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_AuxBussesOptions2) ProtoMessage() {}
+
+func (x *DShowInputChannel_AuxBussesOptions2) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_AuxBussesOptions2.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_AuxBussesOptions2) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 4}
+}
+
+type DShowInputChannel_BusConfigMode struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_BusConfigMode) Reset() {
+	*x = DShowInputChannel_BusConfigMode{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_BusConfigMode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_BusConfigMode) ProtoMessage() {}
+
+func (x *DShowInputChannel_BusConfigMode) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_BusConfigMode.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_BusConfigMode) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 5}
+}
+
+type DShowInputChannel_InputStrip struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Phantom bool                             `protobuf:"varint,1,opt,name=phantom,proto3" json:"phantom,omitempty"`
+	Pad     bool                             `protobuf:"varint,2,opt,name=pad,proto3" json:"pad,omitempty"`
+	Gain    float32                          `protobuf:"fixed32,3,opt,name=gain,proto3" json:"gain,omitempty"`
+	EqIn    bool                             `protobuf:"varint,4,opt,name=eqIn,proto3" json:"eqIn,omitempty"`
+	Eq      *DShowInputChannel_InputStrip_EQ `protobuf:"bytes,5,opt,name=eq,proto3" json:"eq,omitempty"`
+	Heat    bool                             `protobuf:"varint,6,opt,name=heat,proto3" json:"heat,omitempty"`
+	Drive   int32                            `protobuf:"varint,7,opt,name=drive,proto3" json:"drive,omitempty"`
+	Tone    int32                            `protobuf:"varint,8,opt,name=tone,proto3" json:"tone,omitempty"`
+}
+
+func (x *DShowInputChannel_InputStrip) Reset() {
+	*x = DShowInputChannel_InputStrip{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_InputStrip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_InputStrip) ProtoMessage() {}
+
+func (x *DShowInputChannel_InputStrip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_InputStrip.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_InputStrip) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 6}
+}
+
+func (x *DShowInputChannel_InputStrip) GetPhantom() bool {
+	if x != nil {
+		return x.Phantom
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip) GetPad() bool {
+	if x != nil {
+		return x.Pad
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip) GetGain() float32 {
+	if x != nil {
+		return x.Gain
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip) GetEqIn() bool {
+	if x != nil {
+		return x.EqIn
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip) GetEq() *DShowInputChannel_InputStrip_EQ {
+	if x != nil {
+		return x.Eq
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetAudioMasterStrip() *Data {
+func (x *DShowInputChannel_InputStrip) GetHeat() bool {
+	if x != nil {
+		return x.Heat
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip) GetDrive() int32 {
+	if x != nil {
+		return x.Drive
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip) GetTone() int32 {
+	if x != nil {
+		return x.Tone
+	}
+	return 0
+}
+
+type DShowInputChannel_MatrixMasterStrip struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_MatrixMasterStrip) Reset() {
+	*x = DShowInputChannel_MatrixMasterStrip{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_MatrixMasterStrip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_MatrixMasterStrip) ProtoMessage() {}
+
+func (x *DShowInputChannel_MatrixMasterStrip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_MatrixMasterStrip.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_MatrixMasterStrip) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 7}
+}
+
+type DShowInputChannel_MicLineStrips struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_MicLineStrips) Reset() {
+	*x = DShowInputChannel_MicLineStrips{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_MicLineStrips) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_MicLineStrips) ProtoMessage() {}
+
+func (x *DShowInputChannel_MicLineStrips) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_MicLineStrips.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_MicLineStrips) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 8}
+}
+
+type DShowInputChannel_Strip struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_Strip) Reset() {
+	*x = DShowInputChannel_Strip{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_Strip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_Strip) ProtoMessage() {}
+
+func (x *DShowInputChannel_Strip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_Strip.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_Strip) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 9}
+}
+
+type DShowInputChannel_StripType struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DShowInputChannel_StripType) Reset() {
+	*x = DShowInputChannel_StripType{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_StripType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_StripType) ProtoMessage() {}
+
+func (x *DShowInputChannel_StripType) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_StripType.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_StripType) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 10}
+}
+
+// Body
+type DShowInputChannel_Body struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TokenCount        int32                                `protobuf:"varint,1,opt,name=tokenCount,proto3" json:"tokenCount,omitempty"` // 10
+	AudioMasterStrip  *DShowInputChannel_AudioMasterStrip  `protobuf:"bytes,2,opt,name=audioMasterStrip,proto3" json:"audioMasterStrip,omitempty"`
+	AudioStrip        *DShowInputChannel_AudioStrip        `protobuf:"bytes,3,opt,name=audioStrip,proto3" json:"audioStrip,omitempty"`
+	AuxBussesOptions  *DShowInputChannel_AuxBussesOptions  `protobuf:"bytes,4,opt,name=auxBussesOptions,proto3" json:"auxBussesOptions,omitempty"`
+	AuxBussesOptions2 *DShowInputChannel_AuxBussesOptions2 `protobuf:"bytes,5,opt,name=auxBussesOptions2,proto3" json:"auxBussesOptions2,omitempty"`
+	BusConfigMode     *DShowInputChannel_BusConfigMode     `protobuf:"bytes,6,opt,name=busConfigMode,proto3" json:"busConfigMode,omitempty"`
+	InputStrip        *DShowInputChannel_InputStrip        `protobuf:"bytes,7,opt,name=inputStrip,proto3" json:"inputStrip,omitempty"`
+	MatrixMasterStrip *DShowInputChannel_MatrixMasterStrip `protobuf:"bytes,8,opt,name=matrixMasterStrip,proto3" json:"matrixMasterStrip,omitempty"`
+	MicLineStrips     *DShowInputChannel_MicLineStrips     `protobuf:"bytes,9,opt,name=micLineStrips,proto3" json:"micLineStrips,omitempty"`
+	Strip             *DShowInputChannel_Strip             `protobuf:"bytes,10,opt,name=strip,proto3" json:"strip,omitempty"`
+	StripType         *DShowInputChannel_StripType         `protobuf:"bytes,11,opt,name=stripType,proto3" json:"stripType,omitempty"`
+}
+
+func (x *DShowInputChannel_Body) Reset() {
+	*x = DShowInputChannel_Body{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_Body) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_Body) ProtoMessage() {}
+
+func (x *DShowInputChannel_Body) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_Body.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_Body) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 11}
+}
+
+func (x *DShowInputChannel_Body) GetTokenCount() int32 {
+	if x != nil {
+		return x.TokenCount
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_Body) GetAudioMasterStrip() *DShowInputChannel_AudioMasterStrip {
 	if x != nil {
 		return x.AudioMasterStrip
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetAudioStrip() *Data {
+func (x *DShowInputChannel_Body) GetAudioStrip() *DShowInputChannel_AudioStrip {
 	if x != nil {
 		return x.AudioStrip
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetAuxBussesOptions() *Data {
+func (x *DShowInputChannel_Body) GetAuxBussesOptions() *DShowInputChannel_AuxBussesOptions {
 	if x != nil {
 		return x.AuxBussesOptions
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetAuxBussesOptions2() *Data {
+func (x *DShowInputChannel_Body) GetAuxBussesOptions2() *DShowInputChannel_AuxBussesOptions2 {
 	if x != nil {
 		return x.AuxBussesOptions2
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetBusConfigMode() *Data {
+func (x *DShowInputChannel_Body) GetBusConfigMode() *DShowInputChannel_BusConfigMode {
 	if x != nil {
 		return x.BusConfigMode
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetInputStrip() *Data {
+func (x *DShowInputChannel_Body) GetInputStrip() *DShowInputChannel_InputStrip {
 	if x != nil {
 		return x.InputStrip
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetMatrixMasterStrip() *Data {
+func (x *DShowInputChannel_Body) GetMatrixMasterStrip() *DShowInputChannel_MatrixMasterStrip {
 	if x != nil {
 		return x.MatrixMasterStrip
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetMicLineStrips() *Data {
+func (x *DShowInputChannel_Body) GetMicLineStrips() *DShowInputChannel_MicLineStrips {
 	if x != nil {
 		return x.MicLineStrips
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetStrip() *Data {
+func (x *DShowInputChannel_Body) GetStrip() *DShowInputChannel_Strip {
 	if x != nil {
 		return x.Strip
 	}
 	return nil
 }
 
-func (x *DShowInputChannel) GetStripType() *Data {
+func (x *DShowInputChannel_Body) GetStripType() *DShowInputChannel_StripType {
 	if x != nil {
 		return x.StripType
 	}
 	return nil
+}
+
+type DShowInputChannel_InputStrip_EQ struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LowIn       bool    `protobuf:"varint,1,opt,name=lowIn,proto3" json:"lowIn,omitempty"`
+	LowType     int32   `protobuf:"varint,2,opt,name=lowType,proto3" json:"lowType,omitempty"`
+	LowGain     float32 `protobuf:"fixed32,3,opt,name=lowGain,proto3" json:"lowGain,omitempty"`
+	LowFreq     int32   `protobuf:"varint,4,opt,name=lowFreq,proto3" json:"lowFreq,omitempty"`
+	LowQ        float32 `protobuf:"fixed32,5,opt,name=lowQ,proto3" json:"lowQ,omitempty"`
+	LowMidIn    bool    `protobuf:"varint,6,opt,name=lowMidIn,proto3" json:"lowMidIn,omitempty"`
+	LowMidType  int32   `protobuf:"varint,7,opt,name=lowMidType,proto3" json:"lowMidType,omitempty"`
+	LowMidGain  float32 `protobuf:"fixed32,8,opt,name=lowMidGain,proto3" json:"lowMidGain,omitempty"`
+	LowMidFreq  int32   `protobuf:"varint,9,opt,name=lowMidFreq,proto3" json:"lowMidFreq,omitempty"`
+	LowMidQ     float32 `protobuf:"fixed32,10,opt,name=lowMidQ,proto3" json:"lowMidQ,omitempty"`
+	HighMidIn   bool    `protobuf:"varint,11,opt,name=highMidIn,proto3" json:"highMidIn,omitempty"`
+	HighMidType int32   `protobuf:"varint,12,opt,name=highMidType,proto3" json:"highMidType,omitempty"`
+	HighMidGain float32 `protobuf:"fixed32,13,opt,name=highMidGain,proto3" json:"highMidGain,omitempty"`
+	HighMidFreq int32   `protobuf:"varint,14,opt,name=highMidFreq,proto3" json:"highMidFreq,omitempty"`
+	HighMidQ    float32 `protobuf:"fixed32,15,opt,name=highMidQ,proto3" json:"highMidQ,omitempty"`
+	HighIn      bool    `protobuf:"varint,16,opt,name=highIn,proto3" json:"highIn,omitempty"`
+	HighType    int32   `protobuf:"varint,17,opt,name=highType,proto3" json:"highType,omitempty"`
+	HighGain    float32 `protobuf:"fixed32,18,opt,name=highGain,proto3" json:"highGain,omitempty"`
+	HighFreq    int32   `protobuf:"varint,19,opt,name=highFreq,proto3" json:"highFreq,omitempty"`
+	HighQ       float32 `protobuf:"fixed32,20,opt,name=highQ,proto3" json:"highQ,omitempty"`
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) Reset() {
+	*x = DShowInputChannel_InputStrip_EQ{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_dshow_input_channel_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DShowInputChannel_InputStrip_EQ) ProtoMessage() {}
+
+func (x *DShowInputChannel_InputStrip_EQ) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_dshow_input_channel_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DShowInputChannel_InputStrip_EQ.ProtoReflect.Descriptor instead.
+func (*DShowInputChannel_InputStrip_EQ) Descriptor() ([]byte, []int) {
+	return file_proto_dshow_input_channel_proto_rawDescGZIP(), []int{0, 6, 0}
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowIn() bool {
+	if x != nil {
+		return x.LowIn
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowType() int32 {
+	if x != nil {
+		return x.LowType
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowGain() float32 {
+	if x != nil {
+		return x.LowGain
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowFreq() int32 {
+	if x != nil {
+		return x.LowFreq
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowQ() float32 {
+	if x != nil {
+		return x.LowQ
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowMidIn() bool {
+	if x != nil {
+		return x.LowMidIn
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowMidType() int32 {
+	if x != nil {
+		return x.LowMidType
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowMidGain() float32 {
+	if x != nil {
+		return x.LowMidGain
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowMidFreq() int32 {
+	if x != nil {
+		return x.LowMidFreq
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetLowMidQ() float32 {
+	if x != nil {
+		return x.LowMidQ
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighMidIn() bool {
+	if x != nil {
+		return x.HighMidIn
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighMidType() int32 {
+	if x != nil {
+		return x.HighMidType
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighMidGain() float32 {
+	if x != nil {
+		return x.HighMidGain
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighMidFreq() int32 {
+	if x != nil {
+		return x.HighMidFreq
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighMidQ() float32 {
+	if x != nil {
+		return x.HighMidQ
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighIn() bool {
+	if x != nil {
+		return x.HighIn
+	}
+	return false
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighType() int32 {
+	if x != nil {
+		return x.HighType
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighGain() float32 {
+	if x != nil {
+		return x.HighGain
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighFreq() int32 {
+	if x != nil {
+		return x.HighFreq
+	}
+	return 0
+}
+
+func (x *DShowInputChannel_InputStrip_EQ) GetHighQ() float32 {
+	if x != nil {
+		return x.HighQ
+	}
+	return 0
 }
 
 var File_proto_dshow_input_channel_proto protoreflect.FileDescriptor
@@ -250,55 +935,133 @@ var File_proto_dshow_input_channel_proto protoreflect.FileDescriptor
 var file_proto_dshow_input_channel_proto_rawDesc = []byte{
 	0x0a, 0x1f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x64, 0x73, 0x68, 0x6f, 0x77, 0x5f, 0x69, 0x6e,
 	0x70, 0x75, 0x74, 0x5f, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x12, 0x05, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x5a, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61,
-	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x62, 0x79, 0x74, 0x65, 0x73, 0x12, 0x14, 0x0a, 0x05,
-	0x69, 0x6e, 0x74, 0x33, 0x32, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x69, 0x6e, 0x74,
-	0x33, 0x32, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x74, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x73, 0x74, 0x72, 0x22, 0xad, 0x05, 0x0a, 0x11, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e,
-	0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x23, 0x0a, 0x06, 0x68, 0x65,
-	0x61, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x12,
-	0x25, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x07, 0x76,
-	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x27, 0x0a, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x54, 0x79,
-	0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12,
-	0x2d, 0x0a, 0x0b, 0x75, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x18, 0x04,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74,
-	0x61, 0x52, 0x0b, 0x75, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x37,
-	0x0a, 0x10, 0x61, 0x75, 0x64, 0x69, 0x6f, 0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72,
-	0x69, 0x70, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x10, 0x61, 0x75, 0x64, 0x69, 0x6f, 0x4d, 0x61, 0x73, 0x74,
-	0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x12, 0x2b, 0x0a, 0x0a, 0x61, 0x75, 0x64, 0x69, 0x6f,
-	0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x0a, 0x61, 0x75, 0x64, 0x69, 0x6f, 0x53,
-	0x74, 0x72, 0x69, 0x70, 0x12, 0x37, 0x0a, 0x10, 0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65,
-	0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x10, 0x61, 0x75, 0x78,
-	0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x39, 0x0a,
-	0x11, 0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
-	0x73, 0x32, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x11, 0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73,
-	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x12, 0x31, 0x0a, 0x0d, 0x62, 0x75, 0x73, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f, 0x64, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x0d, 0x62, 0x75,
-	0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f, 0x64, 0x65, 0x12, 0x2b, 0x0a, 0x0a, 0x69,
-	0x6e, 0x70, 0x75, 0x74, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x0a, 0x69, 0x6e,
-	0x70, 0x75, 0x74, 0x53, 0x74, 0x72, 0x69, 0x70, 0x12, 0x39, 0x0a, 0x11, 0x6d, 0x61, 0x74, 0x72,
-	0x69, 0x78, 0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x0b, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61,
-	0x52, 0x11, 0x6d, 0x61, 0x74, 0x72, 0x69, 0x78, 0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74,
-	0x72, 0x69, 0x70, 0x12, 0x31, 0x0a, 0x0d, 0x6d, 0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65, 0x53, 0x74,
-	0x72, 0x69, 0x70, 0x73, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x0d, 0x6d, 0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65,
-	0x53, 0x74, 0x72, 0x69, 0x70, 0x73, 0x12, 0x21, 0x0a, 0x05, 0x73, 0x74, 0x72, 0x69, 0x70, 0x18,
-	0x0d, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61,
-	0x74, 0x61, 0x52, 0x05, 0x73, 0x74, 0x72, 0x69, 0x70, 0x12, 0x29, 0x0a, 0x09, 0x73, 0x74, 0x72,
-	0x69, 0x70, 0x54, 0x79, 0x70, 0x65, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x09, 0x73, 0x74, 0x72, 0x69, 0x70,
+	0x6f, 0x12, 0x05, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xe9, 0x0f, 0x0a, 0x11, 0x44, 0x53, 0x68,
+	0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x37,
+	0x0a, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75,
+	0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x52,
+	0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x12, 0x31, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53,
+	0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e,
+	0x42, 0x6f, 0x64, 0x79, 0x52, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x1a, 0x96, 0x01, 0x0a, 0x06, 0x48,
+	0x65, 0x61, 0x64, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x1e, 0x0a, 0x0a, 0x74,
+	0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x0a, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x76,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x76, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70,
+	0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x54, 0x79, 0x70,
+	0x65, 0x12, 0x20, 0x0a, 0x0b, 0x75, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x75, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6d, 0x6d,
+	0x65, 0x6e, 0x74, 0x1a, 0x12, 0x0a, 0x10, 0x41, 0x75, 0x64, 0x69, 0x6f, 0x4d, 0x61, 0x73, 0x74,
+	0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x1a, 0x0c, 0x0a, 0x0a, 0x41, 0x75, 0x64, 0x69, 0x6f,
+	0x53, 0x74, 0x72, 0x69, 0x70, 0x1a, 0x12, 0x0a, 0x10, 0x41, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73,
+	0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x13, 0x0a, 0x11, 0x41, 0x75, 0x78,
+	0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x1a, 0x0f,
+	0x0a, 0x0d, 0x42, 0x75, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f, 0x64, 0x65, 0x1a,
+	0x8d, 0x06, 0x0a, 0x0a, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x53, 0x74, 0x72, 0x69, 0x70, 0x12, 0x18,
+	0x0a, 0x07, 0x70, 0x68, 0x61, 0x6e, 0x74, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x07, 0x70, 0x68, 0x61, 0x6e, 0x74, 0x6f, 0x6d, 0x12, 0x10, 0x0a, 0x03, 0x70, 0x61, 0x64, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x03, 0x70, 0x61, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x67, 0x61,
+	0x69, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x52, 0x04, 0x67, 0x61, 0x69, 0x6e, 0x12, 0x12,
+	0x0a, 0x04, 0x65, 0x71, 0x49, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x04, 0x65, 0x71,
+	0x49, 0x6e, 0x12, 0x36, 0x0a, 0x02, 0x65, 0x71, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75,
+	0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x53, 0x74,
+	0x72, 0x69, 0x70, 0x2e, 0x45, 0x51, 0x52, 0x02, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x65,
+	0x61, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x08, 0x52, 0x04, 0x68, 0x65, 0x61, 0x74, 0x12, 0x14,
+	0x0a, 0x05, 0x64, 0x72, 0x69, 0x76, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x64,
+	0x72, 0x69, 0x76, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x6f, 0x6e, 0x65, 0x18, 0x08, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x04, 0x74, 0x6f, 0x6e, 0x65, 0x1a, 0xb4, 0x04, 0x0a, 0x02, 0x45, 0x51, 0x12,
+	0x14, 0x0a, 0x05, 0x6c, 0x6f, 0x77, 0x49, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05,
+	0x6c, 0x6f, 0x77, 0x49, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x77, 0x54, 0x79, 0x70, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x6c, 0x6f, 0x77, 0x54, 0x79, 0x70, 0x65, 0x12,
+	0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x77, 0x47, 0x61, 0x69, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02,
+	0x52, 0x07, 0x6c, 0x6f, 0x77, 0x47, 0x61, 0x69, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x77,
+	0x46, 0x72, 0x65, 0x71, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x6c, 0x6f, 0x77, 0x46,
+	0x72, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x6c, 0x6f, 0x77, 0x51, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x02, 0x52, 0x04, 0x6c, 0x6f, 0x77, 0x51, 0x12, 0x1a, 0x0a, 0x08, 0x6c, 0x6f, 0x77, 0x4d, 0x69,
+	0x64, 0x49, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x6c, 0x6f, 0x77, 0x4d, 0x69,
+	0x64, 0x49, 0x6e, 0x12, 0x1e, 0x0a, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x54, 0x79, 0x70,
+	0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x54,
+	0x79, 0x70, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x47, 0x61, 0x69,
+	0x6e, 0x18, 0x08, 0x20, 0x01, 0x28, 0x02, 0x52, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x47,
+	0x61, 0x69, 0x6e, 0x12, 0x1e, 0x0a, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x46, 0x72, 0x65,
+	0x71, 0x18, 0x09, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x46,
+	0x72, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x51, 0x18, 0x0a,
+	0x20, 0x01, 0x28, 0x02, 0x52, 0x07, 0x6c, 0x6f, 0x77, 0x4d, 0x69, 0x64, 0x51, 0x12, 0x1c, 0x0a,
+	0x09, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x49, 0x6e, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x09, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x49, 0x6e, 0x12, 0x20, 0x0a, 0x0b, 0x68,
+	0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x54, 0x79, 0x70, 0x65, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x0b, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x54, 0x79, 0x70, 0x65, 0x12, 0x20, 0x0a,
+	0x0b, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x47, 0x61, 0x69, 0x6e, 0x18, 0x0d, 0x20, 0x01,
+	0x28, 0x02, 0x52, 0x0b, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x47, 0x61, 0x69, 0x6e, 0x12,
+	0x20, 0x0a, 0x0b, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x46, 0x72, 0x65, 0x71, 0x18, 0x0e,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x46, 0x72, 0x65,
+	0x71, 0x12, 0x1a, 0x0a, 0x08, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x51, 0x18, 0x0f, 0x20,
+	0x01, 0x28, 0x02, 0x52, 0x08, 0x68, 0x69, 0x67, 0x68, 0x4d, 0x69, 0x64, 0x51, 0x12, 0x16, 0x0a,
+	0x06, 0x68, 0x69, 0x67, 0x68, 0x49, 0x6e, 0x18, 0x10, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x68,
+	0x69, 0x67, 0x68, 0x49, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x68, 0x69, 0x67, 0x68, 0x54, 0x79, 0x70,
+	0x65, 0x18, 0x11, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x68, 0x69, 0x67, 0x68, 0x54, 0x79, 0x70,
+	0x65, 0x12, 0x1a, 0x0a, 0x08, 0x68, 0x69, 0x67, 0x68, 0x47, 0x61, 0x69, 0x6e, 0x18, 0x12, 0x20,
+	0x01, 0x28, 0x02, 0x52, 0x08, 0x68, 0x69, 0x67, 0x68, 0x47, 0x61, 0x69, 0x6e, 0x12, 0x1a, 0x0a,
+	0x08, 0x68, 0x69, 0x67, 0x68, 0x46, 0x72, 0x65, 0x71, 0x18, 0x13, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x08, 0x68, 0x69, 0x67, 0x68, 0x46, 0x72, 0x65, 0x71, 0x12, 0x14, 0x0a, 0x05, 0x68, 0x69, 0x67,
+	0x68, 0x51, 0x18, 0x14, 0x20, 0x01, 0x28, 0x02, 0x52, 0x05, 0x68, 0x69, 0x67, 0x68, 0x51, 0x1a,
+	0x13, 0x0a, 0x11, 0x4d, 0x61, 0x74, 0x72, 0x69, 0x78, 0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53,
+	0x74, 0x72, 0x69, 0x70, 0x1a, 0x0f, 0x0a, 0x0d, 0x4d, 0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65, 0x53,
+	0x74, 0x72, 0x69, 0x70, 0x73, 0x1a, 0x07, 0x0a, 0x05, 0x53, 0x74, 0x72, 0x69, 0x70, 0x1a, 0x0b,
+	0x0a, 0x09, 0x53, 0x74, 0x72, 0x69, 0x70, 0x54, 0x79, 0x70, 0x65, 0x1a, 0xa6, 0x06, 0x0a, 0x04,
+	0x42, 0x6f, 0x64, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x43, 0x6f, 0x75,
+	0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x43,
+	0x6f, 0x75, 0x6e, 0x74, 0x12, 0x55, 0x0a, 0x10, 0x61, 0x75, 0x64, 0x69, 0x6f, 0x4d, 0x61, 0x73,
+	0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75,
+	0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x6f, 0x4d, 0x61,
+	0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x52, 0x10, 0x61, 0x75, 0x64, 0x69, 0x6f,
+	0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x12, 0x43, 0x0a, 0x0a, 0x61,
+	0x75, 0x64, 0x69, 0x6f, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x23, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70,
+	0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x6f, 0x53,
+	0x74, 0x72, 0x69, 0x70, 0x52, 0x0a, 0x61, 0x75, 0x64, 0x69, 0x6f, 0x53, 0x74, 0x72, 0x69, 0x70,
+	0x12, 0x55, 0x0a, 0x10, 0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61,
+	0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x41, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x10, 0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x58, 0x0a, 0x11, 0x61, 0x75, 0x78, 0x42, 0x75,
+	0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x18, 0x05, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77,
+	0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x41, 0x75, 0x78,
+	0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x52, 0x11,
+	0x61, 0x75, 0x78, 0x42, 0x75, 0x73, 0x73, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x32, 0x12, 0x4c, 0x0a, 0x0d, 0x62, 0x75, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f,
+	0x64, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e,
+	0x65, 0x6c, 0x2e, 0x42, 0x75, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f, 0x64, 0x65,
+	0x52, 0x0d, 0x62, 0x75, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x4d, 0x6f, 0x64, 0x65, 0x12,
+	0x43, 0x0a, 0x0a, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f,
+	0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x49, 0x6e,
+	0x70, 0x75, 0x74, 0x53, 0x74, 0x72, 0x69, 0x70, 0x52, 0x0a, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x53,
+	0x74, 0x72, 0x69, 0x70, 0x12, 0x58, 0x0a, 0x11, 0x6d, 0x61, 0x74, 0x72, 0x69, 0x78, 0x4d, 0x61,
+	0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x2a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70,
+	0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x4d, 0x61, 0x74, 0x72, 0x69, 0x78,
+	0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x52, 0x11, 0x6d, 0x61, 0x74,
+	0x72, 0x69, 0x78, 0x4d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x53, 0x74, 0x72, 0x69, 0x70, 0x12, 0x4c,
+	0x0a, 0x0d, 0x6d, 0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65, 0x53, 0x74, 0x72, 0x69, 0x70, 0x73, 0x18,
+	0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53,
+	0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e,
+	0x4d, 0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65, 0x53, 0x74, 0x72, 0x69, 0x70, 0x73, 0x52, 0x0d, 0x6d,
+	0x69, 0x63, 0x4c, 0x69, 0x6e, 0x65, 0x53, 0x74, 0x72, 0x69, 0x70, 0x73, 0x12, 0x34, 0x0a, 0x05,
+	0x73, 0x74, 0x72, 0x69, 0x70, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53, 0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68,
+	0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x70, 0x52, 0x05, 0x73, 0x74, 0x72,
+	0x69, 0x70, 0x12, 0x40, 0x0a, 0x09, 0x73, 0x74, 0x72, 0x69, 0x70, 0x54, 0x79, 0x70, 0x65, 0x18,
+	0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x44, 0x53,
+	0x68, 0x6f, 0x77, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x2e,
+	0x53, 0x74, 0x72, 0x69, 0x70, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x73, 0x74, 0x72, 0x69, 0x70,
 	0x54, 0x79, 0x70, 0x65, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
 	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
@@ -315,31 +1078,42 @@ func file_proto_dshow_input_channel_proto_rawDescGZIP() []byte {
 	return file_proto_dshow_input_channel_proto_rawDescData
 }
 
-var file_proto_dshow_input_channel_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_dshow_input_channel_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_proto_dshow_input_channel_proto_goTypes = []interface{}{
-	(*Data)(nil),              // 0: proto.Data
-	(*DShowInputChannel)(nil), // 1: proto.DShowInputChannel
+	(*DShowInputChannel)(nil),                   // 0: proto.DShowInputChannel
+	(*DShowInputChannel_Header)(nil),            // 1: proto.DShowInputChannel.Header
+	(*DShowInputChannel_AudioMasterStrip)(nil),  // 2: proto.DShowInputChannel.AudioMasterStrip
+	(*DShowInputChannel_AudioStrip)(nil),        // 3: proto.DShowInputChannel.AudioStrip
+	(*DShowInputChannel_AuxBussesOptions)(nil),  // 4: proto.DShowInputChannel.AuxBussesOptions
+	(*DShowInputChannel_AuxBussesOptions2)(nil), // 5: proto.DShowInputChannel.AuxBussesOptions2
+	(*DShowInputChannel_BusConfigMode)(nil),     // 6: proto.DShowInputChannel.BusConfigMode
+	(*DShowInputChannel_InputStrip)(nil),        // 7: proto.DShowInputChannel.InputStrip
+	(*DShowInputChannel_MatrixMasterStrip)(nil), // 8: proto.DShowInputChannel.MatrixMasterStrip
+	(*DShowInputChannel_MicLineStrips)(nil),     // 9: proto.DShowInputChannel.MicLineStrips
+	(*DShowInputChannel_Strip)(nil),             // 10: proto.DShowInputChannel.Strip
+	(*DShowInputChannel_StripType)(nil),         // 11: proto.DShowInputChannel.StripType
+	(*DShowInputChannel_Body)(nil),              // 12: proto.DShowInputChannel.Body
+	(*DShowInputChannel_InputStrip_EQ)(nil),     // 13: proto.DShowInputChannel.InputStrip.EQ
 }
 var file_proto_dshow_input_channel_proto_depIdxs = []int32{
-	0,  // 0: proto.DShowInputChannel.header:type_name -> proto.Data
-	0,  // 1: proto.DShowInputChannel.version:type_name -> proto.Data
-	0,  // 2: proto.DShowInputChannel.fileType:type_name -> proto.Data
-	0,  // 3: proto.DShowInputChannel.userComment:type_name -> proto.Data
-	0,  // 4: proto.DShowInputChannel.audioMasterStrip:type_name -> proto.Data
-	0,  // 5: proto.DShowInputChannel.audioStrip:type_name -> proto.Data
-	0,  // 6: proto.DShowInputChannel.auxBussesOptions:type_name -> proto.Data
-	0,  // 7: proto.DShowInputChannel.auxBussesOptions2:type_name -> proto.Data
-	0,  // 8: proto.DShowInputChannel.busConfigMode:type_name -> proto.Data
-	0,  // 9: proto.DShowInputChannel.inputStrip:type_name -> proto.Data
-	0,  // 10: proto.DShowInputChannel.matrixMasterStrip:type_name -> proto.Data
-	0,  // 11: proto.DShowInputChannel.micLineStrips:type_name -> proto.Data
-	0,  // 12: proto.DShowInputChannel.strip:type_name -> proto.Data
-	0,  // 13: proto.DShowInputChannel.stripType:type_name -> proto.Data
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	1,  // 0: proto.DShowInputChannel.header:type_name -> proto.DShowInputChannel.Header
+	12, // 1: proto.DShowInputChannel.body:type_name -> proto.DShowInputChannel.Body
+	13, // 2: proto.DShowInputChannel.InputStrip.eq:type_name -> proto.DShowInputChannel.InputStrip.EQ
+	2,  // 3: proto.DShowInputChannel.Body.audioMasterStrip:type_name -> proto.DShowInputChannel.AudioMasterStrip
+	3,  // 4: proto.DShowInputChannel.Body.audioStrip:type_name -> proto.DShowInputChannel.AudioStrip
+	4,  // 5: proto.DShowInputChannel.Body.auxBussesOptions:type_name -> proto.DShowInputChannel.AuxBussesOptions
+	5,  // 6: proto.DShowInputChannel.Body.auxBussesOptions2:type_name -> proto.DShowInputChannel.AuxBussesOptions2
+	6,  // 7: proto.DShowInputChannel.Body.busConfigMode:type_name -> proto.DShowInputChannel.BusConfigMode
+	7,  // 8: proto.DShowInputChannel.Body.inputStrip:type_name -> proto.DShowInputChannel.InputStrip
+	8,  // 9: proto.DShowInputChannel.Body.matrixMasterStrip:type_name -> proto.DShowInputChannel.MatrixMasterStrip
+	9,  // 10: proto.DShowInputChannel.Body.micLineStrips:type_name -> proto.DShowInputChannel.MicLineStrips
+	10, // 11: proto.DShowInputChannel.Body.strip:type_name -> proto.DShowInputChannel.Strip
+	11, // 12: proto.DShowInputChannel.Body.stripType:type_name -> proto.DShowInputChannel.StripType
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_proto_dshow_input_channel_proto_init() }
@@ -349,7 +1123,7 @@ func file_proto_dshow_input_channel_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_proto_dshow_input_channel_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Data); i {
+			switch v := v.(*DShowInputChannel); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -361,7 +1135,151 @@ func file_proto_dshow_input_channel_proto_init() {
 			}
 		}
 		file_proto_dshow_input_channel_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DShowInputChannel); i {
+			switch v := v.(*DShowInputChannel_Header); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_AudioMasterStrip); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_AudioStrip); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_AuxBussesOptions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_AuxBussesOptions2); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_BusConfigMode); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_InputStrip); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_MatrixMasterStrip); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_MicLineStrips); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_Strip); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_StripType); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_Body); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_dshow_input_channel_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DShowInputChannel_InputStrip_EQ); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -379,7 +1297,7 @@ func file_proto_dshow_input_channel_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_dshow_input_channel_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

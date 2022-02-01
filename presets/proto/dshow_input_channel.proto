@@ -7,38 +7,85 @@ package proto;
 
 option go_package = "./proto";
 
-message Data {
-  string token = 1;
-
-  bytes bytes = 2;
-  int32 int32 = 3;
-  string str = 4;
-}
-
 message DShowInputChannel {
   //---------------------------------------------------------------------------
   // Header
 
-  Data header = 1;
+  message Header {
+    string token = 1; // Digidesign Storage - 1.0
+    int32 tokenCount = 2; // 3
+
+    // 1.0
+    int32 version = 3;
+    string fileType = 4;
+    string userComment = 5;
+  }
+  Header header = 1;
 
   //---------------------------------------------------------------------------
-  // Metadata
+  // Body
 
-  Data version = 2;
-  Data fileType = 3;
-  Data userComment = 4;
+  message AudioMasterStrip {}
+  message AudioStrip {}
+  message AuxBussesOptions {}
+  message AuxBussesOptions2 {}
+  message BusConfigMode {}
+  message InputStrip {
+    bool phantom = 1;
+    bool pad = 2;
+    float gain = 3;
+    bool eqIn = 4;
 
-  //---------------------------------------------------------------------------
-  // Data
+    message EQ {
+      bool lowIn = 1;
+      int32 lowType = 2;
+      float lowGain = 3;
+      int32 lowFreq = 4;
+      float lowQ = 5;
 
-  Data audioMasterStrip = 5;
-  Data audioStrip = 6;
-  Data auxBussesOptions = 7;
-  Data auxBussesOptions2 = 8;
-  Data busConfigMode = 9;
-  Data inputStrip = 10;
-  Data matrixMasterStrip = 11;
-  Data micLineStrips = 12;
-  Data strip = 13;
-  Data stripType = 14;
+      bool lowMidIn = 6;
+      int32 lowMidType = 7;
+      float lowMidGain = 8;
+      int32 lowMidFreq = 9;
+      float lowMidQ = 10;
+
+      bool highMidIn = 11;
+      int32 highMidType = 12;
+      float highMidGain = 13;
+      int32 highMidFreq = 14;
+      float highMidQ = 15;
+
+      bool highIn = 16;
+      int32 highType = 17;
+      float highGain = 18;
+      int32 highFreq = 19;
+      float highQ = 20;
+    }
+    EQ eq = 5;
+
+    bool heat = 6;
+    int32 drive = 7;
+    int32 tone = 8;
+  }
+  message MatrixMasterStrip {}
+  message MicLineStrips {}
+  message Strip {}
+  message StripType {}
+
+  // Body
+  message Body {
+    int32 tokenCount = 1; // 10
+
+    AudioMasterStrip audioMasterStrip = 2;
+    AudioStrip audioStrip = 3;
+    AuxBussesOptions auxBussesOptions = 4;
+    AuxBussesOptions2 auxBussesOptions2 = 5;
+    BusConfigMode busConfigMode = 6;
+    InputStrip inputStrip = 7;
+    MatrixMasterStrip matrixMasterStrip = 8;
+    MicLineStrips micLineStrips = 9;
+    Strip strip = 10;
+    StripType stripType = 11;
+  }
+  Body body = 2;
 }

@@ -4,445 +4,430 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math"
+	"io"
 
 	"github.com/kward/venue/presets/datatypes"
 	pb "github.com/kward/venue/presets/proto"
 	log "github.com/sirupsen/logrus"
 )
 
+// type offset struct {
+// 	key    string
+// 	offset int
+// }
+
+// var offsets = []offset{}
+
+type Adjuster interface {
+	// https://pkg.go.dev/io#Reader
+	io.Reader
+
+	// Marshal enables presets to marshal themselves into bytes.
+	Marshal() ([]byte, error)
+
+	// Name of the adjuster type.
+	Name() string
+}
+
+//-----------------------------------------------------------------------------
+// DShowInputChannel
+
+var _ Adjuster = new(DShowInputChannel)
+
 type DShowInputChannel struct {
 	pb *pb.DShowInputChannel
+	h  *Header
+	b  *Body
 }
 
 func NewDShowInputChannel() *DShowInputChannel {
 	return &DShowInputChannel{
-		&pb.DShowInputChannel{
-			// Header
-			Header: &pb.Data{},
-			// Metadata
-			Version:     &pb.Data{},
-			FileType:    &pb.Data{},
-			UserComment: &pb.Data{},
-			// Data
-			AudioMasterStrip:  &pb.Data{},
-			AudioStrip:        &pb.Data{},
-			AuxBussesOptions:  &pb.Data{},
-			AuxBussesOptions2: &pb.Data{},
-			BusConfigMode:     &pb.Data{},
-			InputStrip:        &pb.Data{},
-			MatrixMasterStrip: &pb.Data{},
-			MicLineStrips:     &pb.Data{},
-			Strip:             &pb.Data{},
-			StripType:         &pb.Data{},
+		&pb.DShowInputChannel{},
+		NewHeader("Digidesign Storage - 1.0"),
+		NewBody(),
+	}
+}
+
+func (p *DShowInputChannel) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
+
+	for i := 0; i < len(bs)-1; {
+		dt, c := datatypes.ReadDataType(bs, i)
+		i += c
+		switch dt {
+
+		case datatypes.String:
+			s, c, err := readString(bs, i)
+			if err != nil {
+				log.Errorf("%s error: %s", datatypes.String, err)
+				break // TODO: need to handle better
+			}
+			i += c
+
+			switch s {
+			case "Digidesign Storage - 1.0":
+				c, err := p.h.Read(bs[i:])
+				if err != nil {
+					return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), p.h.Name(), err)
+				}
+				i += c
+
+				c, err = p.b.Read(bs[i:])
+				if err != nil {
+					return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), p.b.Name(), err)
+				}
+				i += c
+
+			default:
+				return i, fmt.Errorf("%s: unsupported String token %s", p.Name(), s)
+			} // switch t
+
+		default:
+			return i, fmt.Errorf("%s: unsupported datatype 0x%02x", p.Name(), byte(dt))
+		} // switch dt
+	}
+
+	return len(bs), nil
+}
+
+func (p *DShowInputChannel) Marshal() ([]byte, error) {
+	bs := datatypes.WriteString("Digidesign Storage - 1.0")
+
+	mbs, err := p.h.Marshal()
+	if err != nil {
+		return nil, fmt.Errorf("%s: error marshaling %s; %s", p.Name(), p.h.Name(), err)
+	}
+	bs = append(bs, mbs...)
+
+	mbs, err = p.b.Marshal()
+	if err != nil {
+		return nil, fmt.Errorf("%s: error marshaling %s; %s", p.Name(), p.b.Name(), err)
+	}
+	bs = append(bs, mbs...)
+
+	return bs, nil
+}
+
+func (p *DShowInputChannel) Name() string { return "DShowInputChannel" }
+
+func (p *DShowInputChannel) Header() *Header { return p.h }
+func (p *DShowInputChannel) Body() *Body     { return p.b }
+
+//-----------------------------------------------------------------------------
+// Header
+
+var _ Adjuster = new(Header)
+
+type Header struct {
+	pb.DShowInputChannel_Header
+}
+
+func NewHeader(token string) *Header {
+	return &Header{
+		pb.DShowInputChannel_Header{
+			Token:       token,
+			TokenCount:  3,
+			FileType:    "Digidesign D-Show Input Channel Preset",
+			Version:     1,
+			UserComment: "",
 		},
 	}
 }
 
-//=============================================================================
-// Preset functions.
+const (
+	tFileType    = "File Type"
+	tUserComment = "User Comment"
+	tVersion     = "Version"
+)
 
-//-----------------------------------------------------------------------------
-// AudioStrip
+func (p *Header) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
 
-const phaseOffset = 0
-const phaseSize = 1
+	token := ""            // The most recently seen token.
+	tokensSeen := int32(0) // How many tokens have been seen so far.
 
-// Phase returns `true` if phase flip is enabled.
-func (p *DShowInputChannel) Phase() bool {
-	log.Debugf("DShowInputChannel.Phase()")
+	for i := 0; i < len(bs)-1; {
+		if token != "" {
+			tokensSeen++
+		}
+		log.Tracef(" token: %q tokensSeen: %d", token, tokensSeen)
 
-	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < phaseOffset+phaseSize {
-		return false
-	}
-	return bs[phaseOffset] == 1
-}
-
-const delayInOffset = 2
-
-// DelayIn returns `true` if the delay is enabled.
-func (p *DShowInputChannel) DelayIn() bool {
-	log.Debugf("DShowInputChannel.DelayIn()")
-	return readBool(p.pb.AudioStrip.Bytes, delayInOffset)
-}
-
-const delayOffset = 3
-const delaySize = 2
-const delayAdj = 0.96
-
-// Delay returns the amount of delay in ms from 0.0 to 250.0.
-func (p *DShowInputChannel) Delay() float32 {
-	log.Debugf("DShowInputChannel.Delay()")
-
-	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < delayOffset+delaySize {
-		return 0.0
-	}
-	// Divide by delayAdj to compensate for VENUE storing 96% of the UI value.
-	v := float64(binary.LittleEndian.Uint16(bs[delayOffset:delayOffset+delaySize])) / delayAdj
-	// Divide by 100 to shift the decimal two places to the left.
-	return float32(math.Trunc(v)) / 100
-}
-
-const directOutInOffset = 7
-
-// DirectOutIn returns `true` if the direct out is enabled.
-func (p *DShowInputChannel) DirectOutIn() bool {
-	log.Debugf("DShowInputChannel.DirectOutIn()")
-	return readBool(p.pb.AudioStrip.Bytes, directOutInOffset)
-}
-
-const directOutOffset = 11
-const directOutSize = 4
-
-// DirectOut returns the direct out value.
-func (p *DShowInputChannel) DirectOut() float32 {
-	log.Debugf("DShowInputChannel.DirectOut()")
-
-	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < directOutOffset+directOutSize {
-		return 0
-	}
-	// Divide by 10 to shift the decimal one place to the left.
-	return float32(int32(binary.LittleEndian.Uint32(bs[directOutOffset:directOutOffset+directOutSize]))) / 10
-}
-
-const panOffset = 17
-const panSize = 4
-
-// Pan returns the pan value.
-func (p *DShowInputChannel) Pan() int32 {
-	log.Debugf("DShowInputChannel.Pan()")
-
-	bs := p.pb.AudioStrip.Bytes
-	if len(bs) < panOffset+panSize {
-		return 0
-	}
-	return int32(binary.LittleEndian.Uint32(bs[panOffset : panOffset+panSize]))
-}
-
-//-----------------------------------------------------------------------------
-// InputStrip
-
-const phantomOffset = 1
-
-// Phantom returns the input strip phantom state.
-func (p *DShowInputChannel) Phantom() bool {
-	log.Debugf("DShowInputChannel.Phantom()")
-	return readBool(p.pb.InputStrip.Bytes, phantomOffset)
-}
-
-const padOffset = 2
-
-// Pad returns `true` if the pad is enabled.
-func (p *DShowInputChannel) Pad() bool {
-	log.Debugf("DShowInputChannel.Pad()")
-	return readBool(p.pb.InputStrip.Bytes, padOffset)
-}
-
-const gainOffset = 3
-const gainSize = 2
-
-// Gain returns the amount of gain applied from 10.0 to 60.0.
-func (p *DShowInputChannel) Gain() float32 {
-	log.Debugf("DShowInputChannel.Gain()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < gainOffset+gainSize {
-		return 0.0
-	}
-	// Divide by 10 to shift the decimal one place to the left.
-	return float32(binary.LittleEndian.Uint16(bs[gainOffset:gainOffset+gainSize])) / 10
-}
-
-const eqInOffset = 14
-
-func (p *DShowInputChannel) EQIn() bool {
-	log.Debugf("DShowInputChannel.EQIn()")
-	return readBool(p.pb.InputStrip.Bytes, eqInOffset)
-}
-
-const heatInOffset = 737
-
-// HeatIn returns `true` if heat is enabled.
-func (p *DShowInputChannel) HeatIn() bool {
-	log.Debugf("DShowInputChannel.HeatIn()")
-	return readBool(p.pb.InputStrip.Bytes, heatInOffset)
-}
-
-const driveOffset = 738
-const driveSize = 4
-
-// Drive returns the drive value.
-func (p *DShowInputChannel) Drive() int16 {
-	log.Debugf("DShowInputChannel.Drive()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < driveOffset+driveSize {
-		return 0
-	}
-	return int16(binary.LittleEndian.Uint32(bs[driveOffset : driveOffset+driveSize]))
-}
-
-const toneOffset = 742
-const toneSize = 4
-
-// Tone returns the tone value.
-func (p *DShowInputChannel) Tone() int32 {
-	log.Debugf("DShowInputChannel.Tone()")
-
-	bs := p.pb.InputStrip.Bytes
-	if len(bs) < toneOffset+toneSize {
-		return 0
-	}
-	return int32(binary.LittleEndian.Uint32(bs[toneOffset : toneOffset+toneSize]))
-}
-
-//-----------------------------------------------------------------------------
-// Strip
-
-const muteOffset = 0
-
-// Mute returns `true` if the mute is enabled.
-func (p *DShowInputChannel) Mute() bool {
-	log.Debugf("DShowInputChannel.Mute()")
-	return readBool(p.pb.Strip.Bytes, muteOffset)
-}
-
-const faderOffset = 2
-const faderSize = 4
-
-// Fader returns the fader value in dB.
-func (p *DShowInputChannel) Fader() float32 {
-	log.Debugf("DShowInputChannel.Fader()")
-
-	bs := p.pb.Strip.Bytes
-	if len(bs) < faderOffset+faderSize {
-		return 0.0
-	}
-	// Divide by 10 to shift the decimal one place to the left.
-	return float32(int32(binary.LittleEndian.Uint32(bs[faderOffset:faderOffset+faderSize]))) / 10
-}
-
-const nameOffset = 6
-
-// Name returns the strip name.
-func (p *DShowInputChannel) Name() string {
-	log.Debugf("DShowInputChannel.Name()")
-
-	bs := p.pb.Strip.Bytes
-	if len(bs) < nameOffset {
-		return ""
-	}
-	// The strip name comprises all remaining data bytes.
-	return string(bs[nameOffset:])
-}
-
-//-----------------------------------------------------------------------------
-// MicLine Strips
-
-const hpfInOffset = 0
-
-// HPFIn returns `true` if the high-pass filter is enabled.
-func (p *DShowInputChannel) HPFIn() bool {
-	log.Debugf("DShowInputChannel.HPFIn()")
-	return readBool(p.pb.MicLineStrips.Bytes, hpfInOffset)
-}
-
-const hpfOffset = 1
-const hpfSize = 2
-
-// HPF returns the high-pass filter value.
-func (p *DShowInputChannel) HPF() int16 {
-	log.Debugf("DShowInputChannel.HPF()")
-
-	bs := p.pb.MicLineStrips.Bytes
-	if len(bs) < hpfOffset+hpfSize {
-		return 0
-	}
-	return int16(binary.LittleEndian.Uint16(bs[hpfOffset : hpfOffset+hpfSize]))
-}
-
-const lpfInOffset = 88
-
-// LPFIn returns `true` if the low-pass filter is enabled.
-func (p *DShowInputChannel) LPFIn() bool {
-	log.Debugf("DShowInputChannel.LPFIn()")
-	return readBool(p.pb.MicLineStrips.Bytes, lpfInOffset)
-}
-
-const lpfOffset = 89
-const lpfSize = 2
-
-// LPF returns the low-pass filter value.
-func (p *DShowInputChannel) LPF() int16 {
-	log.Debugf("DShowInputChannel.LPF()")
-
-	bs := p.pb.MicLineStrips.Bytes
-	if len(bs) < lpfOffset+lpfSize {
-		return 0
-	}
-	return int16(binary.LittleEndian.Uint16(bs[lpfOffset : lpfOffset+lpfSize]))
-}
-
-//=============================================================================
-// General functions
-
-func (p *DShowInputChannel) Read(bs []byte) error {
-	log.Debugf("Read()")
-	token := ""
-	tokenCount := int32(0)
-	for i := 0; i < len(bs)-1; i++ {
-		log.Tracef("Read()...")
-		dt := datatypes.DataType(bs[i])
-		log.Tracef("  datatype: %s (0x%02x)", dt, byte(dt))
-
-		// Handle the data type.
+		dt, c := datatypes.ReadDataType(bs, i)
+		i += c
 		switch dt {
 
-		case datatypes.Token:
-			t, c, err := readToken(bs, i+1)
+		case datatypes.Int32:
+			v, c, err := readInt32(bs, i)
 			if err != nil {
-				log.Errorf("%s error: %s", datatypes.Token, err)
-				break // TODO: need to handle better
+				return i, fmt.Errorf("%s: error reading Int32; %s", p.Name(), err)
 			}
 			i += c
 
-			switch token { // NOTE: set token = "" if a token was a value.
-			case "Digidesign D-Show Input Channel Preset File":
-				p.pb.Header.Token = token
+			switch token {
+
+			case tVersion:
+				p.Version = v
 				token = ""
-			case "File Type":
-				p.pb.FileType.Token = token
-				p.pb.FileType.Str = t
-				token = ""
-			case "User Comment":
-				p.pb.UserComment.Token = token
-				p.pb.UserComment.Str = t
-				token = "" // TODO: test me
 			default:
-				token = t
+				return i, fmt.Errorf("%s: unsupported Int32 token %s", p.Name(), token)
 			}
+
+		case datatypes.String:
+			v, c, err := readString(bs, i)
+			if err != nil {
+				return i, fmt.Errorf("%s: error reading String; %s", p.Name(), err)
+			}
+			i += c
+
+			switch token {
+			case tFileType:
+				p.FileType = v
+				token = ""
+			case tUserComment:
+				p.UserComment = v
+				token = ""
+			default:
+				if token != "" {
+					return i, fmt.Errorf("%s: unsupported String token %s", p.Name(), token)
+				}
+				token = v // Store the token for the next loop.
+			} // switch token
 
 		case datatypes.TokenCount:
-			v, c, err := readInt32(bs, i+1)
+			v, c, err := readInt32(bs, i)
 			if err != nil {
-				log.Errorf("%s error: %s", datatypes.TokenCount, err)
-				break // TODO: need to handle better
-			}
-			tokenCount = v
-			_ = tokenCount // TODO: do something with the tokenCount
-			i += c
-
-		case datatypes.Bytes:
-			v, c, err := readInt32(bs, i+1)
-			if err != nil {
-				log.Errorf("%s error: %s", datatypes.Bytes, err)
-				break // TODO: need to handle better
+				return i, fmt.Errorf("%s: error reading TokenCount; %s", p.Name(), err)
 			}
 			i += c
 
-			b, c, err := readBytes(bs, i+1, int(v))
-			if err != nil {
-				log.Errorf("%s error: %s", datatypes.Bytes, err)
-				break // TODO: need to handle better
-			}
-			i += c
-
-			switch token {
-			case "AudioMasterStrip":
-				p.pb.AudioMasterStrip.Token = token
-				p.pb.AudioMasterStrip.Bytes = b
-			case "AudioStrip":
-				p.pb.AudioStrip.Token = token
-				p.pb.AudioStrip.Bytes = b
-			case "Aux Busses Options":
-				p.pb.AuxBussesOptions.Token = token
-				p.pb.AuxBussesOptions.Bytes = b
-			case "Aux Busses Options 2":
-				p.pb.AuxBussesOptions2.Token = token
-				p.pb.AuxBussesOptions2.Bytes = b
-			case "Bus Config Mode":
-				p.pb.BusConfigMode.Token = token
-				p.pb.BusConfigMode.Bytes = b
-			case "InputStrip":
-				p.pb.InputStrip.Token = token
-				p.pb.InputStrip.Bytes = b
-			case "MatrixMasterStrip":
-				p.pb.MatrixMasterStrip.Token = token
-				p.pb.MatrixMasterStrip.Bytes = b
-			case "MicLine Strips":
-				p.pb.MicLineStrips.Token = token
-				p.pb.MicLineStrips.Bytes = b
-			case "Strip":
-				p.pb.Strip.Token = token
-				p.pb.Strip.Bytes = b
-			case "Strip Type":
-				p.pb.StripType.Token = token
-				p.pb.StripType.Bytes = b
-			default:
-				log.Errorf("unrecognized token: %s", token)
-				log.Tracef("  bytes: %d", len(b))
-			}
-
-		case datatypes.Int32:
-			v, c, err := readInt32(bs, i+1)
-			if err != nil {
-				log.Errorf("%s error: %s", datatypes.Int32, err)
-				break // TODO: need to handle better
-			}
-			i += c
-
-			switch token {
-			case "Version":
-				p.pb.Version.Token = token
-				p.pb.Version.Int32 = v
-			default:
-				log.Errorf("unrecognized token: %s", token)
-			}
+			p.TokenCount = v
 
 		default:
-			log.Errorf("unrecognized datatype: %02x", dt)
+			return i, fmt.Errorf("%s: unsupported datatype 0x%02x", p.Name(), dt)
+		} // switch dt
+
+		if tokensSeen == p.TokenCount {
+			return i, nil
 		}
 	}
 
-	// TODO: Deal with errors.
-	return nil
+	return len(bs), fmt.Errorf("%s: expected %d tokens, found %d", p.Name(), p.TokenCount, tokensSeen)
 }
 
-// String implements fmt.Stringer.
-func (p *DShowInputChannel) String() string {
-	s := ""
-	s += fmt.Sprintf("AudioStrip:\n")
-	s += fmt.Sprintf("  Phase: %v\n", p.Phase())
-	s += fmt.Sprintf("  Delay In: %v\n", p.DelayIn())
-	s += fmt.Sprintf("  Delay: %v\n", p.Delay())
-	s += fmt.Sprintf("  DirectOut In: %v\n", p.DirectOutIn())
-	s += fmt.Sprintf("  DirectOut: %v\n", p.DirectOut())
-	s += fmt.Sprintf("  Pan: %v\n", p.Pan())
-	s += fmt.Sprintf("InputStrip:\n")
-	s += fmt.Sprintf("  Phantom: %v\n", p.Phantom())
-	s += fmt.Sprintf("  Pad: %v\n", p.Pad())
-	s += fmt.Sprintf("  Gain: %0.1f\n", p.Gain())
-	s += fmt.Sprintf("  EQ In: %v\n", p.EQIn())
-	s += fmt.Sprintf("  Heat In: %v\n", p.HeatIn())
-	s += fmt.Sprintf("  Drive: %v\n", p.Drive())
-	s += fmt.Sprintf("  Tone: %v\n", p.Tone())
-	s += fmt.Sprintf("Strip\n")
-	s += fmt.Sprintf("  Mute: %v\n", p.Mute())
-	s += fmt.Sprintf("  Fader: %v\n", p.Fader())
-	s += fmt.Sprintf("  Name: %s\n", p.Name())
-	s += fmt.Sprintf("MicLine Strips\n")
-	s += fmt.Sprintf("  HPF In: %v\n", p.HPFIn())
-	s += fmt.Sprintf("  HPF: %v\n", p.HPF())
-	s += fmt.Sprintf("  LPF In: %v\n", p.LPFIn())
-	s += fmt.Sprintf("  LPF: %v\n", p.LPF())
-	return s[:len(s)-1] // Strip trailing \n.
+func (p *Header) Marshal() ([]byte, error) {
+	bs := []byte{}
+	bs = append(bs, datatypes.WriteTokenCount(p.TokenCount)...)
+	bs = append(bs, datatypes.WriteTokenInt32(tVersion, p.Version)...)
+	bs = append(bs, datatypes.WriteTokenString(tFileType, p.FileType)...)
+	bs = append(bs, datatypes.WriteTokenString(tUserComment, p.UserComment)...)
+	return bs, nil
 }
 
-//=============================================================================
-// Local functions.
+func (p *Header) Name() string { return "Header" }
+
+//-----------------------------------------------------------------------------
+// Body
+
+var _ Adjuster = new(Body)
+
+type Body struct {
+	pb *pb.DShowInputChannel_Body
+	is *InputStrip
+}
+
+func NewBody() *Body {
+	return &Body{
+		&pb.DShowInputChannel_Body{},
+		NewInputStrip(),
+	}
+}
+
+func (p *Body) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
+
+	token := ""            // The most recently seen token.
+	tokensSeen := int32(0) // How many tokens have been seen so far.
+
+	for i := 0; i < len(bs)-1; {
+		if token != "" {
+			tokensSeen++
+		}
+		log.Tracef(" token: %q tokensSeen: %d", token, tokensSeen)
+
+		dt, c := datatypes.ReadDataType(bs, i)
+		i += c
+		switch dt { // Case statements sorted based on first appearance.
+
+		case datatypes.TokenCount:
+			v, c, err := readInt32(bs, i)
+			if err != nil {
+				return i, fmt.Errorf("%s: error reading TokenCount; %s", p.Name(), err)
+			}
+			i += c
+
+			p.pb.TokenCount = v
+
+		case datatypes.String:
+			v, c, err := readString(bs, i)
+			if err != nil {
+				return i, fmt.Errorf("%s: error reading String; %s", p.Name(), err)
+			}
+			i += c
+
+			switch token {
+			default:
+				if token != "" {
+					return i, fmt.Errorf("%s: unsupported String token %s", p.Name(), token)
+				}
+				token = v // Store the token for the next loop.
+			} // switch token
+
+		case datatypes.Bytes:
+			// Determine how many bytes to read.
+			v, c, err := readInt32(bs, i)
+			if err != nil {
+				return i, fmt.Errorf("%s: error determining Bytes count; %s", p.Name(), err)
+			}
+			i += c
+			// Read the bytes.
+			b, err := readBytes(bs, i, int(v))
+			if err != nil {
+				return i, fmt.Errorf("%s: error reading Bytes; %s", p.Name(), err)
+			}
+			i += int(v)
+
+			switch token {
+			case "AudioMasterStrip":
+			case "AudioStrip":
+			case "AuxBussesOptions":
+			case "AuxBussesOptions2":
+			case "BusConfigMode":
+			case tInputStrip:
+				c, err := p.is.Read(b)
+				if err != nil {
+					return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), p.is.Name(), err)
+				}
+				i += c
+			case "MatrixMasterStrip":
+			case "MicLineStrips":
+			case "Strip":
+			case "StripType":
+			default:
+				return i, fmt.Errorf("%s: unsupported Bytes token %s", p.Name(), token)
+			} // switch token
+
+			token = ""
+
+		default:
+			return i, fmt.Errorf("%s: unsupported datatype 0x%02x", p.Name(), dt)
+		} // switch dt
+
+		if tokensSeen == p.pb.TokenCount {
+			return i, nil
+		}
+	}
+
+	return len(bs), fmt.Errorf("%s: expected %d tokens, found %d", p.Name(), p.pb.TokenCount, tokensSeen)
+}
+
+// Marshal the Body into a slice of bytes.
+func (p *Body) Marshal() ([]byte, error) {
+	bs := []byte{}
+	bs = append(bs, datatypes.WriteTokenCount(1)...) // TODO should be 10.
+
+	m, err := p.is.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bs = append(bs, datatypes.WriteTokenBytes(tInputStrip, m)...)
+	bs = append(bs, m...)
+
+	return bs, nil
+}
+
+func (p *Body) Name() string { return "Body" }
+
+func (p *Body) InputStrip() *InputStrip { return p.is }
+
+//-----------------------------------------------------------------------------
+// Input Strip
+
+var _ Adjuster = new(InputStrip)
+
+type kvType int
+
+type kvParam struct {
+	key       string
+	readFn    func(*InputStrip, []byte) error
+	marshalFn func(*InputStrip) []byte
+}
+
+const (
+	tInputStrip = "Input Strip"
+	pad         = "pad"
+	phantom     = "phantom"
+)
+
+type InputStrip struct {
+	pb.DShowInputChannel_InputStrip
+	params []kvParam
+}
+
+func NewInputStrip() *InputStrip {
+	return &InputStrip{
+		pb.DShowInputChannel_InputStrip{},
+		[]kvParam{
+			{"",
+				func(*InputStrip, []byte) error { return nil },
+				func(*InputStrip) []byte { return make([]byte, 1) }},
+			{phantom,
+				func(is *InputStrip, bs []byte) (err error) {
+					is.Phantom, err = readBool(bs, 1)
+					log.Tracef("phantom = %v", is.GetPhantom())
+					return
+				},
+				func(is *InputStrip) []byte {
+					log.Tracef("phantom = %v", is.GetPhantom())
+					return writeBool(is.Phantom)
+				}},
+			{pad,
+				func(is *InputStrip, bs []byte) (err error) {
+					is.Pad, err = readBool(bs, 2)
+					return
+				},
+				func(is *InputStrip) []byte { return writeBool(is.Pad) }},
+		},
+	}
+}
+
+// Read InputStrip values from a slice of bytes.
+func (p *InputStrip) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
+	for _, pp := range p.params {
+		log.Tracef("%s.readFn()", pp.key)
+		err := pp.readFn(p, bs)
+		if err != nil {
+			return 0, fmt.Errorf("%s: error reading %s; %v", p.Name(), pp.key, err)
+		}
+	}
+	return len(bs), nil
+}
+
+// Marshal the InputStrip into a slice of bytes.
+func (p *InputStrip) Marshal() ([]byte, error) {
+	log.Tracef("%s.Marshal()", p.Name())
+	bs := []byte{}
+	for _, pp := range p.params {
+		log.Tracef("%s.marshalFn()", pp.key)
+		bs = append(bs, pp.marshalFn(p)...)
+	}
+	return bs, nil
+}
+
+func (p *InputStrip) Name() string { return "InputStrip" }
+
+//-----------------------------------------------------------------------------
+// Base functions
 
 func clen(bs []byte) int {
 	for i := 0; i < len(bs); i++ {
@@ -453,40 +438,57 @@ func clen(bs []byte) int {
 	return len(bs)
 }
 
-func readBool(bs []byte, offset int) bool {
-	if len(bs) < offset+1 {
-		return false
+func readBool(bs []byte, offset int) (bool, error) {
+	log.Tracef("readBool(%v, %d)", bs, offset)
+	const size = 1
+	if len(bs) < offset+size {
+		return false, fmt.Errorf("readBool() out of range; len(bs) = %d, need %d", len(bs), offset+size)
 	}
-	return bs[offset] == 1
+	return bs[offset] == 1, nil
 }
 
-func readBytes(bs []byte, o, c int) ([]byte, int, error) {
-	log.Debugf("readBytes()")
-	log.Tracef("  offset: 0x%04x", o)
-	log.Tracef("  len: %d", c)
-	return bs[o : o+c], c, nil
+func writeBool(v bool) []byte {
+	if v {
+		return []byte{0x01}
+	}
+	return []byte{0x00}
 }
 
-func readInt32(bs []byte, o int) (int32, int, error) {
-	log.Debugf("readInt32()")
-	log.Tracef("  offset: 0x%04x", o)
+func readBytes(bs []byte, offset, size int) ([]byte, error) {
+	if len(bs) < offset+size {
+		return []byte{}, fmt.Errorf("readBytes() out of range; len(bs) = %d, need %d", len(bs), offset+size)
+	}
+	return bs[offset : offset+size], nil
+}
 
+func readFloat32(bs []byte, offset int) (float32, error) {
+	const size = 4
+	if len(bs) < offset+size {
+		log.Errorf("len(bs): %d offset: %d size: %d", len(bs), offset, size)
+		return 0.0, fmt.Errorf("readFloat32() out of range; len(bs) = %d, need %d", len(bs), offset+size)
+	}
+	return float32(int32(binary.LittleEndian.Uint32(bs[offset : offset+size]))), nil
+}
+
+const int32size = 4
+
+func readInt32(bs []byte, offset int) (int32, int, error) {
+	log.Tracef("readInt32() offset: %d, bs: %02x", offset, bs)
 	var i int32
-	buf := bytes.NewReader(bs[o : o+4])
+	buf := bytes.NewReader(bs[offset : offset+int32size])
+	log.Tracef("buf: %v", buf)
 	if err := binary.Read(buf, binary.LittleEndian, &i); err != nil {
 		return 0, 0, fmt.Errorf("binary.Read failed: %s", err)
 	}
-
-	log.Tracef("  int32: %d", i)
-	return i, 4, nil
+	return i, int32size, nil
 }
 
-func readToken(bs []byte, o int) (string, int, error) {
-	log.Debugf("readToken()")
+func readString(bs []byte, o int) (string, int, error) {
+	log.Debugf("readString()")
 	log.Tracef("  offset: 0x%04x", o)
 
 	t := bs[o : o+clen(bs[o:])]
 
-	log.Tracef("  token: %q", t)
+	log.Tracef("  string: %q", t)
 	return string(t), len(t) + 1, nil
 }

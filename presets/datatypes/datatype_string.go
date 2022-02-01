@@ -8,20 +8,20 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Token-10]
-	_ = x[TokenCount-11]
 	_ = x[Int32-6]
+	_ = x[String-10]
+	_ = x[TokenCount-11]
 	_ = x[Bytes-13]
 }
 
 const (
 	_DataType_name_0 = "Int32"
-	_DataType_name_1 = "TokenTokenCount"
+	_DataType_name_1 = "StringTokenCount"
 	_DataType_name_2 = "Bytes"
 )
 
 var (
-	_DataType_index_1 = [...]uint8{0, 5, 15}
+	_DataType_index_1 = [...]uint8{0, 6, 16}
 )
 
 func (i DataType) String() string {
