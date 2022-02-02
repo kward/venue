@@ -63,7 +63,7 @@ message DShowInputChannel {
     }
     EQ eq = 5;
 
-    bool heat = 6;
+    bool heatIn = 6;
     int32 drive = 7;
     int32 tone = 8;
   }

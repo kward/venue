@@ -105,12 +105,42 @@ func TestInputStrip(t *testing.T) {
 		setFn func(*InputStrip)
 		getFn func(*InputStrip) interface{}
 	}{
-		{"phantom_true",
-			func(is *InputStrip) { is.Phantom = true },
-			func(is *InputStrip) interface{} { return is.GetPhantom() }},
-		{"phantom_false",
-			func(is *InputStrip) { is.Phantom = false },
-			func(is *InputStrip) interface{} { return is.GetPhantom() }},
+		{"drive_-5", // Minimum.
+			func(is *InputStrip) { is.Drive = -5 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
+		{"drive_0",
+			func(is *InputStrip) { is.Drive = 0 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
+		{"drive_5", // Maximum.
+			func(is *InputStrip) { is.Drive = 5 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
+
+		{"eq_in_true",
+			func(is *InputStrip) { is.EqIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqIn() }},
+		{"eq_in_false",
+			func(is *InputStrip) { is.EqIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqIn() }},
+
+		{"gain_+10.0_dB", // Minimum.
+			func(is *InputStrip) { is.Gain = 10.0 },
+			func(is *InputStrip) interface{} { return is.GetGain() }},
+		{"gain_+10.1_dB",
+			func(is *InputStrip) { is.Gain = 10.1 },
+			func(is *InputStrip) interface{} { return is.GetGain() }},
+		{"gain_+59.9_dB",
+			func(is *InputStrip) { is.Gain = 59.9 },
+			func(is *InputStrip) interface{} { return is.GetGain() }},
+		{"gain_+60.0_dB", // Maximum.
+			func(is *InputStrip) { is.Gain = 60.0 },
+			func(is *InputStrip) interface{} { return is.GetGain() }},
+
+		{"heat_in_true",
+			func(is *InputStrip) { is.HeatIn = true },
+			func(is *InputStrip) interface{} { return is.GetHeatIn() }},
+		{"heat_in_false",
+			func(is *InputStrip) { is.HeatIn = false },
+			func(is *InputStrip) interface{} { return is.GetHeatIn() }},
 
 		{"pad_true",
 			func(is *InputStrip) { is.Pad = true },
@@ -118,6 +148,20 @@ func TestInputStrip(t *testing.T) {
 		{"pad_false",
 			func(is *InputStrip) { is.Pad = false },
 			func(is *InputStrip) interface{} { return is.GetPad() }},
+
+		{"phantom_true",
+			func(is *InputStrip) { is.Phantom = true },
+			func(is *InputStrip) interface{} { return is.GetPhantom() }},
+		{"phantom_false",
+			func(is *InputStrip) { is.Phantom = false },
+			func(is *InputStrip) interface{} { return is.GetPhantom() }},
+
+		{"tone-0", // Minimum.
+			func(is *InputStrip) { is.Tone = 0 },
+			func(is *InputStrip) interface{} { return is.GetTone() }},
+		{"tone-6", // Maximum.
+			func(is *InputStrip) { is.Tone = 6 },
+			func(is *InputStrip) interface{} { return is.GetTone() }},
 	} {
 		// Marshal the proto to bytes.
 		p := NewInputStrip()

@@ -57,11 +57,7 @@ func (p *DShowInputChannel) Read(bs []byte) (int, error) {
 		switch dt {
 
 		case datatypes.String:
-			s, c, err := readString(bs, i)
-			if err != nil {
-				log.Errorf("%s error: %s", datatypes.String, err)
-				break // TODO: need to handle better
-			}
+			s, c := readString(bs, i)
 			i += c
 
 			switch s {
@@ -157,9 +153,9 @@ func (p *Header) Read(bs []byte) (int, error) {
 		switch dt {
 
 		case datatypes.Int32:
-			v, c, err := readInt32(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading Int32; %s", p.Name(), err)
+			v, c := readInt32(bs, i)
+			if c == 0 {
+				return i, fmt.Errorf("%s: error reading Int32", p.Name())
 			}
 			i += c
 
@@ -173,10 +169,7 @@ func (p *Header) Read(bs []byte) (int, error) {
 			}
 
 		case datatypes.String:
-			v, c, err := readString(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading String; %s", p.Name(), err)
-			}
+			v, c := readString(bs, i)
 			i += c
 
 			switch token {
@@ -194,9 +187,9 @@ func (p *Header) Read(bs []byte) (int, error) {
 			} // switch token
 
 		case datatypes.TokenCount:
-			v, c, err := readInt32(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading TokenCount; %s", p.Name(), err)
+			v, c := readInt32(bs, i)
+			if c == 0 {
+				return i, fmt.Errorf("%s: error reading TokenCount", p.Name())
 			}
 			i += c
 
@@ -259,19 +252,16 @@ func (p *Body) Read(bs []byte) (int, error) {
 		switch dt { // Case statements sorted based on first appearance.
 
 		case datatypes.TokenCount:
-			v, c, err := readInt32(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading TokenCount; %s", p.Name(), err)
+			v, c := readInt32(bs, i)
+			if c == 0 {
+				return i, fmt.Errorf("%s: error reading TokenCount", p.Name())
 			}
 			i += c
 
 			p.pb.TokenCount = v
 
 		case datatypes.String:
-			v, c, err := readString(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading String; %s", p.Name(), err)
-			}
+			v, c := readString(bs, i)
 			i += c
 
 			switch token {
@@ -284,17 +274,17 @@ func (p *Body) Read(bs []byte) (int, error) {
 
 		case datatypes.Bytes:
 			// Determine how many bytes to read.
-			v, c, err := readInt32(bs, i)
-			if err != nil {
-				return i, fmt.Errorf("%s: error determining Bytes count; %s", p.Name(), err)
+			v, c := readInt32(bs, i)
+			if c == 0 {
+				return i, fmt.Errorf("%s: error determining Bytes count", p.Name())
 			}
 			i += c
 			// Read the bytes.
-			b, err := readBytes(bs, i, int(v))
-			if err != nil {
-				return i, fmt.Errorf("%s: error reading Bytes; %s", p.Name(), err)
+			b, c := readBytes(bs, i, int(v))
+			if c != int(v) {
+				return i, fmt.Errorf("%s: error reading Bytes", p.Name())
 			}
-			i += int(v)
+			i += c
 
 			switch token {
 			case "AudioMasterStrip":
@@ -357,45 +347,68 @@ var _ Adjuster = new(InputStrip)
 type kvType int
 
 type kvParam struct {
-	key       string
-	readFn    func(*InputStrip, []byte) error
-	marshalFn func(*InputStrip) []byte
+	offset    int
+	readFn    func(*InputStrip, []byte, int) int
+	marshalFn func(*InputStrip, []byte, int)
 }
-
-const (
-	tInputStrip = "Input Strip"
-	pad         = "pad"
-	phantom     = "phantom"
-)
 
 type InputStrip struct {
 	pb.DShowInputChannel_InputStrip
-	params []kvParam
+	params map[string]kvParam
 }
+
+const (
+	tInputStrip    = "Input Strip"
+	inputStripSize = 746
+)
 
 func NewInputStrip() *InputStrip {
 	return &InputStrip{
 		pb.DShowInputChannel_InputStrip{},
-		[]kvParam{
-			{"",
-				func(*InputStrip, []byte) error { return nil },
-				func(*InputStrip) []byte { return make([]byte, 1) }},
-			{phantom,
-				func(is *InputStrip, bs []byte) (err error) {
-					is.Phantom, err = readBool(bs, 1)
-					log.Tracef("phantom = %v", is.GetPhantom())
+		map[string]kvParam{
+			"phantom": {1,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.Phantom, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip) []byte {
-					log.Tracef("phantom = %v", is.GetPhantom())
-					return writeBool(is.Phantom)
-				}},
-			{pad,
-				func(is *InputStrip, bs []byte) (err error) {
-					is.Pad, err = readBool(bs, 2)
+				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.Phantom) }},
+			"pad": {2,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.Pad, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip) []byte { return writeBool(is.Pad) }},
+				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.Pad) }},
+			"gain": {3,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					i32, c := readInt32(bs, o)
+					is.Gain = float32(i32) / 10
+					return
+				},
+				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, int32(is.Gain*10)) }},
+			"eq_in": {14,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.EqIn, c = readBool(bs, o)
+					return
+				},
+				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.EqIn) }},
+			"heat_in": {737,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.HeatIn, c = readBool(bs, o)
+					return
+				},
+				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.HeatIn) }},
+			"drive": {738,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.Drive, c = readInt32(bs, o)
+					return
+				},
+				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, is.Drive) }},
+			"tone": {742,
+				func(is *InputStrip, bs []byte, o int) (c int) {
+					is.Tone, c = readInt32(bs, o)
+					return
+				},
+				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, is.Tone) }},
 		},
 	}
 }
@@ -403,11 +416,10 @@ func NewInputStrip() *InputStrip {
 // Read InputStrip values from a slice of bytes.
 func (p *InputStrip) Read(bs []byte) (int, error) {
 	log.Tracef("%s.Read()", p.Name())
-	for _, pp := range p.params {
-		log.Tracef("%s.readFn()", pp.key)
-		err := pp.readFn(p, bs)
-		if err != nil {
-			return 0, fmt.Errorf("%s: error reading %s; %v", p.Name(), pp.key, err)
+	for k, pp := range p.params {
+		log.Tracef("%s.readFn() at %d", k, pp.offset)
+		if c := pp.readFn(p, bs, pp.offset); c == 0 {
+			return 0, fmt.Errorf("%s: error reading %s", p.Name(), k)
 		}
 	}
 	return len(bs), nil
@@ -416,10 +428,11 @@ func (p *InputStrip) Read(bs []byte) (int, error) {
 // Marshal the InputStrip into a slice of bytes.
 func (p *InputStrip) Marshal() ([]byte, error) {
 	log.Tracef("%s.Marshal()", p.Name())
-	bs := []byte{}
-	for _, pp := range p.params {
-		log.Tracef("%s.marshalFn()", pp.key)
-		bs = append(bs, pp.marshalFn(p)...)
+	bs := make([]byte, inputStripSize)
+
+	for k, pp := range p.params {
+		log.Tracef("%s.marshalFn() at %d", k, pp.offset)
+		pp.marshalFn(p, bs, pp.offset)
 	}
 	return bs, nil
 }
@@ -428,6 +441,57 @@ func (p *InputStrip) Name() string { return "InputStrip" }
 
 //-----------------------------------------------------------------------------
 // Base functions
+
+const boolSize = 1
+
+func readBool(bs []byte, offset int) (bool, int) {
+	if len(bs) < offset+boolSize {
+		return false, 0
+	}
+	return bs[offset] == 1, boolSize
+}
+func writeBool(bs []byte, offset int, v bool) {
+	b := []byte{0x00}
+	if v {
+		b = []byte{0x01}
+	}
+	copy(bs[offset:], b)
+}
+
+func readBytes(bs []byte, offset, size int) ([]byte, int) {
+	if len(bs) < offset+size {
+		return []byte{}, 0
+	}
+	return bs[offset : offset+size], size
+}
+
+// const float32size = 4
+
+// func readFloat32(bs []byte, offset int) (float32, error) {
+// 	if len(bs) < offset+float32size {
+// 		log.Errorf("len(bs): %d offset: %d size: %d", len(bs), offset, float32size)
+// 		return 0.0, fmt.Errorf("readFloat32() out of range; len(bs) = %d, need %d", len(bs), offset+float32size)
+// 	}
+// 	return float32(int32(binary.LittleEndian.Uint32(bs[offset : offset+float32size]))), nil
+// }
+
+const int32size = 4
+
+func readInt32(bs []byte, offset int) (int32, int) {
+	var i int32
+	buf := bytes.NewReader(bs[offset : offset+int32size])
+	if err := binary.Read(buf, binary.LittleEndian, &i); err != nil {
+		return 0, 0
+	}
+	return i, int32size
+}
+func writeInt32(bs []byte, offset int, v int32) {
+	buf := new(bytes.Buffer)
+	if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
+		return
+	}
+	copy(bs[offset:], buf.Bytes())
+}
 
 func clen(bs []byte) int {
 	for i := 0; i < len(bs); i++ {
@@ -438,57 +502,7 @@ func clen(bs []byte) int {
 	return len(bs)
 }
 
-func readBool(bs []byte, offset int) (bool, error) {
-	log.Tracef("readBool(%v, %d)", bs, offset)
-	const size = 1
-	if len(bs) < offset+size {
-		return false, fmt.Errorf("readBool() out of range; len(bs) = %d, need %d", len(bs), offset+size)
-	}
-	return bs[offset] == 1, nil
-}
-
-func writeBool(v bool) []byte {
-	if v {
-		return []byte{0x01}
-	}
-	return []byte{0x00}
-}
-
-func readBytes(bs []byte, offset, size int) ([]byte, error) {
-	if len(bs) < offset+size {
-		return []byte{}, fmt.Errorf("readBytes() out of range; len(bs) = %d, need %d", len(bs), offset+size)
-	}
-	return bs[offset : offset+size], nil
-}
-
-func readFloat32(bs []byte, offset int) (float32, error) {
-	const size = 4
-	if len(bs) < offset+size {
-		log.Errorf("len(bs): %d offset: %d size: %d", len(bs), offset, size)
-		return 0.0, fmt.Errorf("readFloat32() out of range; len(bs) = %d, need %d", len(bs), offset+size)
-	}
-	return float32(int32(binary.LittleEndian.Uint32(bs[offset : offset+size]))), nil
-}
-
-const int32size = 4
-
-func readInt32(bs []byte, offset int) (int32, int, error) {
-	log.Tracef("readInt32() offset: %d, bs: %02x", offset, bs)
-	var i int32
-	buf := bytes.NewReader(bs[offset : offset+int32size])
-	log.Tracef("buf: %v", buf)
-	if err := binary.Read(buf, binary.LittleEndian, &i); err != nil {
-		return 0, 0, fmt.Errorf("binary.Read failed: %s", err)
-	}
-	return i, int32size, nil
-}
-
-func readString(bs []byte, o int) (string, int, error) {
-	log.Debugf("readString()")
-	log.Tracef("  offset: 0x%04x", o)
-
-	t := bs[o : o+clen(bs[o:])]
-
-	log.Tracef("  string: %q", t)
-	return string(t), len(t) + 1, nil
+func readString(bs []byte, o int) (string, int) {
+	s := bs[o : o+clen(bs[o:])]
+	return string(s), len(s) + 1
 }
