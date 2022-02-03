@@ -1,12 +1,14 @@
 package presets
 
 import (
+	"bytes"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func init() {
+	// log.SetLevel(log.DebugLevel)
 	log.SetLevel(log.TraceLevel)
 }
 
@@ -109,12 +111,50 @@ func TestAudioStrip(t *testing.T) {
 		setFn func(*AudioStrip)
 		getFn func(*AudioStrip) interface{}
 	}{
-		{"phase_true",
-			func(as *AudioStrip) { as.Phase = true },
-			func(as *AudioStrip) interface{} { return as.GetPhase() }},
+		{"phase_in_true",
+			func(as *AudioStrip) { as.PhaseIn = true },
+			func(as *AudioStrip) interface{} { return as.GetPhaseIn() }},
+		{"phase_in_false",
+			func(as *AudioStrip) { as.PhaseIn = false },
+			func(as *AudioStrip) interface{} { return as.GetPhaseIn() }},
+
+		{"delay_in_true",
+			func(as *AudioStrip) { as.DelayIn = true },
+			func(as *AudioStrip) interface{} { return as.GetDelayIn() }},
 		{"phase_false",
-			func(as *AudioStrip) { as.Phase = false },
-			func(as *AudioStrip) interface{} { return as.GetPhase() }},
+			func(as *AudioStrip) { as.DelayIn = false },
+			func(as *AudioStrip) interface{} { return as.GetDelayIn() }},
+
+		{"delay_0.0", // Minimum.
+			func(as *AudioStrip) { as.Delay = 0.0 },
+			func(as *AudioStrip) interface{} { return as.GetDelay() }},
+		{"delay_250.0", // Maximum.
+			func(as *AudioStrip) { as.Delay = 250.0 },
+			func(as *AudioStrip) interface{} { return as.GetDelay() }},
+
+		{"direct_out_in_true",
+			func(as *AudioStrip) { as.DirectOutIn = true },
+			func(as *AudioStrip) interface{} { return as.GetDirectOutIn() }},
+		{"direct_out_in_false",
+			func(as *AudioStrip) { as.DirectOutIn = false },
+			func(as *AudioStrip) interface{} { return as.GetDirectOutIn() }},
+
+		{"direct_out_-INF", // Minimum.
+			func(as *AudioStrip) { as.DirectOut = -103.0 },
+			func(as *AudioStrip) interface{} { return as.GetDirectOut() }},
+		{"direct_out_+12.0_dB", // Maximum.
+			func(as *AudioStrip) { as.DirectOut = 12.0 },
+			func(as *AudioStrip) interface{} { return as.GetDirectOut() }},
+
+		{"pan_left",
+			func(as *AudioStrip) { as.Pan = -100 },
+			func(as *AudioStrip) interface{} { return as.GetPan() }},
+		{"pan_center",
+			func(as *AudioStrip) { as.Pan = 0 },
+			func(as *AudioStrip) interface{} { return as.GetPan() }},
+		{"pan_right",
+			func(as *AudioStrip) { as.Pan = 100 },
+			func(as *AudioStrip) interface{} { return as.GetPan() }},
 	} {
 		// Marshal the proto to bytes.
 		p := NewAudioStrip()
@@ -143,6 +183,20 @@ func TestAudioStrip(t *testing.T) {
 		if got, want := tt.getFn(p), value; got != want {
 			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
 		}
+	}
+}
+
+// TestAudioStrip_Delay verifies the marshaled value against a known byte slice.
+func TestAudioStrip_Delay(t *testing.T) {
+	as := NewAudioStrip()
+	as.Delay = 250.0
+	bs, err := as.Marshal()
+	if err != nil {
+		t.Errorf("unexpected error; %s", err)
+	}
+	o := as.params["delay"].offset
+	if got, want := bs[o:o+4], []byte{0xc0, 0x5d, 0x00, 0x00}; !bytes.Equal(got, want) {
+		t.Errorf("got = %v, want %v", got, want)
 	}
 }
 
@@ -222,6 +276,66 @@ func TestInputStrip(t *testing.T) {
 
 		// Read bytes back.
 		p = NewInputStrip()
+		c, err := p.Read(m)
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+		}
+		if c == 0 {
+			t.Errorf("%s: expected count > 0, got %d", tt.desc, c)
+		}
+		if err != nil {
+			continue
+		}
+
+		// Verify the value.
+		if got, want := tt.getFn(p), value; got != want {
+			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
+		}
+	}
+}
+
+func TestStrip(t *testing.T) {
+	for _, tt := range []struct {
+		desc  string
+		setFn func(*Strip)
+		getFn func(*Strip) interface{}
+	}{
+		{"mute_true",
+			func(s *Strip) { s.Mute = true },
+			func(s *Strip) interface{} { return s.GetMute() }},
+		{"mute_false",
+			func(s *Strip) { s.Mute = false },
+			func(s *Strip) interface{} { return s.GetMute() }},
+
+		{"fader_-INF", // Minimum.
+			func(s *Strip) { s.Fader = -131.0 },
+			func(s *Strip) interface{} { return s.GetFader() }},
+		{"fader_0.0_dB",
+			func(s *Strip) { s.Fader = 0.0 },
+			func(s *Strip) interface{} { return s.GetFader() }},
+		{"fader_+12.0_dB",
+			func(s *Strip) { s.Fader = 12.0 },
+			func(s *Strip) interface{} { return s.GetFader() }},
+
+		{"channel_name_empty",
+			func(s *Strip) { s.ChannelName = "" },
+			func(s *Strip) interface{} { return s.GetChannelName() }},
+		{"channel_name_hw",
+			func(s *Strip) { s.ChannelName = "Hello, world!" },
+			func(s *Strip) interface{} { return s.GetChannelName() }},
+	} {
+		// Marshal the proto to bytes.
+		p := NewStrip()
+		tt.setFn(p)
+		value := tt.getFn(p)
+		m, err := p.Marshal()
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			continue
+		}
+
+		// Read bytes back.
+		p = NewStrip()
 		c, err := p.Read(m)
 		if err != nil {
 			t.Errorf("%s: unexpected error %s", tt.desc, err)

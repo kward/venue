@@ -13,10 +13,10 @@ message DShowInputChannel {
 
   message Header {
     string token = 1; // Digidesign Storage - 1.0
-    int32 tokenCount = 2; // 3
+    int32  tokenCount = 2; // 3
 
     // 1.0
-    int32 version = 3;
+    int32  version = 3;
     string fileType = 4;
     string userComment = 5;
   }
@@ -27,37 +27,42 @@ message DShowInputChannel {
 
   message AudioMasterStrip {}
   message AudioStrip {
-    bool phase = 1;
+    bool  phaseIn = 1;
+    bool  delayIn = 2;
+    float delay = 3;
+    bool  directOutIn = 4;
+    float directOut = 5;
+    int32 pan = 6;
   }
   message AuxBussesOptions {}
   message AuxBussesOptions2 {}
   message BusConfigMode {}
   message InputStrip {
-    bool phantom = 1;
-    bool pad = 2;
+    bool  phantom = 1;
+    bool  pad = 2;
     float gain = 3;
-    bool eqIn = 4;
+    bool  eqIn = 4;
 
     message EQ {
-      bool lowIn = 1;
+      bool  lowIn = 1;
       int32 lowType = 2;
       float lowGain = 3;
       int32 lowFreq = 4;
       float lowQ = 5;
 
-      bool lowMidIn = 6;
+      bool  lowMidIn = 6;
       int32 lowMidType = 7;
       float lowMidGain = 8;
       int32 lowMidFreq = 9;
       float lowMidQ = 10;
 
-      bool highMidIn = 11;
+      bool  highMidIn = 11;
       int32 highMidType = 12;
       float highMidGain = 13;
       int32 highMidFreq = 14;
       float highMidQ = 15;
 
-      bool highIn = 16;
+      bool  highIn = 16;
       int32 highType = 17;
       float highGain = 18;
       int32 highFreq = 19;
@@ -65,29 +70,33 @@ message DShowInputChannel {
     }
     EQ eq = 5;
 
-    bool heatIn = 6;
+    bool  heatIn = 6;
     int32 drive = 7;
     int32 tone = 8;
   }
   message MatrixMasterStrip {}
   message MicLineStrips {}
-  message Strip {}
+  message Strip {
+    bool   mute = 1;
+    float  fader = 2;
+    string channelName = 3;
+  }
   message StripType {}
 
   // Body
   message Body {
     int32 tokenCount = 1; // 10
 
-    AudioMasterStrip audioMasterStrip = 2;
-    AudioStrip audioStrip = 3;
-    AuxBussesOptions auxBussesOptions = 4;
+    AudioMasterStrip  audioMasterStrip = 2;
+    AudioStrip        audioStrip = 3;
+    AuxBussesOptions  auxBussesOptions = 4;
     AuxBussesOptions2 auxBussesOptions2 = 5;
-    BusConfigMode busConfigMode = 6;
-    InputStrip inputStrip = 7;
+    BusConfigMode     busConfigMode = 6;
+    InputStrip        inputStrip = 7;
     MatrixMasterStrip matrixMasterStrip = 8;
-    MicLineStrips micLineStrips = 9;
-    Strip strip = 10;
-    StripType stripType = 11;
+    MicLineStrips     micLineStrips = 9;
+    Strip             strip = 10;
+    StripType         stripType = 11;
   }
   Body body = 2;
 }

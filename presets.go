@@ -14,6 +14,7 @@ const testdata = "presets/testdata"
 
 func init() {
 	// log.SetLevel(log.TraceLevel)
+	// log.SetLevel(log.DebugLevel)
 	log.SetLevel(log.InfoLevel)
 }
 
@@ -25,14 +26,14 @@ func main() {
 		fn = os.Args[1]
 	}
 
-	b, err := ioutil.ReadFile(fn)
+	bs, err := ioutil.ReadFile(fn)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	preset := presets.NewDShowInputChannel()
-	preset.Read(b)
+	p := presets.NewDShowInputChannel()
+	p.Read(bs)
 
-	fmt.Println(preset)
+	fmt.Println(p)
 }

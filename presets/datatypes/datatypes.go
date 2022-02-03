@@ -21,7 +21,7 @@ const (
 )
 
 func ReadDataType(bs []byte, offset int) (DataType, int) {
-	log.Tracef("ReadDataType()")
+	log.Debugf("ReadDataType()")
 	if len(bs) < offset+1 {
 		log.Tracef(" datatype = %s (0x%02x)", Invalid, byte(Invalid))
 		return Invalid, 1
@@ -32,14 +32,14 @@ func ReadDataType(bs []byte, offset int) (DataType, int) {
 }
 
 func WriteBytes(v []byte) []byte {
-	log.Tracef("WriteBytes(%v)", v)
+	log.Debugf("WriteBytes(%v)", v)
 	bs := []byte{byte(Bytes)}
 	bs = append(bs, writeInt32(int32(len(v)))...)
 	return append(bs, v...)
 }
 
 func WriteInt32(v int32) []byte {
-	log.Tracef("WriteInt32(%d)", v)
+	log.Debugf("WriteInt32(%d)", v)
 	return append([]byte{byte(Int32)}, writeInt32(v)...)
 }
 
@@ -52,29 +52,30 @@ func writeInt32(v int32) []byte {
 }
 
 func WriteString(v string) []byte {
-	log.Tracef("WriteString(%s)", v)
+	log.Debugf("WriteString(%s)", v)
 	bs := append([]byte{0x0a}, v...)
 	return append(bs, []byte{0x00}...)
 }
 
 func WriteTokenBytes(t string, v []byte) []byte {
-	log.Tracef("WriteTokenBytes(%s, %v)", t, v)
+	log.Debugf("WriteTokenBytes(%s, v)", t)
+	log.Tracef(" bytes: %v", v)
 	return append(WriteString(t), WriteBytes(v)...)
 }
 
 func WriteTokenCount(v int32) []byte {
-	log.Tracef("WriteTokenCount(%d)", v)
+	log.Debugf("WriteTokenCount(%d)", v)
 	bs := WriteInt32(v)
 	bs[0] = byte(TokenCount)
 	return bs
 }
 
 func WriteTokenInt32(t string, v int32) []byte {
-	log.Tracef("WriteTokenInt32(%s, %d)", t, v)
+	log.Debugf("WriteTokenInt32(%s, %d)", t, v)
 	return append(WriteString(t), WriteInt32(v)...)
 }
 
 func WriteTokenString(t string, v string) []byte {
-	log.Tracef("WriteTokenString(%s, %s)", t, v)
+	log.Debugf("WriteTokenString(%s, %s)", t, v)
 	return append(WriteString(t), WriteString(v)...)
 }
