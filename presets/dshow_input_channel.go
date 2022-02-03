@@ -223,15 +223,32 @@ func (p *Header) Name() string { return "Header" }
 
 var _ Adjuster = new(Body)
 
+type bodyParam struct {
+	iface Adjuster
+}
+
+// Body holds the main preset values. Body does not expose the values directly
+// as it has none to expose. Instead it provides access functions.
 type Body struct {
-	pb *pb.DShowInputChannel_Body
-	is *InputStrip
+	pb     pb.DShowInputChannel_Body
+	params map[string]bodyParam
 }
 
 func NewBody() *Body {
 	return &Body{
-		&pb.DShowInputChannel_Body{},
-		NewInputStrip(),
+		pb.DShowInputChannel_Body{},
+		map[string]bodyParam{
+			// "AudioMasterStrip": {NewAudioMaster()},
+			// "audio_strip": {tInputStrip, NewInputStrip()},
+			// "aux_busses_options": {tInputStrip, NewInputStrip()},
+			// "aux_busses_options2": {tInputStrip, NewInputStrip()},
+			// "bus_config_mode": {tInputStrip, NewInputStrip()},
+			"Input Strip": {NewInputStrip()},
+			// "matrix_master_strip": {tInputStrip, NewInputStrip()},
+			// "mic_line_strips": {tInputStrip, NewInputStrip()},
+			// "strip": {tInputStrip, NewInputStrip()},
+			// "strip_type": {tInputStrip, NewInputStrip()},
+		},
 	}
 }
 
@@ -260,7 +277,7 @@ func (p *Body) Read(bs []byte) (int, error) {
 
 			p.pb.TokenCount = v
 
-		case datatypes.String:
+		case datatypes.String: // Token name.
 			v, c := readString(bs, i)
 			i += c
 
@@ -272,13 +289,14 @@ func (p *Body) Read(bs []byte) (int, error) {
 				token = v // Store the token for the next loop.
 			} // switch token
 
-		case datatypes.Bytes:
+		case datatypes.Bytes: // Token data.
 			// Determine how many bytes to read.
 			v, c := readInt32(bs, i)
 			if c == 0 {
 				return i, fmt.Errorf("%s: error determining Bytes count", p.Name())
 			}
 			i += c
+
 			// Read the bytes.
 			b, c := readBytes(bs, i, int(v))
 			if c != int(v) {
@@ -286,25 +304,17 @@ func (p *Body) Read(bs []byte) (int, error) {
 			}
 			i += c
 
-			switch token {
-			case "AudioMasterStrip":
-			case "AudioStrip":
-			case "AuxBussesOptions":
-			case "AuxBussesOptions2":
-			case "BusConfigMode":
-			case tInputStrip:
-				c, err := p.is.Read(b)
-				if err != nil {
-					return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), p.is.Name(), err)
-				}
-				i += c
-			case "MatrixMasterStrip":
-			case "MicLineStrips":
-			case "Strip":
-			case "StripType":
-			default:
+			// Hand off the reading of the token data.
+			param, ok := p.params[token]
+			if !ok {
 				return i, fmt.Errorf("%s: unsupported Bytes token %s", p.Name(), token)
-			} // switch token
+			}
+			iface := param.iface
+			c, err := iface.Read(b)
+			if err != nil {
+				return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), iface.Name(), err)
+			}
+			i += c
 
 			token = ""
 
@@ -322,93 +332,121 @@ func (p *Body) Read(bs []byte) (int, error) {
 
 // Marshal the Body into a slice of bytes.
 func (p *Body) Marshal() ([]byte, error) {
-	bs := []byte{}
-	bs = append(bs, datatypes.WriteTokenCount(1)...) // TODO should be 10.
+	log.Tracef("%s.Marshal()", p.Name())
 
-	m, err := p.is.Marshal()
-	if err != nil {
-		return nil, err
+	bs := []byte{}
+	// TODO should be 10.
+	bs = append(bs, datatypes.WriteTokenCount(int32(len(p.params)))...)
+
+	for k, pp := range p.params {
+		log.Tracef("%s.Marshal()", k)
+		m, err := pp.iface.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		bs = append(bs, datatypes.WriteTokenBytes(k, m)...)
+		bs = append(bs, m...)
 	}
-	bs = append(bs, datatypes.WriteTokenBytes(tInputStrip, m)...)
-	bs = append(bs, m...)
 
 	return bs, nil
 }
 
 func (p *Body) Name() string { return "Body" }
 
-func (p *Body) InputStrip() *InputStrip { return p.is }
+func (p *Body) InputStrip() *InputStrip {
+	return p.params["Input Strip"].iface.(*InputStrip)
+}
 
 //-----------------------------------------------------------------------------
-// Input Strip
+// Body > AudioMasterStrip
+
+// var _ Adjuster = new(NewAudioMasterStrip)
+
+// type audioMasterStripParam struct {
+// 	offset    int
+// 	readFn    func(*InputStrip, []byte, int) int
+// 	marshalFn func(*InputStrip, []byte, int)
+// }
+
+//-----------------------------------------------------------------------------
+// Body > Input Strip
 
 var _ Adjuster = new(InputStrip)
 
-type kvType int
+const inputStripSize = 746
 
-type kvParam struct {
+type inputStripParam struct {
 	offset    int
-	readFn    func(*InputStrip, []byte, int) int
-	marshalFn func(*InputStrip, []byte, int)
+	readFn    func(Adjuster, []byte, int) int
+	marshalFn func(Adjuster, []byte, int)
 }
 
 type InputStrip struct {
 	pb.DShowInputChannel_InputStrip
-	params map[string]kvParam
+	params map[string]inputStripParam
 }
-
-const (
-	tInputStrip    = "Input Strip"
-	inputStripSize = 746
-)
 
 func NewInputStrip() *InputStrip {
 	return &InputStrip{
 		pb.DShowInputChannel_InputStrip{},
-		map[string]kvParam{
+		map[string]inputStripParam{
 			"phantom": {1,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.Phantom, c = readBool(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).Phantom, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.Phantom) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeBool(bs, o, a.(*InputStrip).Phantom)
+				}},
 			"pad": {2,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.Pad, c = readBool(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).Pad, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.Pad) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeBool(bs, o, a.(*InputStrip).Pad)
+				}},
 			"gain": {3,
-				func(is *InputStrip, bs []byte, o int) (c int) {
+				func(a Adjuster, bs []byte, o int) (c int) {
 					i32, c := readInt32(bs, o)
-					is.Gain = float32(i32) / 10
+					a.(*InputStrip).Gain = float32(i32) / 10
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, int32(is.Gain*10)) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeInt32(bs, o, int32(a.(*InputStrip).Gain*10))
+				}},
 			"eq_in": {14,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.EqIn, c = readBool(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).EqIn, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.EqIn) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeBool(bs, o, a.(*InputStrip).EqIn)
+				}},
 			"heat_in": {737,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.HeatIn, c = readBool(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).HeatIn, c = readBool(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeBool(bs, o, is.HeatIn) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeBool(bs, o, a.(*InputStrip).HeatIn)
+				}},
 			"drive": {738,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.Drive, c = readInt32(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).Drive, c = readInt32(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, is.Drive) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeInt32(bs, o, a.(*InputStrip).Drive)
+				}},
 			"tone": {742,
-				func(is *InputStrip, bs []byte, o int) (c int) {
-					is.Tone, c = readInt32(bs, o)
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*InputStrip).Tone, c = readInt32(bs, o)
 					return
 				},
-				func(is *InputStrip, bs []byte, o int) { writeInt32(bs, o, is.Tone) }},
+				func(a Adjuster, bs []byte, o int) {
+					writeInt32(bs, o, a.(*InputStrip).Tone)
+				}},
 		},
 	}
 }
