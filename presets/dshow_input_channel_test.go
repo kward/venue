@@ -99,6 +99,53 @@ func TestHeader(t *testing.T) {
 	}
 }
 
+// func TestBody(t *testing.T) {
+// 	p = NewBody()
+// }
+
+func TestAudioStrip(t *testing.T) {
+	for _, tt := range []struct {
+		desc  string
+		setFn func(*AudioStrip)
+		getFn func(*AudioStrip) interface{}
+	}{
+		{"phase_true",
+			func(as *AudioStrip) { as.Phase = true },
+			func(as *AudioStrip) interface{} { return as.GetPhase() }},
+		{"phase_false",
+			func(as *AudioStrip) { as.Phase = false },
+			func(as *AudioStrip) interface{} { return as.GetPhase() }},
+	} {
+		// Marshal the proto to bytes.
+		p := NewAudioStrip()
+		tt.setFn(p)
+		value := tt.getFn(p)
+		m, err := p.Marshal()
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			continue
+		}
+
+		// Read bytes back.
+		p = NewAudioStrip()
+		c, err := p.Read(m)
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+		}
+		if c == 0 {
+			t.Errorf("%s: expected count > 0, got %d", tt.desc, c)
+		}
+		if err != nil {
+			continue
+		}
+
+		// Verify the value.
+		if got, want := tt.getFn(p), value; got != want {
+			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
+		}
+	}
+}
+
 func TestInputStrip(t *testing.T) {
 	for _, tt := range []struct {
 		desc  string

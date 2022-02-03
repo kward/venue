@@ -26,7 +26,9 @@ message DShowInputChannel {
   // Body
 
   message AudioMasterStrip {}
-  message AudioStrip {}
+  message AudioStrip {
+    bool phase = 1;
+  }
   message AuxBussesOptions {}
   message AuxBussesOptions2 {}
   message BusConfigMode {}

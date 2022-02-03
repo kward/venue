@@ -29,6 +29,12 @@ type Adjuster interface {
 	Name() string
 }
 
+type kvParam struct {
+	offset    int
+	readFn    func(Adjuster, []byte, int) int
+	marshalFn func(Adjuster, []byte, int)
+}
+
 //-----------------------------------------------------------------------------
 // DShowInputChannel
 
@@ -223,27 +229,23 @@ func (p *Header) Name() string { return "Header" }
 
 var _ Adjuster = new(Body)
 
-type bodyParam struct {
-	iface Adjuster
-}
-
 // Body holds the main preset values. Body does not expose the values directly
 // as it has none to expose. Instead it provides access functions.
 type Body struct {
-	pb     pb.DShowInputChannel_Body
-	params map[string]bodyParam
+	pb        pb.DShowInputChannel_Body
+	adjusters map[string]Adjuster
 }
 
 func NewBody() *Body {
 	return &Body{
 		pb.DShowInputChannel_Body{},
-		map[string]bodyParam{
-			// "AudioMasterStrip": {NewAudioMaster()},
-			// "audio_strip": {tInputStrip, NewInputStrip()},
+		map[string]Adjuster{
+			"AudioMasterStrip": NewAudioMasterStrip(),
+			"AudioStrip":       NewAudioStrip(),
 			// "aux_busses_options": {tInputStrip, NewInputStrip()},
 			// "aux_busses_options2": {tInputStrip, NewInputStrip()},
 			// "bus_config_mode": {tInputStrip, NewInputStrip()},
-			"Input Strip": {NewInputStrip()},
+			"InputStrip": NewInputStrip(),
 			// "matrix_master_strip": {tInputStrip, NewInputStrip()},
 			// "mic_line_strips": {tInputStrip, NewInputStrip()},
 			// "strip": {tInputStrip, NewInputStrip()},
@@ -305,14 +307,13 @@ func (p *Body) Read(bs []byte) (int, error) {
 			i += c
 
 			// Hand off the reading of the token data.
-			param, ok := p.params[token]
+			a, ok := p.adjusters[token]
 			if !ok {
 				return i, fmt.Errorf("%s: unsupported Bytes token %s", p.Name(), token)
 			}
-			iface := param.iface
-			c, err := iface.Read(b)
+			c, err := a.Read(b)
 			if err != nil {
-				return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), iface.Name(), err)
+				return i, fmt.Errorf("%s: failed to Read %s; %s", p.Name(), a.Name(), err)
 			}
 			i += c
 
@@ -336,11 +337,11 @@ func (p *Body) Marshal() ([]byte, error) {
 
 	bs := []byte{}
 	// TODO should be 10.
-	bs = append(bs, datatypes.WriteTokenCount(int32(len(p.params)))...)
+	bs = append(bs, datatypes.WriteTokenCount(int32(len(p.adjusters)))...)
 
-	for k, pp := range p.params {
+	for k, a := range p.adjusters {
 		log.Tracef("%s.Marshal()", k)
-		m, err := pp.iface.Marshal()
+		m, err := a.Marshal()
 		if err != nil {
 			return nil, err
 		}
@@ -353,43 +354,133 @@ func (p *Body) Marshal() ([]byte, error) {
 
 func (p *Body) Name() string { return "Body" }
 
+func (p *Body) AudioMasterStrip() *AudioMasterStrip {
+	return p.adjusters["AudioMasterStrip"].(*AudioMasterStrip)
+}
+
+func (p *Body) AudioStrip() *AudioStrip {
+	return p.adjusters["AudioStrip"].(*AudioStrip)
+}
+
 func (p *Body) InputStrip() *InputStrip {
-	return p.params["Input Strip"].iface.(*InputStrip)
+	return p.adjusters["InputStrip"].(*InputStrip)
 }
 
 //-----------------------------------------------------------------------------
 // Body > AudioMasterStrip
 
-// var _ Adjuster = new(NewAudioMasterStrip)
+var _ Adjuster = new(AudioMasterStrip)
 
-// type audioMasterStripParam struct {
-// 	offset    int
-// 	readFn    func(*InputStrip, []byte, int) int
-// 	marshalFn func(*InputStrip, []byte, int)
-// }
+const audioMasterStripSize = 0x8d
+
+type AudioMasterStrip struct {
+	pb.DShowInputChannel_AudioMasterStrip
+	params map[string]kvParam
+}
+
+func NewAudioMasterStrip() *AudioMasterStrip {
+	return &AudioMasterStrip{
+		pb.DShowInputChannel_AudioMasterStrip{},
+		map[string]kvParam{},
+	}
+}
+
+// Read AudioMasterStrip values from a slice of bytes.
+func (p *AudioMasterStrip) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
+	for k, pp := range p.params {
+		log.Tracef("%s.readFn() at %d", k, pp.offset)
+		if c := pp.readFn(p, bs, pp.offset); c == 0 {
+			return 0, fmt.Errorf("%s: error reading %s", p.Name(), k)
+		}
+	}
+	return len(bs), nil
+}
+
+// Marshal the AudioMasterStrip into a slice of bytes.
+func (p *AudioMasterStrip) Marshal() ([]byte, error) {
+	log.Tracef("%s.Marshal()", p.Name())
+	bs := make([]byte, audioMasterStripSize)
+
+	for k, pp := range p.params {
+		log.Tracef("%s.marshalFn() at %d", k, pp.offset)
+		pp.marshalFn(p, bs, pp.offset)
+	}
+	return bs, nil
+}
+
+func (p *AudioMasterStrip) Name() string { return "AudioMasterStrip" }
+
+//-----------------------------------------------------------------------------
+// Body > AudioStrip
+
+var _ Adjuster = new(AudioStrip)
+
+const audioStripSize = 0x49
+
+type AudioStrip struct {
+	pb.DShowInputChannel_AudioStrip
+	params map[string]kvParam
+}
+
+func NewAudioStrip() *AudioStrip {
+	return &AudioStrip{
+		pb.DShowInputChannel_AudioStrip{},
+		map[string]kvParam{
+			"phase": {0,
+				func(a Adjuster, bs []byte, o int) (c int) {
+					a.(*AudioStrip).Phase, c = readBool(bs, o)
+					return
+				},
+				func(a Adjuster, bs []byte, o int) {
+					writeBool(bs, o, a.(*AudioStrip).Phase)
+				}},
+		},
+	}
+}
+
+// Read AudioStrip values from a slice of bytes.
+func (p *AudioStrip) Read(bs []byte) (int, error) {
+	log.Tracef("%s.Read()", p.Name())
+	for k, pp := range p.params {
+		log.Tracef("%s.readFn() at %d", k, pp.offset)
+		if c := pp.readFn(p, bs, pp.offset); c == 0 {
+			return 0, fmt.Errorf("%s: error reading %s", p.Name(), k)
+		}
+	}
+	return len(bs), nil
+}
+
+// Marshal the AudioStrip into a slice of bytes.
+func (p *AudioStrip) Marshal() ([]byte, error) {
+	log.Tracef("%s.Marshal()", p.Name())
+	bs := make([]byte, audioStripSize)
+
+	for k, pp := range p.params {
+		log.Tracef("%s.marshalFn() at %d", k, pp.offset)
+		pp.marshalFn(p, bs, pp.offset)
+	}
+	return bs, nil
+}
+
+func (p *AudioStrip) Name() string { return "AudioStrip" }
 
 //-----------------------------------------------------------------------------
 // Body > Input Strip
 
 var _ Adjuster = new(InputStrip)
 
-const inputStripSize = 746
-
-type inputStripParam struct {
-	offset    int
-	readFn    func(Adjuster, []byte, int) int
-	marshalFn func(Adjuster, []byte, int)
-}
+const inputStripSize = 0x2ea
 
 type InputStrip struct {
 	pb.DShowInputChannel_InputStrip
-	params map[string]inputStripParam
+	params map[string]kvParam
 }
 
 func NewInputStrip() *InputStrip {
 	return &InputStrip{
 		pb.DShowInputChannel_InputStrip{},
-		map[string]inputStripParam{
+		map[string]kvParam{
 			"phantom": {1,
 				func(a Adjuster, bs []byte, o int) (c int) {
 					a.(*InputStrip).Phantom, c = readBool(bs, o)
