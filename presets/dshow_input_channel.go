@@ -13,6 +13,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//-----------------------------------------------------------------------------
+// Adjuster
+
 type Adjuster interface {
 	// https://pkg.go.dev/io#Reader
 	io.Reader
@@ -25,26 +28,26 @@ type Adjuster interface {
 	Name() string
 }
 
-func adjusterRead(a Adjuster, params map[string]kvParam, bs []byte) (int, error) {
+func readAdjusterParams(a Adjuster, params map[string]kvParam, bs []byte) (int, error) {
 	for k, pp := range params {
 		log.Tracef("%s.readFn() at %d", k, pp.offset)
-		if c := pp.readFn(a, bs, pp.offset); c == 0 {
+		if c := pp.readFn(bs, pp.offset, pp.iface); c == 0 {
 			return 0, fmt.Errorf("%s: error reading %s", a.Name(), k)
 		}
 	}
 	return len(bs), nil
 }
 
-func adjusterMarshal(a Adjuster, params map[string]kvParam, size int) ([]byte, error) {
+func marshalAdjusterParams(a Adjuster, params map[string]kvParam, size int) ([]byte, error) {
 	bs := make([]byte, size)
 	for k, pp := range params {
 		log.Tracef("%s.marshalFn() at %d", k, pp.offset)
-		pp.marshalFn(a, bs, pp.offset)
+		pp.marshalFn(bs, pp.offset, pp.iface)
 	}
 	return bs, nil
 }
 
-func adjusterString(a Adjuster, params map[string]kvParam) (s string) {
+func stringAdjusterParams(a Adjuster, params map[string]kvParam) (s string) {
 	type keyOffset struct {
 		key    string
 		offset int
@@ -60,16 +63,84 @@ func adjusterString(a Adjuster, params map[string]kvParam) (s string) {
 
 	s += fmt.Sprintf("%s\n", a.Name())
 	for _, ko := range kos {
-		s += fmt.Sprintf(" %s: %v\n", ko.key, params[ko.key].getFn(a))
+		p := params[ko.key]
+		s += fmt.Sprintf(" %s: %s\n", ko.key, p.stringFn(p.iface))
 	}
 	return
 }
 
+//-----------------------------------------------------------------------------
+// kvParam
+
 type kvParam struct {
 	offset    int
-	readFn    func(Adjuster, []byte, int) int
-	marshalFn func(Adjuster, []byte, int)
-	getFn     func(Adjuster) interface{}
+	iface     interface{} // Pointer to the parameter value.
+	readFn    func(bs []byte, o int, v interface{}) (c int)
+	marshalFn func(bs []byte, o int, v interface{})
+	stringFn  func(v interface{}) string
+}
+
+func readBoolIface(bs []byte, o int, i interface{}) int {
+	const boolSize = 1
+	if len(bs) < o+boolSize {
+		return 0
+	}
+	v := i.(*bool)
+	*v = bs[o] == 1
+	return boolSize
+}
+func marshalBoolIface(bs []byte, o int, i interface{}) {
+	v := i.(*bool)
+	writeBool(bs, o, *v)
+}
+func stringBoolIface(i interface{}) string {
+	v := i.(*bool)
+	return fmt.Sprintf("%v", *v)
+}
+
+func readFloat32Iface10(bs []byte, o int, i interface{}) int {
+	i32, c := readInt32(bs, o)
+	v := i.(*float32)
+	*v = float32(i32) / 10
+	return c
+}
+func marshalFloat32Iface10(bs []byte, o int, i interface{}) {
+	v := i.(*float32)
+	writeInt32(bs, o, int32((*v)*10))
+}
+func stringFloat32Iface10(i interface{}) string {
+	v := i.(*float32)
+	return fmt.Sprintf("%0.1f", *v)
+}
+
+func readFloat32Iface100(bs []byte, o int, i interface{}) int {
+	i32, c := readInt32(bs, o)
+	v := i.(*float32)
+	*v = float32(i32) / 100
+	return c
+}
+func marshalFloat32Iface100(bs []byte, o int, i interface{}) {
+	v := i.(*float32)
+	writeInt32(bs, o, int32((*v)*100))
+}
+func stringFloat32Iface100(i interface{}) string {
+	v := i.(*float32)
+	return fmt.Sprintf("%0.2f", *v)
+}
+
+func readInt32Iface(bs []byte, o int, i interface{}) int {
+	i32, c := readInt32(bs, o)
+	v := i.(*int32)
+	*v = i32
+	return c
+}
+func marshalInt32Iface(bs []byte, o int, i interface{}) {
+	v := i.(*int32)
+	writeInt32(bs, o, *v)
+}
+func stringInt32Iface(i interface{}) string {
+	v := i.(*int32)
+	return fmt.Sprintf("%d", *v)
 }
 
 //-----------------------------------------------------------------------------
@@ -451,7 +522,7 @@ func NewAudioMasterStrip() *AudioMasterStrip {
 // Read Adjuster values from a slice of bytes.
 func (p *AudioMasterStrip) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const audioMasterStripSize = 0x8d
@@ -459,11 +530,11 @@ const audioMasterStripSize = 0x8d
 // Marshal the Adjuster into a slice of bytes.
 func (p *AudioMasterStrip) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, audioMasterStripSize)
+	return marshalAdjusterParams(p, p.params, audioMasterStripSize)
 }
 
 func (p *AudioMasterStrip) Name() string   { return "AudioMasterStrip" }
-func (p *AudioMasterStrip) String() string { return adjusterString(p, p.params) }
+func (p *AudioMasterStrip) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > AudioStrip
@@ -476,83 +547,36 @@ type AudioStrip struct {
 }
 
 func NewAudioStrip() *AudioStrip {
-	return &AudioStrip{
-		pb.DShowInputChannel_AudioStrip{},
-		map[string]kvParam{
-			"phaseIn": {0,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*AudioStrip).PhaseIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeBool(bs, o, a.(*AudioStrip).PhaseIn)
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).PhaseIn },
-			},
-			"delayIn": {1,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*AudioStrip).DelayIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeBool(bs, o, a.(*AudioStrip).DelayIn)
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).DelayIn },
-			},
+	a := &AudioStrip{}
+	a.params = map[string]kvParam{
+		"phaseIn": {0, &a.PhaseIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"delayIn": {1, &a.DelayIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"delay": {2, &a.Delay,
 			// Unlike most other floats which are multiplied or divided by 10, the
 			// delay is adjusted by 96 for some unknown reason.
-			"delay": {2,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					var i32 int32
-					i32, c = readInt32(bs, o)
-					a.(*AudioStrip).Delay = float32(math.Trunc(float64(i32) / 96))
-					return
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeInt32(bs, o, int32(a.(*AudioStrip).Delay*96))
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).Delay },
+			func(bs []byte, o int, i interface{}) int {
+				v := i.(*float32)
+				i32, c := readInt32(bs, o)
+				*v = float32(math.Trunc(float64(i32) / 96))
+				return c
 			},
-			"directOutIn": {7,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*AudioStrip).DirectOutIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeBool(bs, o, a.(*AudioStrip).DirectOutIn)
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).DirectOutIn },
+			func(bs []byte, o int, i interface{}) {
+				v := i.(*float32)
+				writeInt32(bs, o, int32(*v)*96)
 			},
-			"directOut": {11,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					var i32 int32
-					i32, c = readInt32(bs, o)
-					a.(*AudioStrip).DirectOut = float32(i32) / 10
-					return c
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeInt32(bs, o, int32(a.(*AudioStrip).DirectOut*10))
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).DirectOut },
-			},
-			"pan": {17,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*AudioStrip).Pan, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) {
-					writeInt32(bs, o, a.(*AudioStrip).Pan)
-				},
-				func(a Adjuster) interface{} { return a.(*AudioStrip).Pan },
-			},
+			stringFloat32Iface10,
 		},
+		"directOutIn": {7, &a.DirectOutIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"directOut":   {11, &a.DirectOut, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"pan":         {17, &a.Pan, readInt32Iface, marshalInt32Iface, stringInt32Iface},
 	}
+	return a
 }
 
 // Read Adjuster values from a slice of bytes.
 func (p *AudioStrip) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const audioStripSize = 0x49
@@ -560,11 +584,11 @@ const audioStripSize = 0x49
 // Marshal the Adjuster into a slice of bytes.
 func (p *AudioStrip) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, audioStripSize)
+	return marshalAdjusterParams(p, p.params, audioStripSize)
 }
 
 func (p *AudioStrip) Name() string   { return "AudioStrip" }
-func (p *AudioStrip) String() string { return adjusterString(p, p.params) }
+func (p *AudioStrip) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > AuxBussesOptions
@@ -586,7 +610,7 @@ func NewAuxBussesOptions() *AuxBussesOptions {
 // Read Adjuster values from a slice of bytes.
 func (p *AuxBussesOptions) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const auxBussesOptionsSize = 0x18
@@ -594,11 +618,11 @@ const auxBussesOptionsSize = 0x18
 // Marshal the Adjuster into a slice of bytes.
 func (p *AuxBussesOptions) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, auxBussesOptionsSize)
+	return marshalAdjusterParams(p, p.params, auxBussesOptionsSize)
 }
 
 func (p *AuxBussesOptions) Name() string   { return "AuxBussesOptions" }
-func (p *AuxBussesOptions) String() string { return adjusterString(p, p.params) }
+func (p *AuxBussesOptions) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > AuxBussesOptions2
@@ -620,7 +644,7 @@ func NewAuxBussesOptions2() *AuxBussesOptions2 {
 // Read Adjuster values from a slice of bytes.
 func (p *AuxBussesOptions2) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const auxBussesOptions2Size = 0x01e8
@@ -628,11 +652,11 @@ const auxBussesOptions2Size = 0x01e8
 // Marshal the Adjuster into a slice of bytes.
 func (p *AuxBussesOptions2) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, auxBussesOptions2Size)
+	return marshalAdjusterParams(p, p.params, auxBussesOptions2Size)
 }
 
 func (p *AuxBussesOptions2) Name() string   { return "AuxBussesOptions2" }
-func (p *AuxBussesOptions2) String() string { return adjusterString(p, p.params) }
+func (p *AuxBussesOptions2) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > BusConfigMode
@@ -654,7 +678,7 @@ func NewBusConfigMode() *BusConfigMode {
 // Read Adjuster values from a slice of bytes.
 func (p *BusConfigMode) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const busConfigModeSize = 0x0c
@@ -662,11 +686,11 @@ const busConfigModeSize = 0x0c
 // Marshal the Adjuster into a slice of bytes.
 func (p *BusConfigMode) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, busConfigModeSize)
+	return marshalAdjusterParams(p, p.params, busConfigModeSize)
 }
 
 func (p *BusConfigMode) Name() string   { return "BusConfigMode" }
-func (p *BusConfigMode) String() string { return adjusterString(p, p.params) }
+func (p *BusConfigMode) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > Input Strip
@@ -683,141 +707,66 @@ const (
 	EQCurve = true
 )
 
-func NewInputStrip() *InputStrip {
-	return &InputStrip{
-		pb.DShowInputChannel_InputStrip{},
-		map[string]kvParam{
-			"phantom": {1,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).Phantom, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).Phantom) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).Phantom },
-			},
-			"pad": {2,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).Pad, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).Pad) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).Pad },
-			},
-			"gain": {3,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					i32, c := readInt32(bs, o)
-					a.(*InputStrip).Gain = float32(i32) / 10
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, int32(a.(*InputStrip).Gain*10)) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).Gain },
-			},
-			"eq_in": {14,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqIn },
-			},
-			"eq_high_in": {16,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqHighIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqHighIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighIn },
-			},
-			"eq_high_type": {17,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqHighType, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqHighType) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighType },
-			},
-			"eq_high_gain": {18,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					i32, c := readInt32(bs, o)
-					a.(*InputStrip).EqHighGain = float32(i32) / 10
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, int32(a.(*InputStrip).EqHighGain*10)) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighGain },
-			},
-			"eq_high_freq": {22,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqHighFreq, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, a.(*InputStrip).EqHighFreq) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighFreq },
-			},
-			"eq_high_q": {26,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					i32, c := readInt32(bs, o)
-					a.(*InputStrip).EqHighQ = float32(i32) / 100
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, int32(a.(*InputStrip).EqHighQ*100)) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighQ },
-			},
-			"eq_high_mid_in": {30,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqHighMidIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqHighMidIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqHighMidIn },
-			},
-			"eq_low_mid_in": {44,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqLowMidIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqLowMidIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqLowMidIn },
-			},
-			"eq_low_in": {58,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).EqLowIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).EqLowIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).EqLowIn },
-			},
-			"heat_in": {737,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).HeatIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*InputStrip).HeatIn) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).HeatIn },
-			},
-			"drive": {738,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).Drive, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, a.(*InputStrip).Drive) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).Drive },
-			},
-			"tone": {742,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*InputStrip).Tone, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, a.(*InputStrip).Tone) },
-				func(a Adjuster) interface{} { return a.(*InputStrip).Tone },
-			},
-		},
+func readEqTypeIface(bs []byte, o int, i interface{}) int {
+	v := i.(*pb.DShowInputChannelEqType)
+	b, c := readBool(bs, o)
+	if b {
+		*v = pb.DShowInputChannel_EQ_CURVE
+	} else {
+		*v = pb.DShowInputChannel_EQ_SHELF
 	}
+	return c
+}
+func marshalEqTypeIface(bs []byte, o int, i interface{}) {
+	v := i.(*pb.DShowInputChannelEqType)
+	writeBool(bs, o, (*v).Number() == 1)
+}
+func stringEqTypeIface(i interface{}) string {
+	v := i.(*pb.DShowInputChannelEqType)
+	return fmt.Sprintf("%v", *v)
+}
+
+func NewInputStrip() *InputStrip {
+	a := &InputStrip{}
+	a.params = map[string]kvParam{
+		"phantom":          {0x01, &a.Phantom, readBoolIface, marshalBoolIface, stringBoolIface},
+		"pad":              {0x02, &a.Pad, readBoolIface, marshalBoolIface, stringBoolIface},
+		"gain":             {0x03, &a.Gain, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"eq_in":            {0x0e, &a.EqIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"eq_high_in":       {0x10, &a.EqHighIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"eq_high_type":     {0x11, &a.EqHighType, readEqTypeIface, marshalEqTypeIface, stringEqTypeIface},
+		"eq_high_gain":     {0x12, &a.EqHighGain, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"eq_high_freq":     {0x16, &a.EqHighFreq, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"eq_high_q":        {0x1a, &a.EqHighQ, readFloat32Iface100, marshalFloat32Iface100, stringFloat32Iface100},
+		"eq_high_mid_in":   {0x1e, &a.EqHighMidIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"eq_high_mid_type": {0x1f, &a.EqHighMidType, readEqTypeIface, marshalEqTypeIface, stringEqTypeIface},
+		"eq_high_mid_gain": {0x20, &a.EqHighMidGain, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"eq_high_mid_freq": {0x24, &a.EqHighMidFreq, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"eq_high_mid_q":    {0x28, &a.EqHighMidQ, readFloat32Iface100, marshalFloat32Iface100, stringFloat32Iface100},
+		"eq_low_mid_in":    {0x2c, &a.EqLowMidIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"eq_low_mid_type":  {0x2d, &a.EqLowMidType, readEqTypeIface, marshalEqTypeIface, stringEqTypeIface},
+		"eq_low_mid_gain":  {0x2e, &a.EqLowMidGain, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"eq_low_mid_freq":  {0x32, &a.EqLowMidFreq, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"eq_low_mid_q":     {0x36, &a.EqLowMidQ, readFloat32Iface100, marshalFloat32Iface100, stringFloat32Iface100},
+		"eq_low_in":        {0x3a, &a.EqLowIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"eq_low_type":      {0x3b, &a.EqLowType, readEqTypeIface, marshalEqTypeIface, stringEqTypeIface},
+		"eq_low_gain":      {0x3c, &a.EqLowGain, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"eq_low_freq":      {0x40, &a.EqLowFreq, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"eq_low_q":         {0x44, &a.EqLowQ, readFloat32Iface100, marshalFloat32Iface100, stringFloat32Iface100},
+		"heat_in":          {0x2e1, &a.HeatIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"drive":            {0x2e2, &a.Drive, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"tone":             {0x2e6, &a.Tone, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+	}
+	// Set default values.
+	a.EqHighMidType = pb.DShowInputChannel_EQ_CURVE
+	a.EqLowMidType = pb.DShowInputChannel_EQ_CURVE
+	return a
 }
 
 // Read Adjuster values from a slice of bytes.
 func (p *InputStrip) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const inputStripSize = 0x02ea
@@ -825,11 +774,11 @@ const inputStripSize = 0x02ea
 // Marshal the Adjuster into a slice of bytes.
 func (p *InputStrip) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, inputStripSize)
+	return marshalAdjusterParams(p, p.params, inputStripSize)
 }
 
 func (p *InputStrip) Name() string   { return "InputStrip" }
-func (p *InputStrip) String() string { return adjusterString(p, p.params) }
+func (p *InputStrip) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > MatrixMasterStrip
@@ -851,7 +800,7 @@ func NewMatrixMasterStrip() *MatrixMasterStrip {
 // Read Adjuster values from a slice of bytes.
 func (p *MatrixMasterStrip) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const matrixMasterStripSize = 0x0484
@@ -859,11 +808,11 @@ const matrixMasterStripSize = 0x0484
 // Marshal the Adjuster into a slice of bytes.
 func (p *MatrixMasterStrip) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, matrixMasterStripSize)
+	return marshalAdjusterParams(p, p.params, matrixMasterStripSize)
 }
 
 func (p *MatrixMasterStrip) Name() string   { return "MatrixMasterStrip" }
-func (p *MatrixMasterStrip) String() string { return adjusterString(p, p.params) }
+func (p *MatrixMasterStrip) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > MicLineStrips
@@ -876,49 +825,20 @@ type MicLineStrips struct {
 }
 
 func NewMicLineStrips() *MicLineStrips {
-	return &MicLineStrips{
-		pb.DShowInputChannel_MicLineStrips{},
-		map[string]kvParam{
-			"hpfIn": {0,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*MicLineStrips).HpfIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*MicLineStrips).HpfIn) },
-				func(a Adjuster) interface{} { return a.(*MicLineStrips).HpfIn },
-			},
-			"hpf": {1,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*MicLineStrips).Hpf, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, a.(*MicLineStrips).Hpf) },
-				func(a Adjuster) interface{} { return a.(*MicLineStrips).Hpf },
-			},
-			"lpfIn": {89,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*MicLineStrips).LpfIn, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*MicLineStrips).LpfIn) },
-				func(a Adjuster) interface{} { return a.(*MicLineStrips).LpfIn },
-			},
-			"lpf": {90,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*MicLineStrips).Lpf, c = readInt32(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, a.(*MicLineStrips).Lpf) },
-				func(a Adjuster) interface{} { return a.(*MicLineStrips).Lpf },
-			},
-		},
+	a := &MicLineStrips{}
+	a.params = map[string]kvParam{
+		"hpfIn": {0, &a.HpfIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"hpf":   {1, &a.Hpf, readInt32Iface, marshalInt32Iface, stringInt32Iface},
+		"lpfIn": {0x58, &a.LpfIn, readBoolIface, marshalBoolIface, stringBoolIface},
+		"lpf":   {0x59, &a.Lpf, readInt32Iface, marshalInt32Iface, stringInt32Iface},
 	}
+	return a
 }
 
 // Read Adjuster values from a slice of bytes.
 func (p *MicLineStrips) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const micLineStripsSize = 0x65
@@ -926,11 +846,11 @@ const micLineStripsSize = 0x65
 // Marshal the Adjuster into a slice of bytes.
 func (p *MicLineStrips) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, micLineStripsSize)
+	return marshalAdjusterParams(p, p.params, micLineStripsSize)
 }
 
 func (p *MicLineStrips) Name() string   { return "MicLineStrips" }
-func (p *MicLineStrips) String() string { return adjusterString(p, p.params) }
+func (p *MicLineStrips) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > Strip
@@ -943,42 +863,33 @@ type Strip struct {
 }
 
 func NewStrip() *Strip {
-	return &Strip{
-		pb.DShowInputChannel_Strip{},
-		map[string]kvParam{
-			"mute": {0,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*Strip).Mute, c = readBool(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeBool(bs, o, a.(*Strip).Mute) },
-				func(a Adjuster) interface{} { return a.(*Strip).Mute },
+	a := &Strip{}
+	a.params = map[string]kvParam{
+		"mute":  {0, &a.Mute, readBoolIface, marshalBoolIface, stringBoolIface},
+		"fader": {2, &a.Fader, readFloat32Iface10, marshalFloat32Iface10, stringFloat32Iface10},
+		"channel_name": {6, &a.ChannelName,
+			func(bs []byte, o int, i interface{}) (c int) {
+				v := i.(*string)
+				*v, c = readString(bs, o)
+				return
 			},
-			"fader": {2,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					i32, c := readInt32(bs, o)
-					a.(*Strip).Fader = float32(i32) / 10
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeInt32(bs, o, int32(a.(*Strip).Fader*10)) },
-				func(a Adjuster) interface{} { return a.(*Strip).Fader },
+			func(bs []byte, o int, i interface{}) {
+				v := i.(*string)
+				writeString(bs, o, *v)
 			},
-			"channel_name": {6,
-				func(a Adjuster, bs []byte, o int) (c int) {
-					a.(*Strip).ChannelName, c = readString(bs, o)
-					return
-				},
-				func(a Adjuster, bs []byte, o int) { writeString(bs, o, a.(*Strip).ChannelName) },
-				func(a Adjuster) interface{} { return a.(*Strip).ChannelName },
+			func(i interface{}) string {
+				v := i.(*string)
+				return fmt.Sprintf("%s", *v)
 			},
 		},
 	}
+	return a
 }
 
 // Read Adjuster values from a slice of bytes.
 func (p *Strip) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 // Marshal the Adjuster into a slice of bytes. This size of a marshaled strip
@@ -986,16 +897,17 @@ func (p *Strip) Read(bs []byte) (int, error) {
 func (p *Strip) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
 	cn := p.params["channel_name"]
-	bs := make([]byte, cn.offset+len(cn.getFn(p).(string))+1) // +1 for \0.
+	v := cn.iface.(*string)
+	bs := make([]byte, cn.offset+len(*v)+1) // +1 for \0.
 	for k, pp := range p.params {
 		log.Tracef("%s.marshalFn() at %d", k, pp.offset)
-		pp.marshalFn(p, bs, pp.offset)
+		pp.marshalFn(bs, pp.offset, pp.iface)
 	}
 	return bs, nil
 }
 
 func (p *Strip) Name() string   { return "Strip" }
-func (p *Strip) String() string { return adjusterString(p, p.params) }
+func (p *Strip) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Body > StripType
@@ -1017,7 +929,7 @@ func NewStripType() *StripType {
 // Read Adjuster values from a slice of bytes.
 func (p *StripType) Read(bs []byte) (int, error) {
 	log.Debugf("%s.Read()", p.Name())
-	return adjusterRead(p, p.params, bs)
+	return readAdjusterParams(p, p.params, bs)
 }
 
 const stripTypeSize = 0x02
@@ -1025,18 +937,17 @@ const stripTypeSize = 0x02
 // Marshal the Adjuster into a slice of bytes.
 func (p *StripType) Marshal() ([]byte, error) {
 	log.Debugf("%s.Marshal()", p.Name())
-	return adjusterMarshal(p, p.params, stripTypeSize)
+	return marshalAdjusterParams(p, p.params, stripTypeSize)
 }
 
 func (p *StripType) Name() string   { return "StripType" }
-func (p *StripType) String() string { return adjusterString(p, p.params) }
+func (p *StripType) String() string { return stringAdjusterParams(p, p.params) }
 
 //-----------------------------------------------------------------------------
 // Base functions
 
-const boolSize = 1
-
 func readBool(bs []byte, offset int) (bool, int) {
+	const boolSize = 1
 	if len(bs) < offset+boolSize {
 		return false, 0
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	pb "github.com/kward/venue/presets/proto"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -255,10 +256,10 @@ func TestInputStrip(t *testing.T) {
 			func(is *InputStrip) { is.EqHighIn = false },
 			func(is *InputStrip) interface{} { return is.GetEqHighIn() }},
 		{"eq_high_type_curve",
-			func(is *InputStrip) { is.EqHighType = EQCurve },
+			func(is *InputStrip) { is.EqHighType = pb.DShowInputChannel_EQ_CURVE },
 			func(is *InputStrip) interface{} { return is.GetEqHighType() }},
 		{"eq_high_type_shelf",
-			func(is *InputStrip) { is.EqHighType = EQShelf },
+			func(is *InputStrip) { is.EqHighType = pb.DShowInputChannel_EQ_SHELF },
 			func(is *InputStrip) interface{} { return is.GetEqHighType() }},
 		{"eq_high_gain_-18.0_dB", // minimum
 			func(is *InputStrip) { is.EqHighGain = -18.0 },
@@ -289,6 +290,33 @@ func TestInputStrip(t *testing.T) {
 		{"eq_high_mid_in_false",
 			func(is *InputStrip) { is.EqHighMidIn = false },
 			func(is *InputStrip) interface{} { return is.GetEqHighMidIn() }},
+		{"eq_high_mid_type_curve",
+			func(is *InputStrip) { is.EqHighMidType = pb.DShowInputChannel_EQ_CURVE },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidType() }},
+		{"eq_high_mid_type_shelf",
+			func(is *InputStrip) { is.EqHighMidType = pb.DShowInputChannel_EQ_SHELF },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidType() }},
+		{"eq_high_mid_gain_-18.0_dB", // minimum
+			func(is *InputStrip) { is.EqHighMidGain = -18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidGain() }},
+		{"eq_high_mid_gain_0.0_dB",
+			func(is *InputStrip) { is.EqHighMidGain = 0.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidGain() }},
+		{"eq_high_mid_gain_+18.0_dB", // maximum
+			func(is *InputStrip) { is.EqHighMidGain = 18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidGain() }},
+		{"eq_high_mid_freq_20_Hz", // minimum
+			func(is *InputStrip) { is.EqHighMidFreq = 20 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidFreq() }},
+		{"eq_high_mid_freq_20,000_Hz", // maximum
+			func(is *InputStrip) { is.EqHighMidFreq = 20000 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidFreq() }},
+		{"eq_high_mid_q_10", // minimum
+			func(is *InputStrip) { is.EqHighMidQ = 10.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidQ() }},
+		{"eq_high_mid_q_0.1", // maximum
+			func(is *InputStrip) { is.EqHighMidQ = 0.1 },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidQ() }},
 
 		// EQ Low Mid
 		{"eq_low_mid_in_true",
@@ -297,6 +325,33 @@ func TestInputStrip(t *testing.T) {
 		{"eq_low_mid_in_false",
 			func(is *InputStrip) { is.EqLowMidIn = false },
 			func(is *InputStrip) interface{} { return is.GetEqLowMidIn() }},
+		{"eq_low_mid_type_curve",
+			func(is *InputStrip) { is.EqLowMidType = pb.DShowInputChannel_EQ_CURVE },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidType() }},
+		{"eq_low_mid_type_shelf",
+			func(is *InputStrip) { is.EqLowMidType = pb.DShowInputChannel_EQ_SHELF },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidType() }},
+		{"eq_low_mid_gain_-18.0_dB", // minimum
+			func(is *InputStrip) { is.EqLowMidGain = -18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidGain() }},
+		{"eq_low_mid_gain_0.0_dB",
+			func(is *InputStrip) { is.EqLowMidGain = 0.0 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidGain() }},
+		{"eq_low_mid_gain_+18.0_dB", // maximum
+			func(is *InputStrip) { is.EqLowMidGain = 18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidGain() }},
+		{"eq_low_mid_freq_20_Hz", // minimum
+			func(is *InputStrip) { is.EqLowMidFreq = 20 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidFreq() }},
+		{"eq_low_mid_freq_20,000_Hz", // maximum
+			func(is *InputStrip) { is.EqLowMidFreq = 20000 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidFreq() }},
+		{"eq_low_mid_q_10", // minimum
+			func(is *InputStrip) { is.EqLowMidQ = 10.0 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidQ() }},
+		{"eq_low_mid_q_0.1", // maximum
+			func(is *InputStrip) { is.EqLowMidQ = 0.1 },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidQ() }},
 
 		// EQ Low
 		{"eq_low_in_true",
@@ -487,6 +542,23 @@ func TestStrip(t *testing.T) {
 		}
 		if m1len, m2len := len(m1), len(m2); m1len != m2len {
 			t.Errorf("%s: len(m1) = %d != len(m2) = %d", tt.desc, m1len, m2len)
+		}
+	}
+}
+
+func TestClen(t *testing.T) {
+	for _, tt := range []struct {
+		desc  string
+		bytes []byte
+		clen  int
+	}{
+		{"empty", []byte{}, 0},
+		{"empty_string", []byte{0x0a, 0x00}, 1},
+		{"hello", []byte{'h', 'e', 'l', 'l', 'o', 0x00}, 5},
+		{"double", []byte{'1', 0x00, '2', 0x00}, 1},
+	} {
+		if got, want := clen(tt.bytes), tt.clen; got != want {
+			t.Errorf("%s: clen() = %d, want %d", tt.desc, got, want)
 		}
 	}
 }

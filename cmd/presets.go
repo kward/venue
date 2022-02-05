@@ -34,6 +34,19 @@ func main() {
 
 	p := presets.NewDShowInputChannel()
 	p.Read(bs)
-
 	fmt.Println(p)
+
+	bsNew, err := p.Marshal()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	if old, new := len(bs), len(bsNew); old != new {
+		fmt.Println(fmt.Errorf("lengths don't match: %d != %d", old, new))
+	}
+
+	if err := ioutil.WriteFile("/Users/kward/tmp/output", bsNew, 0644); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
