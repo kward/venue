@@ -38,44 +38,50 @@ message DShowInputChannel {
   message AuxBussesOptions2 {}
   message BusConfigMode {}
   message InputStrip {
-    bool  phantom = 1;
-    bool  pad = 2;
-    float gain = 3;
-    bool  eqIn = 4;
+    bool  phantom = 2; // 1
+    bool  pad = 3;     // 2
+    float gain = 4;    // 3
 
-    message EQ {
-      bool  lowIn = 1;
-      int32 lowType = 2;
-      float lowGain = 3;
-      int32 lowFreq = 4;
-      float lowQ = 5;
+    // EQ
+    bool  eqIn = 10; // 14
 
-      bool  lowMidIn = 6;
-      int32 lowMidType = 7;
-      float lowMidGain = 8;
-      int32 lowMidFreq = 9;
-      float lowMidQ = 10;
+    bool  eqHighIn = 11;   // 16
+    bool  eqHighType = 12; // 17 false == shelf, true == curve
+    float eqHighGain = 13; // 18
+    int32 eqHighFreq = 14; // 22
+    float eqHighQ = 15;    // 26
 
-      bool  highMidIn = 11;
-      int32 highMidType = 12;
-      float highMidGain = 13;
-      int32 highMidFreq = 14;
-      float highMidQ = 15;
+    bool  eqHighMidIn = 16;   // 30
+    bool  eqHighMidType = 17;
+    float eqHighMidGain = 18;
+    int32 eqHighMidFreq = 19;
+    float eqHighMidQ = 20;
 
-      bool  highIn = 16;
-      int32 highType = 17;
-      float highGain = 18;
-      int32 highFreq = 19;
-      float highQ = 20;
-    }
-    EQ eq = 5;
+    bool  eqLowMidIn = 21;   // 44
+    bool  eqLowMidType = 22;
+    float eqLowMidGain = 23;
+    int32 eqLowMidFreq = 24;
+    float eqLowMidQ = 25;
 
-    bool  heatIn = 6;
-    int32 drive = 7;
-    int32 tone = 8;
+    bool  eqLowIn = 26;   // 58
+    bool  eqLowType = 27;
+    float eqLowGain = 28;
+    int32 eqLowFreq = 29;
+    float eqLowQ = 30;
+
+    // end EQ
+
+    bool  heatIn = 40; // 737
+    int32 drive = 41;  // 738
+    int32 tone = 42;   // 742
   }
   message MatrixMasterStrip {}
-  message MicLineStrips {}
+  message MicLineStrips {
+    bool  hpfIn = 1;
+    int32 hpf = 2;
+    bool  lpfIn = 3;
+    int32 lpf = 4;
+  }
   message Strip {
     bool   mute = 1;
     float  fader = 2;

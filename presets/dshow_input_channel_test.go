@@ -8,8 +8,8 @@ import (
 )
 
 func init() {
-	// log.SetLevel(log.DebugLevel)
-	log.SetLevel(log.TraceLevel)
+	log.SetLevel(log.DebugLevel)
+	// log.SetLevel(log.TraceLevel)
 }
 
 func TestDShowInputChannel(t *testing.T) {
@@ -23,31 +23,38 @@ func TestDShowInputChannel(t *testing.T) {
 			func(dsic *DShowInputChannel) interface{} { return dsic.Body().InputStrip().GetPhantom() }},
 	} {
 		// Marshal the proto to bytes.
-		p := NewDShowInputChannel()
-		tt.setFn(p)
-		value := tt.getFn(p)
-		m, err := p.Marshal()
+		p1 := NewDShowInputChannel()
+		tt.setFn(p1)
+		value := tt.getFn(p1)
+		m1, err := p1.Marshal()
 		if err != nil {
-			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			t.Errorf("%s: unexpected Marshal() error %s", tt.desc, err)
 			continue
 		}
 
 		// Read bytes back.
-		p = NewDShowInputChannel()
-		c, err := p.Read(m)
+		p2 := NewDShowInputChannel()
+		c, err := p2.Read(m1)
 		if err != nil {
-			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			t.Errorf("%s: unexpected Read() error %s", tt.desc, err)
+			continue
 		}
 		if c == 0 {
 			t.Errorf("%s: expected count > 0, got %d", tt.desc, c)
+			continue
 		}
+		m2, err := p2.Marshal()
 		if err != nil {
+			t.Errorf("%s: unexpected Marshal() error %s", tt.desc, err)
 			continue
 		}
 
-		// Verify the value.
-		if got, want := tt.getFn(p), value; got != want {
+		// Checks.
+		if got, want := tt.getFn(p2), value; got != want {
 			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
+		}
+		if m1len, m2len := len(m1), len(m2); m1len != m2len {
+			t.Errorf("%s: len(m1) = %d != len(m2) = %d", tt.desc, m1len, m2len)
 		}
 	}
 }
@@ -206,22 +213,19 @@ func TestInputStrip(t *testing.T) {
 		setFn func(*InputStrip)
 		getFn func(*InputStrip) interface{}
 	}{
-		{"drive_-5", // Minimum.
-			func(is *InputStrip) { is.Drive = -5 },
-			func(is *InputStrip) interface{} { return is.GetDrive() }},
-		{"drive_0",
-			func(is *InputStrip) { is.Drive = 0 },
-			func(is *InputStrip) interface{} { return is.GetDrive() }},
-		{"drive_5", // Maximum.
-			func(is *InputStrip) { is.Drive = 5 },
-			func(is *InputStrip) interface{} { return is.GetDrive() }},
+		{"phantom_true",
+			func(is *InputStrip) { is.Phantom = true },
+			func(is *InputStrip) interface{} { return is.GetPhantom() }},
+		{"phantom_false",
+			func(is *InputStrip) { is.Phantom = false },
+			func(is *InputStrip) interface{} { return is.GetPhantom() }},
 
-		{"eq_in_true",
-			func(is *InputStrip) { is.EqIn = true },
-			func(is *InputStrip) interface{} { return is.GetEqIn() }},
-		{"eq_in_false",
-			func(is *InputStrip) { is.EqIn = false },
-			func(is *InputStrip) interface{} { return is.GetEqIn() }},
+		{"pad_true",
+			func(is *InputStrip) { is.Pad = true },
+			func(is *InputStrip) interface{} { return is.GetPad() }},
+		{"pad_false",
+			func(is *InputStrip) { is.Pad = false },
+			func(is *InputStrip) interface{} { return is.GetPad() }},
 
 		{"gain_+10.0_dB", // Minimum.
 			func(is *InputStrip) { is.Gain = 10.0 },
@@ -236,6 +240,72 @@ func TestInputStrip(t *testing.T) {
 			func(is *InputStrip) { is.Gain = 60.0 },
 			func(is *InputStrip) interface{} { return is.GetGain() }},
 
+		{"eq_in_true",
+			func(is *InputStrip) { is.EqIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqIn() }},
+		{"eq_in_false",
+			func(is *InputStrip) { is.EqIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqIn() }},
+
+		// EQ High
+		{"eq_high_in_true",
+			func(is *InputStrip) { is.EqHighIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqHighIn() }},
+		{"eq_high_in_false",
+			func(is *InputStrip) { is.EqHighIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqHighIn() }},
+		{"eq_high_type_curve",
+			func(is *InputStrip) { is.EqHighType = EQCurve },
+			func(is *InputStrip) interface{} { return is.GetEqHighType() }},
+		{"eq_high_type_shelf",
+			func(is *InputStrip) { is.EqHighType = EQShelf },
+			func(is *InputStrip) interface{} { return is.GetEqHighType() }},
+		{"eq_high_gain_-18.0_dB", // minimum
+			func(is *InputStrip) { is.EqHighGain = -18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighGain() }},
+		{"eq_high_gain_0.0_dB",
+			func(is *InputStrip) { is.EqHighGain = 0.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighGain() }},
+		{"eq_high_gain_+18.0_dB", // maximum
+			func(is *InputStrip) { is.EqHighGain = 18.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighGain() }},
+		{"eq_high_freq_20_Hz", // minimum
+			func(is *InputStrip) { is.EqHighFreq = 20 },
+			func(is *InputStrip) interface{} { return is.GetEqHighFreq() }},
+		{"eq_high_freq_20,000_Hz", // maximum
+			func(is *InputStrip) { is.EqHighFreq = 20000 },
+			func(is *InputStrip) interface{} { return is.GetEqHighFreq() }},
+		{"eq_high_q_10", // minimum
+			func(is *InputStrip) { is.EqHighQ = 10.0 },
+			func(is *InputStrip) interface{} { return is.GetEqHighQ() }},
+		{"eq_high_q_0.1", // maximum
+			func(is *InputStrip) { is.EqHighQ = 0.1 },
+			func(is *InputStrip) interface{} { return is.GetEqHighQ() }},
+
+		// EQ High Mid
+		{"eq_high_mid_in_true",
+			func(is *InputStrip) { is.EqHighMidIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidIn() }},
+		{"eq_high_mid_in_false",
+			func(is *InputStrip) { is.EqHighMidIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqHighMidIn() }},
+
+		// EQ Low Mid
+		{"eq_low_mid_in_true",
+			func(is *InputStrip) { is.EqLowMidIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidIn() }},
+		{"eq_low_mid_in_false",
+			func(is *InputStrip) { is.EqLowMidIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqLowMidIn() }},
+
+		// EQ Low
+		{"eq_low_in_true",
+			func(is *InputStrip) { is.EqLowIn = true },
+			func(is *InputStrip) interface{} { return is.GetEqLowIn() }},
+		{"eq_low_in_false",
+			func(is *InputStrip) { is.EqLowIn = false },
+			func(is *InputStrip) interface{} { return is.GetEqLowIn() }},
+
 		{"heat_in_true",
 			func(is *InputStrip) { is.HeatIn = true },
 			func(is *InputStrip) interface{} { return is.GetHeatIn() }},
@@ -243,19 +313,15 @@ func TestInputStrip(t *testing.T) {
 			func(is *InputStrip) { is.HeatIn = false },
 			func(is *InputStrip) interface{} { return is.GetHeatIn() }},
 
-		{"pad_true",
-			func(is *InputStrip) { is.Pad = true },
-			func(is *InputStrip) interface{} { return is.GetPad() }},
-		{"pad_false",
-			func(is *InputStrip) { is.Pad = false },
-			func(is *InputStrip) interface{} { return is.GetPad() }},
-
-		{"phantom_true",
-			func(is *InputStrip) { is.Phantom = true },
-			func(is *InputStrip) interface{} { return is.GetPhantom() }},
-		{"phantom_false",
-			func(is *InputStrip) { is.Phantom = false },
-			func(is *InputStrip) interface{} { return is.GetPhantom() }},
+		{"drive_-5", // Minimum.
+			func(is *InputStrip) { is.Drive = -5 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
+		{"drive_0",
+			func(is *InputStrip) { is.Drive = 0 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
+		{"drive_5", // Maximum.
+			func(is *InputStrip) { is.Drive = 5 },
+			func(is *InputStrip) interface{} { return is.GetDrive() }},
 
 		{"tone-0", // Minimum.
 			func(is *InputStrip) { is.Tone = 0 },
@@ -276,6 +342,70 @@ func TestInputStrip(t *testing.T) {
 
 		// Read bytes back.
 		p = NewInputStrip()
+		c, err := p.Read(m)
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+		}
+		if c == 0 {
+			t.Errorf("%s: expected count > 0, got %d", tt.desc, c)
+		}
+		if err != nil {
+			continue
+		}
+
+		// Verify the value.
+		if got, want := tt.getFn(p), value; got != want {
+			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
+		}
+	}
+}
+
+func TestMicLineStrips(t *testing.T) {
+	for _, tt := range []struct {
+		desc  string
+		setFn func(*MicLineStrips)
+		getFn func(*MicLineStrips) interface{}
+	}{
+		{"hpf_in_true",
+			func(p *MicLineStrips) { p.HpfIn = true },
+			func(p *MicLineStrips) interface{} { return p.GetHpfIn() }},
+		{"hpf_in_false",
+			func(p *MicLineStrips) { p.HpfIn = false },
+			func(p *MicLineStrips) interface{} { return p.GetHpfIn() }},
+
+		{"hpf_20",
+			func(p *MicLineStrips) { p.Hpf = 20 },
+			func(p *MicLineStrips) interface{} { return p.GetHpfIn() }},
+		{"hpf_20000",
+			func(p *MicLineStrips) { p.Hpf = 20000 },
+			func(p *MicLineStrips) interface{} { return p.GetHpfIn() }},
+
+		{"lpf_in_true",
+			func(p *MicLineStrips) { p.LpfIn = true },
+			func(p *MicLineStrips) interface{} { return p.GetLpfIn() }},
+		{"lpf_in_false",
+			func(p *MicLineStrips) { p.LpfIn = false },
+			func(p *MicLineStrips) interface{} { return p.GetLpfIn() }},
+
+		{"lpf_20",
+			func(p *MicLineStrips) { p.Lpf = 20 },
+			func(p *MicLineStrips) interface{} { return p.GetLpfIn() }},
+		{"lpf_20000",
+			func(p *MicLineStrips) { p.Lpf = 20000 },
+			func(p *MicLineStrips) interface{} { return p.GetLpfIn() }},
+	} {
+		// Marshal the proto to bytes.
+		p := NewMicLineStrips()
+		tt.setFn(p)
+		value := tt.getFn(p)
+		m, err := p.Marshal()
+		if err != nil {
+			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			continue
+		}
+
+		// Read bytes back.
+		p = NewMicLineStrips()
 		c, err := p.Read(m)
 		if err != nil {
 			t.Errorf("%s: unexpected error %s", tt.desc, err)
@@ -325,31 +455,38 @@ func TestStrip(t *testing.T) {
 			func(s *Strip) interface{} { return s.GetChannelName() }},
 	} {
 		// Marshal the proto to bytes.
-		p := NewStrip()
-		tt.setFn(p)
-		value := tt.getFn(p)
-		m, err := p.Marshal()
+		p1 := NewStrip()
+		tt.setFn(p1)
+		value := tt.getFn(p1)
+		m1, err := p1.Marshal()
 		if err != nil {
-			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			t.Errorf("%s: unexpected Marshal() error %s", tt.desc, err)
 			continue
 		}
 
 		// Read bytes back.
-		p = NewStrip()
-		c, err := p.Read(m)
+		p2 := NewStrip()
+		c, err := p2.Read(m1)
 		if err != nil {
-			t.Errorf("%s: unexpected error %s", tt.desc, err)
+			t.Errorf("%s: unexpected Read() error %s", tt.desc, err)
+			continue
 		}
 		if c == 0 {
 			t.Errorf("%s: expected count > 0, got %d", tt.desc, c)
+			continue
 		}
+		m2, err := p2.Marshal()
 		if err != nil {
+			t.Errorf("%s: unexpected Marshal() error %s", tt.desc, err)
 			continue
 		}
 
-		// Verify the value.
-		if got, want := tt.getFn(p), value; got != want {
+		// Checks.
+		if got, want := tt.getFn(p2), value; got != want {
 			t.Errorf("%s: got = %v, want %v", tt.desc, got, want)
+		}
+		if m1len, m2len := len(m1), len(m2); m1len != m2len {
+			t.Errorf("%s: len(m1) = %d != len(m2) = %d", tt.desc, m1len, m2len)
 		}
 	}
 }

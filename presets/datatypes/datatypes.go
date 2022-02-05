@@ -32,7 +32,8 @@ func ReadDataType(bs []byte, offset int) (DataType, int) {
 }
 
 func WriteBytes(v []byte) []byte {
-	log.Debugf("WriteBytes(%v)", v)
+	log.Debugf("WriteBytes(v)")
+	// log.Tracef(" bytes: %v", v)
 	bs := []byte{byte(Bytes)}
 	bs = append(bs, writeInt32(int32(len(v)))...)
 	return append(bs, v...)
@@ -59,7 +60,7 @@ func WriteString(v string) []byte {
 
 func WriteTokenBytes(t string, v []byte) []byte {
 	log.Debugf("WriteTokenBytes(%s, v)", t)
-	log.Tracef(" bytes: %v", v)
+	// log.Tracef(" bytes: %v", v)
 	return append(WriteString(t), WriteBytes(v)...)
 }
 
