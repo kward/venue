@@ -27,12 +27,14 @@ message DShowInputChannel {
 
   message AudioMasterStrip {}
   message AudioStrip {
-    bool  phaseIn = 1;
-    bool  delayIn = 2;
+    bool phaseIn = 1;
+    bool delayIn = 2;
     float delay = 3;
-    bool  directOutIn = 4;
+    bool directOutIn = 4;
     float directOut = 5;
     int32 pan = 6;
+    bool leftRight = 7;
+    bool centerMono = 8;
   }
   message AuxBussesOptions {}
   message AuxBussesOptions2 {}
@@ -44,49 +46,145 @@ message DShowInputChannel {
   }
 
   message InputStrip {
-    bool  phantom = 2; // 1
-    bool  pad = 3;     // 2
-    float gain = 4;    // 3
+    bool patched = 1; // true if channel is patched
+    bool phantom = 2; // true if phantom is enabled
+    bool pad = 3;     // true if pad is enabled
+    float gain = 4;
+    bool inputDirect = 5;
 
     // EQ
-    bool  eqIn = 10; // 14
+    bool eqIn = 6;
+    bool analogEq = 7;
 
-    bool  eqHighIn = 11;   // 16
-    eqType eqHighType = 12; // 17
-    float eqHighGain = 13; // 18
-    int32 eqHighFreq = 14; // 22
-    float eqHighQ = 15;    // 26
+    bool eqHighIn = 8;
+    eqType eqHighType = 9;
+    float eqHighGain = 10;
+    int32 eqHighFreq = 11;
+    float eqHighQBw = 12;
 
-    bool  eqHighMidIn = 16;   // 30
-    eqType  eqHighMidType = 17; // 31 -- doesn't exist
-    float eqHighMidGain = 18; // 32
-    int32 eqHighMidFreq = 19; // 36
-    float eqHighMidQ = 20;    // 40
+    bool eqHighMidIn = 13;
+    eqType eqHighMidType = 14;
+    float eqHighMidGain = 15;
+    int32 eqHighMidFreq = 16;
+    float eqHighMidQBw = 17;
 
-    bool  eqLowMidIn = 21;   // 44
-    eqType  eqLowMidType = 22; // 45 -- doesn't exist
-    float eqLowMidGain = 23; // 46
-    int32 eqLowMidFreq = 24; // 50
-    float eqLowMidQ = 25;    // 54
+    bool eqLowMidIn = 18;
+    eqType eqLowMidType = 19;
+    float eqLowMidGain = 20;
+    int32 eqLowMidFreq = 21;
+    float eqLowMidQBw = 22;
 
-    bool   eqLowIn = 26;   // 58
-    eqType eqLowType = 27;
-    float  eqLowGain = 28;
-    int32  eqLowFreq = 29;
-    float  eqLowQ = 30;
-
+    bool eqLowIn = 23;
+    eqType eqLowType = 24;
+    float eqLowGain = 25;
+    int32 eqLowFreq = 26;
+    float eqLowQBw = 27;
     // end EQ
 
-    bool  heatIn = 40; // 737
-    int32 drive = 41;  // 738
-    int32 tone = 42;   // 742
+    bool bus1 = 28;
+    bool bus2 = 29;
+    bool bus3 = 30;
+    bool bus4 = 31;
+    bool bus5 = 32;
+    bool bus6 = 33;
+    bool bus7 = 34;
+    bool bus8 = 35;
+
+    bool aux1In = 40;
+    bool aux1Pre = 41;
+    float aux1Level = 42;
+    bool aux2In = 43;
+    // 44;
+    bool aux2Pre = 45;
+    float aux2Level = 46;
+    int32 aux1Pan = 47;
+
+    bool aux3In = 48;
+    bool aux3Pre = 49;
+    float aux3Level = 50;
+    bool aux4In = 51;
+    // 52;
+    bool aux4Pre = 53;
+    float aux4Level = 54;
+    int32 aux3Pan = 55;
+
+    bool aux5In = 56;
+    bool aux5Pre = 57;
+    float aux5Level = 58;
+    bool aux6In = 59;
+    // 60;
+    bool aux6Pre = 61;
+    float aux6Level = 62;
+    int32 aux5Pan = 63;
+
+    bool aux7In = 64;
+    bool aux7Pre = 65;
+    float aux7Level = 66;
+    bool aux8In = 67;
+    // 68;
+    bool aux8Pre = 69;
+    float aux8Level = 70;
+    int32 aux7Pan = 71;
+
+    bool aux9In = 72;
+    bool aux9Pre = 73;
+    float aux9Level = 74;
+    bool aux10In = 75;
+    // 76;
+    bool aux10Pre = 77;
+    float aux10Level = 78;
+    int32 aux9Pan = 79;
+
+    bool aux11In = 80;
+    bool aux11Pre = 81;
+    float aux11Level = 82;
+    bool aux12In = 83;
+    // 84;
+    bool aux12Pre = 85;
+    float aux12Level = 86;
+    int32 aux11Pan = 87;
+
+    int32 auxCount = 88;
+
+    bool heatIn = 136;
+    int32 drive = 137;
+    int32 tone = 138;
   }
   message MatrixMasterStrip {}
+
+  enum eqDyn {
+    EQ_PRE_DYN = 0;
+    EQ_POST_DYN = 1;
+  }
   message MicLineStrips {
     bool  hpfIn = 1;
     int32 hpf = 2;
-    bool  lpfIn = 3;
-    int32 lpf = 4;
+    eqDyn eqDyn = 3;
+
+    // Comp/Lim
+    bool compLimIn = 4;
+    float compLimThreshold = 5;
+    int32 compLimAttack = 6;
+    float compLimRatio = 7;
+    int32 compLimRelease = 8;
+    int32 compLimKnee = 9;
+    float compLimGain = 10;
+
+    // Exp/Gate
+    bool expGateIn = 11;
+    float expGateThreshold = 12;
+    float expGateAttack = 13;
+    float expGateRatio = 14;
+    int32 expGateRelease = 15;
+    int32 expGateHold = 16;
+    float expGateRange = 17;
+
+    // Exp/Gate Sidechain
+    bool expGateSidechainIn = 18;
+
+    bool  lpfIn = 28;
+    int32 lpf = 29;
+
   }
   message Strip {
     bool   mute = 1;
@@ -97,18 +195,21 @@ message DShowInputChannel {
 
   // Body
   message Body {
-    int32 tokenCount = 1; // 10
+    int32 tokenCount = 1; // Old style = 7, new style = 10.
 
-    AudioMasterStrip  audioMasterStrip = 2;
-    AudioStrip        audioStrip = 3;
-    AuxBussesOptions  auxBussesOptions = 4;
-    AuxBussesOptions2 auxBussesOptions2 = 5;
-    BusConfigMode     busConfigMode = 6;
-    InputStrip        inputStrip = 7;
-    MatrixMasterStrip matrixMasterStrip = 8;
-    MicLineStrips     micLineStrips = 9;
-    Strip             strip = 10;
-    StripType         stripType = 11;
+    // Old style.
+    AudioStrip        audioStrip = 2;
+    AuxBussesOptions  auxBussesOptions = 3;
+    BusConfigMode     busConfigMode = 4;
+    InputStrip        inputStrip = 5;
+    MicLineStrips     micLineStrips = 6;
+    Strip             strip = 7;
+    StripType         stripType = 8;
+
+    // New style.
+    AudioMasterStrip  audioMasterStrip = 9;
+    AuxBussesOptions2 auxBussesOptions2 = 10;
+    MatrixMasterStrip matrixMasterStrip = 11;
   }
   Body body = 2;
 }

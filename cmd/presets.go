@@ -33,6 +33,10 @@ func main() {
 	}
 
 	p := presets.NewDShowInputChannel()
+	if p == nil {
+		fmt.Println("error: failed to initialize DShowInputChannel")
+		os.Exit(1)
+	}
 	p.Read(bs)
 	fmt.Println(p)
 
@@ -42,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 	if old, new := len(bs), len(bsNew); old != new {
-		fmt.Println(fmt.Errorf("lengths don't match: %d != %d", old, new))
+		fmt.Printf("lengths don't match: %d != %d\n", old, new)
 	}
 
 	if err := ioutil.WriteFile("/Users/kward/tmp/output", bsNew, 0644); err != nil {
