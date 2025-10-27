@@ -34,6 +34,12 @@ jobs:
       - name: Test
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
+      - name: Vulnerability scan (govulncheck)
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22.x'
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          $(go env GOPATH)/bin/govulncheck ./...
+
       - name: Upload coverage to Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.22.x'
         uses: coverallsapp/github-action@v2

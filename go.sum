@@ -1,5 +1,7 @@
-github.com/golang/glog v1.0.0 h1:nfP3RFugxnNRyKgeWd4oI1nYvXpxrx8ck8ZrcizshdQ=
-github.com/golang/glog v1.0.0/go.mod h1:EWib/APOK0SL3dFbYqvxE3UYd8E6s1ouQ7iEp/0LWV4=
+github.com/golang/glog v1.2.4 h1:CNNw5U8lSiiBk7druxtSHHTsRWcxKoac6kZKm2peBBc=
+github.com/golang/glog v1.2.4/go.mod h1:6AhwSGph0fcJtXVM/PEHPqZlFeoLxhs7/t5UDAwmO+w=
+github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
+github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/kward/go-osc v0.0.0-20170130175947-2d0b73c9bdf2 h1:3DtdGrZLz+xbJWaLbqukpddZfmnYWmhTpp4/AY139A8=
 github.com/kward/go-osc v0.0.0-20170130175947-2d0b73c9bdf2/go.mod h1:hz2FTXDAafrOW5+ChUu6oCc64Ow4EjGAvhj9BfFf3hc=
 github.com/kward/go-vnc v0.0.0-20171220234551-a2352a89d118 h1:7DDVeXZEgn5hqk+eroEFEbVEfjj4F70vFCEPWNev+Ps=
