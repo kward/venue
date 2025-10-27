@@ -18,7 +18,7 @@ mobile usage. This software should make that easier.
 ## Project links
 
 [![GoDoc](https://godoc.org/github.com/kward/venue?status.svg)](https://godoc.org/github.com/kward/venue)
-[![Travis CI](https://travis-ci.org/kward/venue.png?branch=master)](https://travis-ci.org/kward/venue)
+[![CI](https://github.com/kward/venue/actions/workflows/ci.yml/badge.svg)](https://github.com/kward/venue/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/kward/venue/badge.svg?branch=master)](https://coveralls.io/github/kward/venue?branch=master)
 
 Design doc: <https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub>
