@@ -2,9 +2,9 @@ package vnc
 
 import (
 	"context"
-	"fmt"
 	"image"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -75,8 +75,8 @@ func (v *VNC) Connect(ctx context.Context) error {
 	}
 
 	glog.Infof("Connecting to VENUE VNC server...")
-	addr := fmt.Sprintf("%s:%d", v.opts.host, v.opts.port)
-	nc, err := net.DialTimeout("tcp", addr, deadline.Sub(time.Now()))
+	addr := net.JoinHostPort(v.opts.host, strconv.Itoa(int(v.opts.port)))
+	nc, err := net.DialTimeout("tcp", addr, time.Until(deadline))
 	if err != nil {
 		return err
 	}
