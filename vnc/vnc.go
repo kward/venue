@@ -102,47 +102,82 @@ func (v *VNC) ClientConn() ClientConn {
 }
 
 // ListenAndHandle VNC server messages.
-func (v *VNC) ListenAndHandle() {
+// ListenAndHandle maintains backward compatibility by using a background context.
+// Deprecated: prefer ListenAndHandleCtx.
+func (v *VNC) ListenAndHandle() { v.ListenAndHandleCtx(context.Background()) }
+
+// ListenAndHandleCtx listens for server messages until the context is cancelled
+// or the ServerMessage channel is closed.
+func (v *VNC) ListenAndHandleCtx(ctx context.Context) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
 	go v.conn.ListenAndHandle()
 	for {
-		msg := <-v.cfg.ServerMessageCh
-		switch msg.Type() {
-		case messages.FramebufferUpdate:
-			if glog.V(5) {
-				glog.Info("ListenAndHandle() FramebufferUpdateMessage")
+		select {
+		case <-ctx.Done():
+			if glog.V(2) {
+				glog.Infof("ListenAndHandleCtx stopping: %v", ctx.Err())
 			}
-			for i := uint16(0); i < msg.(*vnclib.FramebufferUpdate).NumRect; i++ {
-				var colors []vnclib.Color
-				rect := msg.(*vnclib.FramebufferUpdate).Rects[i]
-				switch rect.Enc.Type() {
-				case encodings.Raw:
-					colors = rect.Enc.(*vnclib.RawEncoding).Colors
+			return
+		case msg, ok := <-v.cfg.ServerMessageCh:
+			if !ok {
+				if glog.V(2) {
+					glog.Info("ListenAndHandleCtx channel closed")
 				}
-				v.fb.Paint(rect, colors)
+				return
 			}
-
-		default:
-			glog.Errorf("ListenAndHandle() unknown message type:%d msg:%s\n", msg.Type(), msg)
+			switch msg.Type() {
+			case messages.FramebufferUpdate:
+				if glog.V(5) {
+					glog.Info("ListenAndHandleCtx FramebufferUpdateMessage")
+				}
+				fu := msg.(*vnclib.FramebufferUpdate)
+				for i := uint16(0); i < fu.NumRect; i++ {
+					var colors []vnclib.Color
+					rect := fu.Rects[i]
+					switch rect.Enc.Type() {
+					case encodings.Raw:
+						colors = rect.Enc.(*vnclib.RawEncoding).Colors
+					}
+					v.fb.Paint(rect, colors)
+				}
+			default:
+				glog.Errorf("ListenAndHandleCtx unknown message type:%d msg:%s", msg.Type(), msg)
+			}
 		}
 	}
 }
 
 // FramebufferRefresh refreshes the local framebuffer image of the VNC server
 // every period `p`.
-func (v *VNC) FramebufferRefresh(p time.Duration) {
+// FramebufferRefresh maintains backward compatibility by using a background context.
+// Deprecated: prefer FramebufferRefreshCtx.
+func (v *VNC) FramebufferRefresh(p time.Duration) { v.FramebufferRefreshCtx(context.Background(), p) }
+
+// FramebufferRefreshCtx periodically requests framebuffer updates until the
+// context is cancelled. If p == 0 a single refresh is performed.
+func (v *VNC) FramebufferRefreshCtx(ctx context.Context, p time.Duration) {
 	r := image.Rectangle{image.Point{0, 0}, image.Point{v.fb.Width(), v.fb.Height()}}
+	if p == 0 {
+		_ = v.Snapshot(r)
+		return
+	}
+	ticker := time.NewTicker(p)
+	defer ticker.Stop()
 	for {
 		if err := v.Snapshot(r); err != nil {
-			// TODO(kward:20161124) Return errors on a channel.
 			glog.Errorf("framebuffer refresh error: %s", err)
 		}
-		if p == 0 {
-			break
+		select {
+		case <-ctx.Done():
+			if glog.V(2) {
+				glog.Infof("FramebufferRefreshCtx stopping: %v", ctx.Err())
+			}
+			return
+		case <-ticker.C:
+			continue
 		}
-		time.Sleep(p)
 	}
 }
 

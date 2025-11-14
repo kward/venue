@@ -154,9 +154,14 @@ func (v *Venue) Initialize() error {
 }
 
 // ListenAndHandle connections and incoming requests.
-func (v *Venue) ListenAndHandle() {
-	go v.vnc.ListenAndHandle()
-	go v.vnc.FramebufferRefresh(v.opts.refresh)
+// ListenAndHandle maintains backward compatibility; prefer ListenAndHandleCtx.
+func (v *Venue) ListenAndHandle() { v.ListenAndHandleCtx(context.Background()) }
+
+// ListenAndHandleCtx starts goroutines to listen for messages and refresh the
+// framebuffer until the context is cancelled.
+func (v *Venue) ListenAndHandleCtx(ctx context.Context) {
+	go v.vnc.ListenAndHandleCtx(ctx)
+	go v.vnc.FramebufferRefreshCtx(ctx, v.opts.refresh)
 }
 
 // EndpointName implements router.Endpoint.
