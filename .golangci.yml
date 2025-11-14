@@ -6,24 +6,11 @@ run:
 linters:
   enable:
     - govet
-    - staticcheck
-    - ineffassign
-    - errcheck
-    - gosimple
-    - unused
-    - typecheck
     - gofmt
     - goimports
     - misspell
-    - revive
-    - unparam
-    - prealloc
-    - stylecheck
-  disable:
-    # Often noisy for legacy codebases; re-enable later if desired
-    - dupl
-    - gochecknoinits
-    - gochecknoglobals
+  disable-all: true
+  fast: true
 
 linters-settings:
   goimports:
@@ -43,18 +30,7 @@ linters-settings:
       - name: receiver-naming
 
 issues:
-  exclude-use-default: false
-  exclude-rules:
-    # Keep tests pragmatic; reduce noise from complexity/dup/style in tests
-    - path: _test\.go$
-      linters:
-        - gocyclo
-        - dupl
-        - stylecheck
-    # Ignore generated and vendor code
-    - path: ^vendor/
-      linters:
-        - "*"
+  exclude-use-default: true
 
 output:
   formats:

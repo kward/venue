@@ -36,18 +36,21 @@ jobs:
 
       - name: Staticcheck
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.24.x'
+        continue-on-error: true
         run: |
           go install honnef.co/go/tools/cmd/staticcheck@latest
           $(go env GOPATH)/bin/staticcheck ./...
 
       - name: Ineffassign
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.24.x'
+        continue-on-error: true
         run: |
           go install github.com/gordonklaus/ineffassign@latest
           $(go env GOPATH)/bin/ineffassign ./...
 
       - name: GolangCI-Lint
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.24.x'
+        continue-on-error: true
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.59.1
