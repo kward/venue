@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/golang/glog"
@@ -110,10 +113,14 @@ func main() {
 		glog.Exitf("Failure instantiating Venue client; %s\n", err)
 	}
 
-	// Establish connection with the Venue VNC server.
-	ctx, cancel := context.WithTimeout(context.Background(), *venueTimeout)
+	// App context cancelled on SIGINT/SIGTERM.
+	ctxApp, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	// Establish connection with the Venue VNC server, bounded by timeout and app context.
+	ctxConn, cancel := context.WithTimeout(ctxApp, *venueTimeout)
 	defer cancel()
-	if err := v.Connect(ctx, *venueHost, *venuePort, passwd); err != nil {
+	if err := v.Connect(ctxConn, *venueHost, *venuePort, passwd); err != nil {
 		glog.Exitf("Failed to connect to Venue VNC server; %s\n", err)
 	}
 	defer v.Close()
@@ -126,7 +133,7 @@ func main() {
 	router.RegisterEndpoint(v)
 	router.RegisterEndpoint(&ping.Ping{})
 
-	go v.ListenAndHandle()
+	go v.ListenAndHandleCtx(ctxApp)
 
 	o := &osc.Server{}
 	conn, err := net.ListenPacket("udp", fmt.Sprintf("%v:%v", *oscServerHost, *oscServerPort))
@@ -140,8 +147,11 @@ func main() {
 		s := NewState(router)
 
 		for {
-			p, err := o.ReceivePacket(context.Background(), conn)
+			p, err := o.ReceivePacket(ctxApp, conn)
 			if err != nil {
+				if ctxApp.Err() != nil {
+					return
+				}
 				glog.Exitf("OSC error; %s\n", err)
 			}
 			if p == nil {
@@ -159,10 +169,19 @@ func main() {
 		}
 	}()
 
+	ticker := time.NewTicker(*checkpointPeriod)
+	defer ticker.Stop()
 	for {
-		if glog.V(5) {
-			glog.Infof("--- checkpoint ---")
+		select {
+		case <-ctxApp.Done():
+			if glog.V(2) {
+				glog.Infof("Shutting down: %v", ctxApp.Err())
+			}
+			return
+		case <-ticker.C:
+			if glog.V(5) {
+				glog.Infof("--- checkpoint ---")
+			}
 		}
-		time.Sleep(*checkpointPeriod)
 	}
 }
