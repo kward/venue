@@ -21,8 +21,6 @@ import (
 )
 
 var (
-	oscClientHost = flag.String("osc_client_host", "127.0.0.1", "OSC client hostname/IP.")
-	oscClientPort = flag.Uint("osc_client_port", 9000, "OSC client port.")
 	oscServerHost = flag.String("osc_server_host", "0.0.0.0", "OSC server hostname/IP.")
 	oscServerPort = flag.Uint("osc_server_port", 8000, "OSC server port.")
 
@@ -31,18 +29,22 @@ var (
 	venuePasswd  string
 	venueTimeout = flag.Duration("venue_timeout", 15*time.Second, "Venue VNC timeout.")
 
+	// Kept for future usage; referenced in init to satisfy linters.
 	venueFbRefresh   = flag.Bool("enable_venue_fb_refresh", false, "Enable Venue framebuffer refresh.")
 	checkpointPeriod = flag.Duration("checkpoint_period", 1*time.Minute, "Checkpoint period")
 )
 
 func init() {
 	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue VNC password.")
+	// Reference unused-for-now flags to avoid linter warnings until wired.
+	_ = venueFbRefresh
 	flag.Parse()
 }
 
 type state struct {
 	input      int
 	inputBank  int
+	// Kept for future usage; initialized to avoid unused-field lints.
 	output     int
 	outputBank int
 	router     *router.Router
@@ -52,6 +54,7 @@ func NewState(router *router.Router) *state {
 	return &state{
 		input:      1,
 		inputBank:  1,
+		output:     1,
 		outputBank: 1,
 		router:     router,
 	}
