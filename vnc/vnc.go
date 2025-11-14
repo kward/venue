@@ -112,12 +112,23 @@ func (v *VNC) ListenAndHandleCtx(ctx context.Context) {
 	if glog.V(3) {
 		glog.Info(venuelib.FnName())
 	}
-	go v.conn.ListenAndHandle()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_ = v.conn.ListenAndHandle()
+	}()
 	for {
 		select {
 		case <-ctx.Done():
 			if glog.V(2) {
 				glog.Infof("ListenAndHandleCtx stopping: %v", ctx.Err())
+			}
+			// Close the connection to unblock the listener and wait briefly
+			// for the goroutine to exit to avoid leaks.
+			_ = v.conn.Close()
+			select {
+			case <-done:
+			case <-time.After(2 * time.Second):
 			}
 			return
 		case msg, ok := <-v.cfg.ServerMessageCh:
