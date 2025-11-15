@@ -6,14 +6,14 @@ The current lexable OSC string looks like:
 /request/version/layout/page/control/command[/position][/position/][/label]
 
 Lexing like this:
-- The lexer l is instantiated.
-- A go routine is started that repeatedly sends the OSC string out for lexing,
-  using the previous token as a reference of how to lex the next token.
-- To parse a string:
+  - The lexer l is instantiated.
+  - A go routine is started that repeatedly sends the OSC string out for lexing,
+    using the previous token as a reference of how to lex the next token.
+  - To parse a string:
   - l.next() is called to provide the next token, minus the delimiter.
   - If the token can be parsed, the token is emitted.
   - If the token cannot be parsed, the EOF token is emitted.
-- Once EOF is received by the go routine, the go routine ends.
+  - Once EOF is received by the go routine, the go routine ends.
 
 Rather than parse the OSC string using a regular expression, lexing was chosen
 to provide a proof-of-concept of how to do it as it is anticipated that future
@@ -200,10 +200,7 @@ func (l *lexer) emit(t itemType, s string) {
 }
 
 func (l *lexer) eof() bool {
-	if l.pos >= len(l.input) {
-		return true
-	}
-	return false
+	return l.pos >= len(l.input)
 }
 
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {

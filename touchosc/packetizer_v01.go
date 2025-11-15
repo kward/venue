@@ -79,6 +79,8 @@ func (p *packerV01) input() packerFn {
 		return p.inputMute
 	case "pad":
 		return p.inputPad
+	case "phantom":
+		return p.inputPhantom
 	case "select":
 		return p.inputSelect
 	case "solo":

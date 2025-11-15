@@ -42,8 +42,8 @@ func init() {
 }
 
 type state struct {
-	input      int
-	inputBank  int
+	input     int
+	inputBank int
 	// Kept for future usage; initialized to avoid unused-field lints.
 	output     int
 	outputBank int

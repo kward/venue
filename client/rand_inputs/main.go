@@ -54,6 +54,7 @@ func main() {
 	// TODO(kward:20161124) Fix how the context value is handled.
 	ctxConn := context.Context(ctxApp)
 	if *maxProtoVersion != "" {
+		//nolint:staticcheck // go-vnc expects the string key "vnc_max_proto_version" in context
 		ctxConn = context.WithValue(ctxApp, "vnc_max_proto_version", *maxProtoVersion)
 	}
 

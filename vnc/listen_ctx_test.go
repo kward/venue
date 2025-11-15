@@ -23,11 +23,11 @@ func newMockConnListen() *mockConnListen {
 }
 
 // Implement the subset of ClientConn used by ListenAndHandleCtx.
-func (m *mockConnListen) FramebufferHeight() uint16 { return 0 }
-func (m *mockConnListen) FramebufferWidth() uint16  { return 0 }
-func (m *mockConnListen) KeyEvent(_ keys.Key, _ bool) error { return nil }
+func (m *mockConnListen) FramebufferHeight() uint16                          { return 0 }
+func (m *mockConnListen) FramebufferWidth() uint16                           { return 0 }
+func (m *mockConnListen) KeyEvent(_ keys.Key, _ bool) error                  { return nil }
 func (m *mockConnListen) PointerEvent(_ buttons.Button, _x, _y uint16) error { return nil }
-func (m *mockConnListen) DebugMetrics() {}
+func (m *mockConnListen) DebugMetrics()                                      {}
 func (m *mockConnListen) FramebufferUpdateRequest(_ rfbflags.RFBFlag, _, _, _, _ uint16) error {
 	return nil
 }

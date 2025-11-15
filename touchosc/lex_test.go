@@ -2,8 +2,6 @@ package touchosc
 
 import "testing"
 
-const venueReq = "/venue/version/layout/page/control/command/x/y/label"
-
 type lexTest struct {
 	name  string
 	input string
