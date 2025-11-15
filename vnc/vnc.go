@@ -75,7 +75,7 @@ func (v *VNC) Connect(ctx context.Context) error {
 	}
 
 	glog.Infof("Connecting to VENUE VNC server...")
-	addr := fmt.Sprintf("%s:%d", v.opts.host, v.opts.port)
+	addr := net.JoinHostPort(v.opts.host, fmt.Sprintf("%d", v.opts.port))
 	nc, err := net.DialTimeout("tcp", addr, deadline.Sub(time.Now()))
 	if err != nil {
 		return err

@@ -122,23 +122,23 @@ type Output struct {
 	sends Signals
 }
 
-// func NewOutput(sig signals.Signal, sigNo signals.SignalNo) *Output {
-// 	o := &Output{
-// 		sig:   sig,
-// 		sigNo: sigNo,
-// 		prop: Signals{
-// 			"Fader": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
-// 		},
-// 		sends: Signals{
-// 			"Pan": NewSignal(panDef, panMin, panMax, 0, "", false),
-// 		},
-// 	}
-// 	o.Reset()
-// 	return o
-// }
+func NewOutput(sig signals.Signal, sigNo signals.SignalNo) *Output {
+	o := &Output{
+		sig:   sig,
+		sigNo: sigNo,
+		prop: Signals{
+			"Fader": NewSignal(math.Inf(-1), math.Inf(-1), 15, 1, "dB", true),
+		},
+		sends: Signals{
+			"Pan": NewSignal(panDef, panMin, panMax, 0, "", false),
+		},
+	}
+	o.Reset()
+	return o
+}
 
-// func (o *Output) Reset() {
-// 	for _, p := range o.prop {
-// 		p.Reset()
-// 	}
-// }
+func (o *Output) Reset() {
+	for _, p := range o.prop {
+		p.Reset()
+	}
+}

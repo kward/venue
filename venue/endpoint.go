@@ -37,17 +37,17 @@ var handlers router.Handlers
 
 func init() {
 	specs := []router.HandlerSpec{
-		router.HandlerSpec{actions.Noop, Noop},
-		router.HandlerSpec{actions.Ping, Ping},
-		router.HandlerSpec{actions.SelectInput, SelectInput},
-		router.HandlerSpec{actions.InputGain, InputGain},
-		//router.HandlerSpec{actions.InputGuess, InputGuess},
-		router.HandlerSpec{actions.InputMute, InputMute},
-		router.HandlerSpec{actions.InputPad, InputPad},
-		router.HandlerSpec{actions.InputPhantom, InputPhantom},
-		router.HandlerSpec{actions.InputSolo, InputSolo},
-		router.HandlerSpec{actions.SelectOutput, SelectOutput},
-		router.HandlerSpec{actions.OutputLevel, OutputLevel},
+		router.HandlerSpec{Action: actions.Noop, Handler: Noop},
+		router.HandlerSpec{Action: actions.Ping, Handler: Ping},
+		router.HandlerSpec{Action: actions.SelectInput, Handler: SelectInput},
+		router.HandlerSpec{Action: actions.InputGain, Handler: InputGain},
+		//router.HandlerSpec{Action: actions.InputGuess, Handler: InputGuess},
+		router.HandlerSpec{Action: actions.InputMute, Handler: InputMute},
+		router.HandlerSpec{Action: actions.InputPad, Handler: InputPad},
+		router.HandlerSpec{Action: actions.InputPhantom, Handler: InputPhantom},
+		router.HandlerSpec{Action: actions.InputSolo, Handler: InputSolo},
+		router.HandlerSpec{Action: actions.SelectOutput, Handler: SelectOutput},
+		router.HandlerSpec{Action: actions.OutputLevel, Handler: OutputLevel},
 	}
 	handlers = make(router.Handlers, len(specs))
 	for _, spec := range specs {

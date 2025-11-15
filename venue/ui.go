@@ -191,7 +191,7 @@ func (w *Meter) Update(wf *vnc.Workflow, val interface{}) error {
 // IsMono returns true if this a mono meter.
 func (w *Meter) IsMono() bool { return !w.isStereo }
 
-// IsMono returns true if this a stereo meter.
+// IsStereo returns true if this a stereo meter.
 func (w *Meter) IsStereo() bool { return w.isStereo }
 
 // clickPoint returns the point to click based on the size of the meter.
@@ -239,7 +239,7 @@ func (w *Switch) Update(wf *vnc.Workflow, val interface{}) error {
 		return venuelib.Errorf(codes.InvalidArgument, "switches cannot be updated")
 	}
 
-	val, err := w.Read(wf)
+	_, err := w.Read(wf)
 	if err != nil {
 		return err
 	}
