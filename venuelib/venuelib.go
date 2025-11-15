@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/kward/venue/codes"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // venueError defines the status of a Venue call.
@@ -61,7 +61,7 @@ func Errorf(c codes.Code, format string, a ...interface{}) error {
 // GetPasswd requests the user for a masked password.
 func GetPasswd() (string, error) {
 	fmt.Printf("Password: ")
-	p, err := terminal.ReadPassword(int(syscall.Stdin))
+	p, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err
 	}

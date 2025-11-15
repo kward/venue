@@ -17,8 +17,8 @@ mobile usage. This software should make that easier.
 
 ## Project links
 
-[![GoDoc](https://godoc.org/github.com/kward/venue?status.svg)](https://godoc.org/github.com/kward/venue)
-[![Travis CI](https://travis-ci.org/kward/venue.png?branch=master)](https://travis-ci.org/kward/venue)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kward/venue.svg)](https://pkg.go.dev/github.com/kward/venue)
+[![CI](https://github.com/kward/venue/actions/workflows/ci.yml/badge.svg)](https://github.com/kward/venue/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/kward/venue/badge.svg?branch=master)](https://coveralls.io/github/kward/venue?branch=master)
 
 Design doc: <https://docs.google.com/document/d/1RZKLrLeaKxsrjHwHxDp2NOQgQHE1-Px-9bGcWrq0g6E/pub>
@@ -63,11 +63,10 @@ This code is written in Golang (<http://golang.org/>).
 3. Download software.
 
     ```sh
-    $ go get github.com/kward/venue
-    $ go get github.com/kward/go-osc
-    $ go get github.com/kward/go-vnc
-    $ go get github.com/golang/glog
-    $ go get github.com/howeyc/gopass
+  $ go get github.com/kward/venue
+  $ go get github.com/kward/go-osc
+  $ go get github.com/kward/go-vnc
+  $ go get github.com/golang/glog
     ```
 
 4. Test the client software. This will "randomly" select an input channel every
@@ -119,7 +118,6 @@ Here's a simple script to do the updates.
 
 ```sh
 $ for pkg in \
-  github.com/howeyc/gopass \
   github.com/kward/{go-osc,go-vnc,venue}
   github.com/golang/glog
 do

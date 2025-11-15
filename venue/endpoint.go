@@ -37,17 +37,17 @@ var handlers router.Handlers
 
 func init() {
 	specs := []router.HandlerSpec{
-		router.HandlerSpec{Action: actions.Noop, Handler: Noop},
-		router.HandlerSpec{Action: actions.Ping, Handler: Ping},
-		router.HandlerSpec{Action: actions.SelectInput, Handler: SelectInput},
-		router.HandlerSpec{Action: actions.InputGain, Handler: InputGain},
-		//router.HandlerSpec{Action: actions.InputGuess, Handler: InputGuess},
-		router.HandlerSpec{Action: actions.InputMute, Handler: InputMute},
-		router.HandlerSpec{Action: actions.InputPad, Handler: InputPad},
-		router.HandlerSpec{Action: actions.InputPhantom, Handler: InputPhantom},
-		router.HandlerSpec{Action: actions.InputSolo, Handler: InputSolo},
-		router.HandlerSpec{Action: actions.SelectOutput, Handler: SelectOutput},
-		router.HandlerSpec{Action: actions.OutputLevel, Handler: OutputLevel},
+		{Action: actions.Noop, Handler: Noop},
+		{Action: actions.Ping, Handler: Ping},
+		{Action: actions.SelectInput, Handler: SelectInput},
+		{Action: actions.InputGain, Handler: InputGain},
+		//{Action: actions.InputGuess, Handler: InputGuess},
+		{Action: actions.InputMute, Handler: InputMute},
+		{Action: actions.InputPad, Handler: InputPad},
+		{Action: actions.InputPhantom, Handler: InputPhantom},
+		{Action: actions.InputSolo, Handler: InputSolo},
+		{Action: actions.SelectOutput, Handler: SelectOutput},
+		{Action: actions.OutputLevel, Handler: OutputLevel},
 	}
 	handlers = make(router.Handlers, len(specs))
 	for _, spec := range specs {
@@ -154,9 +154,14 @@ func (v *Venue) Initialize() error {
 }
 
 // ListenAndHandle connections and incoming requests.
-func (v *Venue) ListenAndHandle() {
-	go v.vnc.ListenAndHandle()
-	go v.vnc.FramebufferRefresh(v.opts.refresh)
+// ListenAndHandle maintains backward compatibility; prefer ListenAndHandleCtx.
+func (v *Venue) ListenAndHandle() { v.ListenAndHandleCtx(context.Background()) }
+
+// ListenAndHandleCtx starts goroutines to listen for messages and refresh the
+// framebuffer until the context is cancelled.
+func (v *Venue) ListenAndHandleCtx(ctx context.Context) {
+	go v.vnc.ListenAndHandleCtx(ctx)
+	go v.vnc.FramebufferRefreshCtx(ctx, v.opts.refresh)
 }
 
 // EndpointName implements router.Endpoint.

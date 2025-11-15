@@ -1,12 +1,14 @@
 module github.com/kward/venue
 
-go 1.13
+go 1.24.0
 
 require (
-	github.com/golang/glog v1.0.0
-	github.com/kward/go-osc v0.0.0-20170130175947-2d0b73c9bdf2
-	github.com/kward/go-vnc v0.0.0-20171220234551-a2352a89d118
-	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	github.com/golang/glog v1.2.4
+	github.com/kward/go-osc v0.0.0-20251114213000-1527858adfd5
+	github.com/kward/go-vnc v0.0.0-20251026235910-a389e865f061
+	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/term v0.36.0
 	google.golang.org/protobuf v1.27.1
 )
+
+require golang.org/x/sys v0.37.0 // indirect

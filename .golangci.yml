@@ -1,0 +1,37 @@
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - govet
+    - gofmt
+    - goimports
+    - misspell
+  disable-all: true
+  fast: true
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/kward/venue
+  gocyclo:
+    min-complexity: 15
+  revive:
+    # Start with a minimal, less chatty rule set
+    severity: warning
+    rules:
+      - name: empty-block
+      - name: exported
+      - name: if-return
+      - name: import-shadowing
+      - name: indent-error-flow
+        disabled: true
+      - name: receiver-naming
+
+issues:
+  exclude-use-default: true
+
+output:
+  formats:
+    - format: colored-line-number

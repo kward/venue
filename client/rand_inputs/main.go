@@ -5,6 +5,9 @@ import (
 	"flag"
 	"log"
 	"math/rand"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kward/venue/router"
@@ -45,21 +48,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ctx := context.Background()
+	// App context cancelled on SIGINT/SIGTERM.
+	ctxApp, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 	// TODO(kward:20161124) Fix how the context value is handled.
+	ctxConn := context.Context(ctxApp)
 	if *maxProtoVersion != "" {
-		ctx = context.WithValue(ctx, "vnc_max_proto_version", *maxProtoVersion)
+		//nolint:staticcheck // go-vnc expects the string key "vnc_max_proto_version" in context
+		ctxConn = context.WithValue(ctxApp, "vnc_max_proto_version", *maxProtoVersion)
 	}
 
 	// Establish connection with the VENUE VNC server.
-	if err := v.Connect(ctx, *host, *port, passwd); err != nil {
+	if err := v.Connect(ctxConn, *host, *port, passwd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
 	v.Initialize()
-	go v.ListenAndHandle()
+	go v.ListenAndHandleCtx(ctxApp)
 
 	// Randomly adjust an input.
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -73,6 +80,10 @@ func main() {
 		if *period == 0 {
 			break
 		}
-		time.Sleep(*period)
+		select {
+		case <-ctxApp.Done():
+			return
+		case <-time.After(*period):
+		}
 	}
 }

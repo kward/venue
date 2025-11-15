@@ -5,6 +5,9 @@ import (
 	"flag"
 	"log"
 	"math/rand"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kward/venue/router"
@@ -44,15 +47,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ctx := context.Background()
-	if err := v.Connect(ctx, *host, *port, passwd); err != nil {
+	// App context cancelled on SIGINT/SIGTERM.
+	ctxApp, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err := v.Connect(ctxApp, *host, *port, passwd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
 	v.Initialize()
-	go v.ListenAndHandle()
+	go v.ListenAndHandleCtx(ctxApp)
 	//go v.FramebufferRefresh()
 
 	// Randomly adjust an input.
@@ -67,6 +73,10 @@ func main() {
 		if *period == 0 {
 			break
 		}
-		time.Sleep(*period)
+		select {
+		case <-ctxApp.Done():
+			return
+		case <-time.After(*period):
+		}
 	}
 }

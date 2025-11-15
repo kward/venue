@@ -9,9 +9,8 @@ import (
 const base = "/0.1/th/soundcheck"
 
 var (
-	host   string
-	port   int
-	passwd string
+	host string
+	port int
 )
 
 func flagInit() {
