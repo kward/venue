@@ -216,8 +216,9 @@ func TestAudioStrip_Delay(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error; %s", err)
 	}
-	o := as.params["delay"].offset
-	if got, want := bs[o:o+4], []byte{0xc0, 0x5d, 0x00, 0x00}; !bytes.Equal(got, want) {
+	// Delay is at offset 0x02
+	const delayOffset = 0x02
+	if got, want := bs[delayOffset:delayOffset+4], []byte{0xc0, 0x5d, 0x00, 0x00}; !bytes.Equal(got, want) {
 		t.Errorf("got = %v, want %v", got, want)
 	}
 }
