@@ -8,7 +8,7 @@ import (
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/codes"
-	"github.com/kward/venue/math"
+	"github.com/kward/venue/internal/math"
 	"github.com/kward/venue/router/controls"
 	"github.com/kward/venue/venue/encoders"
 	"github.com/kward/venue/venue/meters"
