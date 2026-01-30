@@ -1,6 +1,6 @@
 package touchosc
 
-import "github.com/kward/venue/router"
+import "github.com/kward/venue/internal/router"
 
 const TouchOSC = "TouchOSC"
 

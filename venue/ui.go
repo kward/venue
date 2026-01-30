@@ -9,7 +9,7 @@ import (
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/venue/codes"
 	"github.com/kward/venue/internal/math"
-	"github.com/kward/venue/router/controls"
+	"github.com/kward/venue/internal/router/controls"
 	"github.com/kward/venue/venue/encoders"
 	"github.com/kward/venue/venue/meters"
 	"github.com/kward/venue/venue/pages"

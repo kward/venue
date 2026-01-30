@@ -7,7 +7,7 @@ package venue
 import (
 	"math"
 
-	"github.com/kward/venue/router/signals"
+	"github.com/kward/venue/internal/router/signals"
 )
 
 const (

@@ -3,7 +3,7 @@ package venue
 import (
 	"testing"
 
-	"github.com/kward/venue/router/signals"
+	"github.com/kward/venue/internal/router/signals"
 )
 
 func TestSignalControlName(t *testing.T) {

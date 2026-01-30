@@ -66,10 +66,11 @@ venue/
 |       +-- main.go
 +-- internal/  # Core application logic
 |   +-- math/
+|   +-- router/  # A packet router for internal activities
+|       +-- interfaces.go
 +-- codes/  # Error code definitions
 +-- docs/  # Documentation
 +-- ping/
-+-- router/
 +-- touchosc/  # Server code for hosting a TouchOSC interface
 +-- venuelib/  # Core library functions and utilities
 +-- venue/  # Client code for interacting with a VENUE system

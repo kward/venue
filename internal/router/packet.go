@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/kward/venue/router/actions"
-	"github.com/kward/venue/router/controls"
-	"github.com/kward/venue/router/signals"
+	"github.com/kward/venue/internal/router/actions"
+	"github.com/kward/venue/internal/router/controls"
+	"github.com/kward/venue/internal/router/signals"
 )
 
 // Packet represents a audio action to perform.

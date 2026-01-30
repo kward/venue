@@ -2,7 +2,7 @@ package touchosc
 
 import (
 	"github.com/kward/go-osc/osc"
-	"github.com/kward/venue/router"
+	"github.com/kward/venue/internal/router"
 )
 
 type parseTest struct {

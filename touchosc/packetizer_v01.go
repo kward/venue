@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/kward/venue/router"
-	"github.com/kward/venue/router/actions"
-	"github.com/kward/venue/router/controls"
-	"github.com/kward/venue/router/signals"
+	"github.com/kward/venue/internal/router"
+	"github.com/kward/venue/internal/router/actions"
+	"github.com/kward/venue/internal/router/controls"
+	"github.com/kward/venue/internal/router/signals"
 	"github.com/kward/venue/touchosc/multistates"
 	"github.com/kward/venue/venuelib"
 )
