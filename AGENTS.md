@@ -58,23 +58,24 @@ go test -run TestFunctionName
 ## Folder Structure
 
 venue/
-+-- cmd/                          # Application entry points
++-- cmd/              # Application entry points
 │   +-- server/
 │   │   +-- main.go
 |   +-- rand_inputs/  # Tool to generate random inputs to VENUE
 |   +-- venue_cli/
 |       +-- main.go
-+-- internal/  # Core application logic
-|   +-- codes/  # Error code definitions
++-- internal/         # Core application logic
+|   +-- codes/        # Error code definitions
 |   +-- math/
-|   +-- router/  # A packet router for internal activities
+|   +-- router/       # A packet router for internal activities
 |       +-- interfaces.go
-|   +-- venuelib/  # Core library functions and utilities
-+-- docs/  # Documentation
+|   +-- venuelib/     # Core library functions and utilities
++-- api/              # API definitions
++-- docs/             # Documentation
 +-- ping/
-+-- touchosc/  # Server code for hosting a TouchOSC interface
-+-- venue/  # Client code for interacting with a VENUE system
-+-- vnc/  # Code for connecting to VENUE VNC server
++-- touchosc/         # Server code for hosting a TouchOSC interface
++-- venue/            # Client code for interacting with a VENUE system
++-- vnc/              # Code for connecting to VENUE VNC server
 +-- go.mod
 +-- go.sum
 +-- README.md

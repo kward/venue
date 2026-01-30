@@ -8,7 +8,7 @@ import (
 	"github.com/kward/venue/touchosc"
 )
 
-// Ping is a Venue endpoint.
+// Ping is a router endpoint.
 type Ping struct{}
 
 // Verify that the expected interface is implemented properly.
