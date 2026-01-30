@@ -69,10 +69,10 @@ venue/
 |   +-- math/
 |   +-- router/  # A packet router for internal activities
 |       +-- interfaces.go
+|   +-- venuelib/  # Core library functions and utilities
 +-- docs/  # Documentation
 +-- ping/
 +-- touchosc/  # Server code for hosting a TouchOSC interface
-+-- venuelib/  # Core library functions and utilities
 +-- venue/  # Client code for interacting with a VENUE system
 +-- vnc/  # Code for connecting to VENUE VNC server
 +-- go.mod

@@ -5,7 +5,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/router/actions"
-	"github.com/kward/venue/venuelib"
+	"github.com/kward/venue/internal/venuelib"
 )
 
 // Handler describes an Endpoint handler.

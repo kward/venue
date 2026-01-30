@@ -12,7 +12,7 @@ import (
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
-	"github.com/kward/venue/venuelib"
+	"github.com/kward/venue/internal/venuelib"
 )
 
 // Parse the OSC message `msg` and transform it into a Packet.

@@ -3,7 +3,7 @@ package multistates
 
 import (
 	"github.com/golang/glog"
-	"github.com/kward/venue/venuelib"
+	"github.com/kward/venue/internal/venuelib"
 )
 
 type MultiState int

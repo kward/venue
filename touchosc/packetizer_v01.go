@@ -9,8 +9,8 @@ import (
 	"github.com/kward/venue/internal/router/actions"
 	"github.com/kward/venue/internal/router/controls"
 	"github.com/kward/venue/internal/router/signals"
+	"github.com/kward/venue/internal/venuelib"
 	"github.com/kward/venue/touchosc/multistates"
-	"github.com/kward/venue/venuelib"
 )
 
 type packerV01 packerT

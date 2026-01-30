@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/glog"
 	vnclib "github.com/kward/go-vnc"
-	"github.com/kward/venue/venuelib"
+	"github.com/kward/venue/internal/venuelib"
 )
 
 // Framebuffer maintains a local copy of the remote VNC image.

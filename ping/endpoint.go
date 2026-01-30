@@ -4,8 +4,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
+	"github.com/kward/venue/internal/venuelib"
 	"github.com/kward/venue/touchosc"
-	"github.com/kward/venue/venuelib"
 )
 
 // Ping is a Venue endpoint.

@@ -10,11 +10,11 @@ import (
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/math"
 	"github.com/kward/venue/internal/router/controls"
+	"github.com/kward/venue/internal/venuelib"
 	"github.com/kward/venue/venue/encoders"
 	"github.com/kward/venue/venue/meters"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venue/switches"
-	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc"
 )
 
