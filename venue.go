@@ -13,10 +13,10 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
+	"github.com/kward/venue/api/touchosc"
 	"github.com/kward/venue/internal/ping"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/venuelib"
-	"github.com/kward/venue/touchosc"
 	"github.com/kward/venue/venue"
 )
 

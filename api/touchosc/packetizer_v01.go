@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/kward/venue/api/touchosc/multistates"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
 	"github.com/kward/venue/internal/router/controls"
 	"github.com/kward/venue/internal/router/signals"
 	"github.com/kward/venue/internal/venuelib"
-	"github.com/kward/venue/touchosc/multistates"
 )
 
 type packerV01 packerT

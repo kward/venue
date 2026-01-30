@@ -9,6 +9,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/api/vnc"
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
@@ -16,7 +17,6 @@ import (
 	"github.com/kward/venue/internal/router/signals"
 	"github.com/kward/venue/internal/venuelib"
 	"github.com/kward/venue/venue/pages"
-	"github.com/kward/venue/vnc"
 )
 
 const (

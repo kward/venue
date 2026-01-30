@@ -67,15 +67,15 @@ venue/
 +-- internal/         # Core application logic
 |   +-- codes/        # Error code definitions
 |   +-- math/
+|   +-- ping/
 |   +-- router/       # A packet router for internal activities
 |       +-- interfaces.go
 |   +-- venuelib/     # Core library functions and utilities
 +-- api/              # API definitions
-+-- docs/             # Documentation
-+-- ping/
-+-- touchosc/         # Server code for hosting a TouchOSC interface
+|   +-- touchosc/     # Server code for hosting a TouchOSC interface
+|   +-- vnc/          # Code for connecting to VENUE VNC server
 +-- venue/            # Client code for interacting with a VENUE system
-+-- vnc/              # Code for connecting to VENUE VNC server
++-- docs/             # Documentation
 +-- go.mod
 +-- go.sum
 +-- README.md

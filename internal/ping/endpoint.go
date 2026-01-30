@@ -2,10 +2,10 @@ package ping
 
 import (
 	"github.com/golang/glog"
+	"github.com/kward/venue/api/touchosc"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
 	"github.com/kward/venue/internal/venuelib"
-	"github.com/kward/venue/touchosc"
 )
 
 // Ping is a router endpoint.

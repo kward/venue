@@ -7,6 +7,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/api/vnc"
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/math"
 	"github.com/kward/venue/internal/router/controls"
@@ -15,7 +16,6 @@ import (
 	"github.com/kward/venue/venue/meters"
 	"github.com/kward/venue/venue/pages"
 	"github.com/kward/venue/venue/switches"
-	"github.com/kward/venue/vnc"
 )
 
 // UI holds references to the Venue UI pages.

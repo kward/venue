@@ -17,9 +17,9 @@ import (
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
+	"github.com/kward/venue/api/vnc/messages"
 	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/venuelib"
-	"github.com/kward/venue/vnc/messages"
 )
 
 // Event describes a single workflow event.
