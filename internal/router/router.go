@@ -3,7 +3,7 @@ package router
 
 import (
 	"github.com/golang/glog"
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/router/actions"
 	"github.com/kward/venue/venuelib"
 )

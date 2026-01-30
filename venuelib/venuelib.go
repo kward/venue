@@ -8,7 +8,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 	"golang.org/x/term"
 )
 

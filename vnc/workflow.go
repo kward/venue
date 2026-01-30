@@ -17,7 +17,7 @@ import (
 	vnclib "github.com/kward/go-vnc"
 	"github.com/kward/go-vnc/buttons"
 	"github.com/kward/go-vnc/keys"
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/venuelib"
 	"github.com/kward/venue/vnc/messages"
 )

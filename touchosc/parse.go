@@ -9,7 +9,7 @@ package touchosc
 import (
 	"github.com/golang/glog"
 	"github.com/kward/go-osc/osc"
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/internal/router"
 	"github.com/kward/venue/internal/router/actions"
 	"github.com/kward/venue/venuelib"

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/glog"
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 )
 
 func TestToInt(t *testing.T) {

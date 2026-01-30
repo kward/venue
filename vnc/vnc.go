@@ -14,7 +14,7 @@ import (
 	"github.com/kward/go-vnc/keys"
 	"github.com/kward/go-vnc/messages"
 	"github.com/kward/go-vnc/rfbflags"
-	"github.com/kward/venue/codes"
+	"github.com/kward/venue/internal/codes"
 	"github.com/kward/venue/venuelib"
 )
 

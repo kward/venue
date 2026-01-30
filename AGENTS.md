@@ -65,10 +65,10 @@ venue/
 |   +-- venue_cli/
 |       +-- main.go
 +-- internal/  # Core application logic
+|   +-- codes/  # Error code definitions
 |   +-- math/
 |   +-- router/  # A packet router for internal activities
 |       +-- interfaces.go
-+-- codes/  # Error code definitions
 +-- docs/  # Documentation
 +-- ping/
 +-- touchosc/  # Server code for hosting a TouchOSC interface
