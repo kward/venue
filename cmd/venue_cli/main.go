@@ -1,3 +1,5 @@
+// Package main implements a command-line tool to test VENUE connectivity
+// by randomly selecting inputs.
 package main
 
 import (
@@ -18,25 +20,25 @@ import (
 )
 
 var (
-	host   = flag.String("host", "localhost", "Venue host.")
-	port   = flag.Uint("port", 5900, "Venue port.")
-	passwd string
+	venueHost   = flag.String("venue_host", "localhost", "Venue host.")
+	venuePort   = flag.Uint("venue_port", 5900, "Venue port.")
+	venuePasswd string
 
 	numInputs = flag.Uint("num_inputs", 48, "number of inputs")
 	period    = flag.Duration("period", 100*time.Millisecond, "period for random adjustment")
 )
 
 func flagInit() {
-	flag.StringVar(&passwd, "passwd", "", "Venue password.")
+	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue password.")
 	flag.Parse()
 }
 
 func main() {
 	flagInit()
 
-	if passwd == "" {
+	if venuePasswd == "" {
 		var err error
-		passwd, err = venuelib.GetPasswd()
+		venuePasswd, err = venuelib.GetPasswd()
 		if err != nil {
 			log.Fatalf("failed to get password; %s", err)
 		}
@@ -51,13 +53,15 @@ func main() {
 	ctxApp, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	if err := v.Connect(ctxApp, *host, *port, passwd); err != nil {
+	if err := v.Connect(ctxApp, *venueHost, *venuePort, venuePasswd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
-	v.Initialize()
+	if err := v.Initialize(); err != nil {
+		log.Fatal(err)
+	}
 	go v.ListenAndHandleCtx(ctxApp)
 	//go v.FramebufferRefresh()
 

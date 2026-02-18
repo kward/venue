@@ -1,3 +1,5 @@
+// Package main implements a command-line tool to randomly select inputs
+// to test VENUE connectivity.
 package main
 
 import (
@@ -18,9 +20,9 @@ import (
 )
 
 var (
-	host            = flag.String("venue_host", "localhost", "Venue host.")
-	port            = flag.Uint("venue_port", 5900, "Venue port.")
-	passwd          string
+	venueHost       = flag.String("venue_host", "localhost", "Venue host.")
+	venuePort       = flag.Uint("venue_port", 5900, "Venue port.")
+	venuePasswd     string
 	maxProtoVersion = flag.String("vnc_max_proto_version", "", "VNC max protocol version")
 
 	numInputs = flag.Uint("num_inputs", 48, "number of inputs")
@@ -28,16 +30,16 @@ var (
 )
 
 func flagInit() {
-	flag.StringVar(&passwd, "venue_passwd", "", "Venue password.")
+	flag.StringVar(&venuePasswd, "venue_passwd", "", "Venue password.")
 	flag.Parse()
 }
 
 func main() {
 	flagInit()
 
-	if passwd == "" {
+	if venuePasswd == "" {
 		var err error
-		passwd, err = venuelib.GetPasswd()
+		venuePasswd, err = venuelib.GetPasswd()
 		if err != nil {
 			log.Fatalf("failed to get password; %s", err)
 		}
@@ -52,20 +54,22 @@ func main() {
 	ctxApp, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	// TODO(kward:20161124) Fix how the context value is handled.
-	ctxConn := context.Context(ctxApp)
+	ctxConn := ctxApp
 	if *maxProtoVersion != "" {
 		//nolint:staticcheck // go-vnc expects the string key "vnc_max_proto_version" in context
 		ctxConn = context.WithValue(ctxApp, "vnc_max_proto_version", *maxProtoVersion)
 	}
 
 	// Establish connection with the VENUE VNC server.
-	if err := v.Connect(ctxConn, *host, *port, passwd); err != nil {
+	if err := v.Connect(ctxConn, *venueHost, *venuePort, venuePasswd); err != nil {
 		log.Fatal(err)
 	}
 	defer v.Close()
 	log.Println("Venue connection established.")
 
-	v.Initialize()
+	if err := v.Initialize(); err != nil {
+		log.Fatal(err)
+	}
 	go v.ListenAndHandleCtx(ctxApp)
 
 	// Randomly adjust an input.

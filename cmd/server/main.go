@@ -1,3 +1,5 @@
+// Package main implements the VENUE server that listens for OSC messages
+// and forwards them to a VENUE system via VNC.
 package main
 
 import (
